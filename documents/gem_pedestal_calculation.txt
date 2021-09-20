@@ -1,0 +1,60 @@
+////////////////////////////////////////////////////////////////
+// The procedure previously used in GEM pedestal calculation for SRS
+
+GEM pedestal contains: strip offset and strip noise
+A strip signal contains 6 (for instance) time samples
+
+Step 1): in each event:
+   
+  1.1) get offset common mode for each time sample
+      offset_common_mode = average ADC value for the 128 strips 
+                           in each time sample
+
+  1.2) get offset for each strip:
+      strip_offset = the average ADC for these 6 time samples
+
+  1.3) get noise  for each strip:
+     strip_noise = \Sum (ADC_in_each_time_sample - offset_commonmode[ts]) / 6
+           a.k.a the average noise for these 6 time samples
+
+Step 2): for 5000 events:
+
+  2.1) offset for each strip = Mean value of step 1.2)
+
+  2.2) noise for each strip = RMS value of step 1.3)
+
+summary: in this algorithm, except step 1.1), strips in all other steps 
+         are isolated: the calculation
+         of noise and offset of each strip has nothing to do 
+         with the other rest strips
+
+
+////////////////////////////////////////////////////////////////
+// The procedure previously used in GEM pedestal calculation for MPD
+
+Step 1): in each event
+    
+    1.1) for each time sample, sort the 128 strip ADC value
+         discard the highest 28 ADC values, discard the lowest
+         28 ADC values, take the average of the rest 72 strip
+         ADC values as commonModeValue
+
+         in this time sample, for the 128 strip ADCs, subtract 
+         each strip ADC value by that commonModeValue
+
+    1.2) generate a temprary histo for each strip
+         fill with the average ADC of the 6 time samples for each strip
+
+step 2): for 5000 events
+    
+    2.1) strip offset = mean value of the histo in step 1.2)
+
+    2.2) strip noise = RMS value of the histo in step 1.2)
+
+summary: in this algorithm, strip is not isolated. In step 1.1)
+         the common mode value is an average of all the middle
+         strips
+
+
+////////////////////////////////////////////////////////////////
+// In this codebase, the procedure for MPD was adopted

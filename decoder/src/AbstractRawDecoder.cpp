@@ -1,0 +1,17 @@
+#include "AbstractRawDecoder.h"
+
+////////////////////////////////////////////////////////////////
+// ctor
+
+AbstractRawDecoder::AbstractRawDecoder()
+{
+    // place holder
+}
+
+////////////////////////////////////////////////////////////////
+// dtor
+
+AbstractRawDecoder::~AbstractRawDecoder()
+{
+    // place holder
+}

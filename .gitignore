@@ -1,0 +1,16 @@
+viewer
+Rootfiles/
+gem/obj/
+gem/moc/
+gem/lib/
+decoder/obj/
+decoder/moc/
+decoder/lib/
+gui/obj/
+gui/moc/
+gui/database/
+fadc/obj/
+fadc/moc/
+fadc/fadc
+scripts/tmp_plots/
+.qmake.stash
