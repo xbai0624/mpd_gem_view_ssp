@@ -444,7 +444,7 @@ void Viewer::DrawEvent(int num)
 void Viewer::DrawGEMRawHistos(int num)
 {
     std::map<APVAddress, std::vector<int>> mData;
-    std::map<APVAddress, uint32_t> mDataFlags;
+    std::map<APVAddress, APVDataType> mDataFlags;
 
     // event number increased - forward
     if(num > event_number_checked) 
@@ -554,7 +554,7 @@ void Viewer::DrawGEMOnlineHits(int num)
 
     // get raw data
     std::map<APVAddress, std::vector<int>> event_data;
-    std::map<APVAddress, uint32_t> event_data_flag;
+    std::map<APVAddress, APVDataType> event_data_flag;
     if( num > event_number_checked)
     {
         event_data = event_cache.back();

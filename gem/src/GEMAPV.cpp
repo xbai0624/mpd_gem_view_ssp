@@ -564,7 +564,7 @@ void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
 // fill raw data
 // this is for MPD.
 
-void GEMAPV::FillRawDataMPD(const std::vector<int> &buf, const uint32_t &flags)
+void GEMAPV::FillRawDataMPD(const std::vector<int> &buf, const APVDataType &flags)
 {
     if(buf.size() > buffer_size) {
         std::cerr << "Received " << buf.size() << " adc words, "
@@ -918,7 +918,7 @@ void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unus
         }
     }
 #ifdef SORTING_ALGORITHM
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags, OnlineCommonModeSubtractionEnabled))
+    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
         // remove the highest 20 strips for common mode calculation
         std::vector<float> high_adc(NUM_HIGH_STRIPS, -9999.);
@@ -939,10 +939,11 @@ void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unus
             average /= (float)count;
     }
     else {
-        std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags, OnlineCommonModeSubtractionEnabled)"<<std::endl;
+        std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
+                 <<std::endl;
     }
 #elif defined(DANNING_ALGORITHM)
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags, OnlineCommonModeSubtractionEnabled))
+    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
         // 1) average A
         float averageA = 0;
@@ -976,7 +977,7 @@ void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unus
     exit(0);
 #endif
 
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags, OnlineCommonModeSubtractionEnabled))
+    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
         // common mode correction
         for(uint32_t i = 0; i < size; ++i)
@@ -1122,6 +1123,7 @@ void GEMAPV::PrintOutPedestal(std::ofstream &out)
 {
     out << "APV "
         << std::setw(16) << crate_id
+        << std::setw(16) << raw_data_flags.slot_id
         << std::setw(16) << mpd_id
         << std::setw(16) << adc_ch
         << std::endl;
@@ -1158,6 +1160,7 @@ void GEMAPV::PrintOutCommonModeRange(std::ofstream &out)
     min = 0;
 
     out << std::setw(12) << crate_id
+        << std::setw(12) << raw_data_flags.slot_id
         << std::setw(12) << mpd_id
         << std::setw(12) << adc_ch
         << std::setw(12) << static_cast<int>(min)

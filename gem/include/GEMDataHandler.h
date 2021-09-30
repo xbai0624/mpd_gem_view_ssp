@@ -15,6 +15,7 @@ class GEMRootHitTree;
 class GEMRootClusterTree;
 class MPDVMERawEventDecoder;
 class MPDSSPRawEventDecoder;
+struct APVDataType;
 
 class GEMDataHandler
 {
@@ -61,10 +62,10 @@ public:
     // feeding data
     void FeedDataSRS(const GEMRawData &gemData);
     // with online cm
-    void FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw_data, const uint32_t &flags,
+    void FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw_data, const APVDataType &flags,
             const std::vector<int> &online_common_mode);
     // online cm not available
-    void FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw_data, const uint32_t &flags);
+    void FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw_data, const APVDataType &flags);
     void FeedData(const std::vector<GEMZeroSupData> &gemData);
 
     // event storage

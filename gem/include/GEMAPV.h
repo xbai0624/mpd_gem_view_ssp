@@ -6,6 +6,7 @@
 #include <iostream>
 #include "MPDDataStruct.h"
 #include "GEMStruct.h"
+#include "MPDSSPRawEventDecoder.h"
 
 class GEMMPD;
 class GEMPlane;
@@ -65,7 +66,7 @@ public:
     void ResetPedHist();
     void FitPedestal();
     void FillRawDataSRS(const uint32_t *buf, const uint32_t &siz);
-    void FillRawDataMPD(const std::vector<int> &buf, const uint32_t &flags=0);
+    void FillRawDataMPD(const std::vector<int> &buf, const APVDataType &flags=APVDataType());
     void FillOnlineCommonMode(const std::vector<int> &);
     void FillZeroSupData(const uint32_t &ch, const uint32_t &ts, const unsigned short &val);
     void FillZeroSupData(const uint32_t &ch, const std::vector<float> &vals);
@@ -160,9 +161,9 @@ private:
     std::vector<int> noise_vec[APV_STRIP_SIZE];
 
     // raw data flags
-    // flags: lower 6-bit in effect. bit(6)=1: common mode subtracted
-    //                               bit(5)=1: build all strips (zero suppression is disabled)
-    uint32_t raw_data_flags = 0;
+    // raw_data_flag.data_flag: lower 6-bit in effect. bit(6)=1: common mode subtracted
+    //                          bit(5)=1: build all strips (zero suppression is disabled)
+    APVDataType raw_data_flags;
 
     // common mode calculated offline
     std::vector<int> offline_common_mode;

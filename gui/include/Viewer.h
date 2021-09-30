@@ -137,7 +137,7 @@ private:
     int event_number_checked = 0;
     size_t max_cache_events = 11;
     std::deque<std::map<APVAddress, std::vector<int>>> event_cache;
-    std::deque<std::map<APVAddress, uint32_t>> event_flag_cache;
+    std::deque<std::map<APVAddress, APVDataType>> event_flag_cache;
 
     // a text parser
     ConfigObject txt_parser;

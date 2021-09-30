@@ -8,6 +8,7 @@ decoder/moc/
 decoder/lib/
 gui/obj/
 gui/moc/
+gui/example/
 gui/database/
 fadc/obj/
 fadc/moc/

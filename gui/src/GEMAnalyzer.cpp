@@ -133,7 +133,7 @@ void GEMAnalyzer::CloseFile()
 // fill event histos
 
 void GEMAnalyzer::FillHistos(const std::unordered_map<APVAddress, std::vector<int>> &event_data,
-        const std::unordered_map<APVAddress, uint32_t> &event_data_flags)
+        const std::unordered_map<APVAddress, APVDataType> &event_data_flags)
 {
     int nAPV = 0;
     for(auto &i: event_data)
@@ -172,7 +172,7 @@ const std::unordered_map<APVAddress, std::vector<int>> & GEMAnalyzer::GetData() 
 ////////////////////////////////////////////////////////////////////////////////
 // get raw data flags
 
-const std::unordered_map<APVAddress, uint32_t> & GEMAnalyzer::GetDataFlags() const
+const std::unordered_map<APVAddress, APVDataType> & GEMAnalyzer::GetDataFlags() const
 {
     return rawDataFlags;
 }

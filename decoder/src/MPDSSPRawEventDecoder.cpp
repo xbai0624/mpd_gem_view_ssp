@@ -110,6 +110,7 @@ void MPDSSPRawEventDecoder::DecodeAPV(const uint32_t *pBuf, uint32_t fBufLen,
         // reorganize data into time sample format
         if(mAPVData.find(apvAddress) == mAPVData.end()) {
             mAPVData[apvAddress].resize(SSP_TIME_SAMPLE * TS_PERIOD_LEN, 0);
+            flags.SetAPVAddress(apvAddress);
             mAPVDataFlags[apvAddress] = flags;
         }
 
@@ -147,7 +148,7 @@ MPDSSPRawEventDecoder::GetAPV() const
 ////////////////////////////////////////////////////////////////
 // get decoded apv data flags
 
-const std::unordered_map<APVAddress, uint32_t> &
+const std::unordered_map<APVAddress, APVDataType> &
 MPDSSPRawEventDecoder::GetAPVDataFlags() const
 {
     return mAPVDataFlags;
@@ -224,6 +225,7 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
 
                 // for SSP, if VTP, comment out this line
                 //apvAddress.crate_id = d.bf.slot_number;
+                flags.slot_id = d.bf.slot_number;
 
                 break;
             }
@@ -288,7 +290,7 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                     //        d.bf.mpd_id);
                     //print_binary(data);
 
-                    flags = d.bf.flags;
+                    flags.data_flag = d.bf.flags;
                     apvAddress.mpd_id = d.bf.fiber;
 
                     apv_data_word = 1;

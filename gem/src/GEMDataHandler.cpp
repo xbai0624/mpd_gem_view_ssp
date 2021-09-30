@@ -118,7 +118,7 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
 #endif
     const std::unordered_map<APVAddress, std::vector<int>> & decoded_data 
         = decoder->GetAPV();
-    const std::unordered_map<APVAddress, uint32_t> & decoded_data_flags
+    const std::unordered_map<APVAddress, APVDataType> & decoded_data_flags
         = decoder -> GetAPVDataFlags();
     const std::unordered_map<APVAddress, std::vector<int>> &decoded_online_cm
         = decoder -> GetAPVOnlineCommonMode();
@@ -454,7 +454,7 @@ void GEMDataHandler::FeedDataSRS(const GEMRawData &gemData)
 // feed gem data, for MPD
 
 void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-        const uint32_t &flags, const std::vector<int> &online_common_mode)
+        const APVDataType &flags, const std::vector<int> &online_common_mode)
 {
     if(gem_sys)
         gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event);
@@ -464,7 +464,7 @@ void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> 
 // feed gem data, for MPD
 
 void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-        const uint32_t &flags)
+        const APVDataType &flags)
 {
     if(gem_sys)
         gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event);

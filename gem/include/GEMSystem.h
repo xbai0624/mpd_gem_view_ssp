@@ -12,6 +12,8 @@
 #include "ConfigObject.h"
 #include <mutex>
 
+struct APVDataType;
+
 // mpd id should be consecutive from 0
 // enlarge this value if there are more MPDs
 #define MAX_MPD_ID 300
@@ -121,10 +123,10 @@ public:
     void FillRawDataSRS(const GEMRawData &raw, EventData &event);
     // online cm availabe
     void FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-            const uint32_t &flags, const std::vector<int> &online_cm, EventData &event);
+            const APVDataType &flags, const std::vector<int> &online_cm, EventData &event);
     // online cm not available
     void FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-            const uint32_t &flags, EventData &event);
+            const APVDataType &flags, EventData &event);
     void FillZeroSupData(const std::vector<GEMZeroSupData> &data_pack, EventData &event);
     void FillZeroSupData(const GEMZeroSupData &data);
     bool Register(GEMDetector *det);

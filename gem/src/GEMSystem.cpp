@@ -356,8 +356,14 @@ void GEMSystem::ReadNoiseAndOffset(const std::string &path)
         ConfigValue first = c_parser.TakeFirst();
 
         if(first == "APV") { // a new APV
-            int crate_id, mpd, adc;
-            c_parser >> crate_id >> mpd >> adc;
+            int crate_id, mpd, adc, slot_id;
+            if(c_parser.NbofElements() == 3)
+                c_parser >> crate_id >> mpd >> adc;
+            else if(c_parser.NbofElements() == 4)
+                c_parser >> crate_id >> slot_id >> mpd >> adc;
+            else
+                std::cout<<"Error: unsupported pedestal file."
+                         <<std::endl;
 
             apv = GetAPV(crate_id, mpd, adc);
 
@@ -397,10 +403,16 @@ void GEMSystem::ReadCommonMode(const std::string &path)
 
     while(c_parser.ParseLine())
     {
-        int crate_id, mpd, adc;
+        int crate_id, mpd, adc, slot_id;
         float min, max;
-        c_parser >> crate_id >> mpd >> adc >> min >> max;
-
+        if(c_parser.NbofElements() == 5)
+            c_parser >> crate_id >> mpd >> adc >> min >> max;
+        else if(c_parser.NbofElements() == 6)
+            c_parser >> crate_id >> slot_id >> mpd >> adc >> min >> max;
+        else
+            std::cout<<"Error: Unsupported common mode file."
+                     <<std::endl;
+ 
         apv = GetAPV(crate_id, mpd, adc);
 
         if(apv == nullptr) {
@@ -622,7 +634,7 @@ void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event)
 
 // fill raw data to a certain apv, online cm available
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-        const uint32_t &flags, const std::vector<int> &online_cm, EventData &event)
+        const APVDataType &flags, const std::vector<int> &online_cm, EventData &event)
 {
     GEMAPV *apv = GetAPV(addr);
 
@@ -652,7 +664,7 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
 
 // fill raw data to a certain apv, online cm not availabe
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-        const uint32_t &flags, EventData &event)
+        const APVDataType &flags, EventData &event)
 {
     GEMAPV *apv = GetAPV(addr);
 
