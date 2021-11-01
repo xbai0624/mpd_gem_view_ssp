@@ -123,6 +123,11 @@ void Viewer::AddMenuBar()
     pMenuBar -> addMenu(new QMenu("Edit"));
     // Format menu
     pMenuBar -> addMenu(new QMenu("Format"));
+    // online analysis
+    pOnlineAnalysis = new QMenu("Online Analysis");
+    pOpenAnalysisInterface = new QAction("Interface", this);
+    pOnlineAnalysis -> addAction(pOpenAnalysisInterface);
+    pMenuBar -> addMenu(pOnlineAnalysis);
     // Help Menu
     pMenuBar -> addMenu(new QMenu("Help"));
 
@@ -315,6 +320,8 @@ void Viewer::InitCtrlInterface()
     connect(btn_choose_common_mode, SIGNAL(pressed()), this, SLOT(ChooseCommonMode()));
     connect(le_pedestal_for_replay, SIGNAL(textChanged(const QString &)), this, SLOT(SetPedestalInputPath(const QString &)));
     connect(le_common_mode_for_replay, SIGNAL(textChanged(const QString &)), this, SLOT(SetCommonModeInputPath(const QString &)));
+    // connect online analysis
+    connect(pOpenAnalysisInterface, SIGNAL(triggered()), this, SLOT(OpenOnlineAnalysisInterface()));
 }
 
  
@@ -1067,4 +1074,10 @@ void Viewer::ReplayCluster()
 
     pLogBox -> setTextColor(QColor("black"));
     pLogBox -> textCursor().insertText("Done.\n");
+}
+
+void Viewer::OpenOnlineAnalysisInterface()
+{
+    winOnlineInterface = new OnlineAnalysisInterface();
+    winOnlineInterface -> show();
 }

@@ -9,6 +9,7 @@
 #include "ConfigObject.h"
 #include "HistoWidget.h"
 #include "Detector2DView.h"
+#include "OnlineAnalysisInterface.h"
 
 #include <QMainWindow>
 #include <QPushButton>
@@ -77,6 +78,7 @@ public slots:
     void GeneratePedestal();
     void ReplayHit();
     void ReplayCluster();
+    void OpenOnlineAnalysisInterface();
 
 private:
     // layout
@@ -102,6 +104,8 @@ private:
     // menu bar
     QMenu *pMenu;
     QMenuBar *pMenuBar;
+    QMenu *pOnlineAnalysis;
+    QAction *pOpenAnalysisInterface;
     // open file (line input)
     QLineEdit *file_indicator;
     // print info on the gui
@@ -109,6 +113,9 @@ private:
 
     // show detector 2d strips for eye-ball tracking
     Detector2DView *det_view;
+
+    // online analysis interface window
+    OnlineAnalysisInterface *winOnlineInterface;
 
     // number of tabs
     int nTab = 12; // number of tabs for apv raw histos

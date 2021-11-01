@@ -65,11 +65,13 @@ SOURCES       = src/main.cpp \
 		src/Detector2DView.cpp \
 		src/HistoWidget.cpp \
 		src/InfoCenter.cpp \
-		src/ColorSpectrum.cpp moc/moc_QRootCanvas.cpp \
+		src/ColorSpectrum.cpp \
+		src/OnlineAnalysisInterface.cpp moc/moc_QRootCanvas.cpp \
 		moc/moc_QMainCanvas.cpp \
 		moc/moc_Viewer.cpp \
 		moc/moc_ComponentsSchematic.cpp \
-		moc/moc_HistoWidget.cpp
+		moc/moc_HistoWidget.cpp \
+		moc/moc_OnlineAnalysisInterface.cpp
 OBJECTS       = obj/main.o \
 		obj/QRootCanvas.o \
 		obj/QMainCanvas.o \
@@ -84,11 +86,13 @@ OBJECTS       = obj/main.o \
 		obj/HistoWidget.o \
 		obj/InfoCenter.o \
 		obj/ColorSpectrum.o \
+		obj/OnlineAnalysisInterface.o \
 		obj/moc_QRootCanvas.o \
 		obj/moc_QMainCanvas.o \
 		obj/moc_Viewer.o \
 		obj/moc_ComponentsSchematic.o \
-		obj/moc_HistoWidget.o
+		obj/moc_HistoWidget.o \
+		obj/moc_OnlineAnalysisInterface.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/common/unix.conf \
 		/usr/lib64/qt5/mkspecs/common/linux.conf \
@@ -177,7 +181,8 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		include/Detector2DView.h \
 		include/HistoWidget.h \
 		include/InfoCenter.h \
-		include/ColorSpectrum.h src/main.cpp \
+		include/ColorSpectrum.h \
+		include/OnlineAnalysisInterface.h src/main.cpp \
 		src/QRootCanvas.cpp \
 		src/QMainCanvas.cpp \
 		src/Viewer.cpp \
@@ -190,7 +195,8 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		src/Detector2DView.cpp \
 		src/HistoWidget.cpp \
 		src/InfoCenter.cpp \
-		src/ColorSpectrum.cpp
+		src/ColorSpectrum.cpp \
+		src/OnlineAnalysisInterface.cpp
 QMAKE_TARGET  = viewer
 DESTDIR       = ../
 TARGET        = ../viewer
@@ -373,8 +379,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/QRootCanvas.h include/QMainCanvas.h include/Viewer.h include/ComponentsSchematic.h include/GEMAnalyzer.h include/GEMReplay.h include/HistoItem.h include/HistoView.h include/Detector2DItem.h include/Detector2DView.h include/HistoWidget.h include/InfoCenter.h include/ColorSpectrum.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/QRootCanvas.cpp src/QMainCanvas.cpp src/Viewer.cpp src/ComponentsSchematic.cpp src/GEMAnalyzer.cpp src/GEMReplay.cpp src/HistoItem.cpp src/HistoView.cpp src/Detector2DItem.cpp src/Detector2DView.cpp src/HistoWidget.cpp src/InfoCenter.cpp src/ColorSpectrum.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/QRootCanvas.h include/QMainCanvas.h include/Viewer.h include/ComponentsSchematic.h include/GEMAnalyzer.h include/GEMReplay.h include/HistoItem.h include/HistoView.h include/Detector2DItem.h include/Detector2DView.h include/HistoWidget.h include/InfoCenter.h include/ColorSpectrum.h include/OnlineAnalysisInterface.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/main.cpp src/QRootCanvas.cpp src/QMainCanvas.cpp src/Viewer.cpp src/ComponentsSchematic.cpp src/GEMAnalyzer.cpp src/GEMReplay.cpp src/HistoItem.cpp src/HistoView.cpp src/Detector2DItem.cpp src/Detector2DView.cpp src/HistoWidget.cpp src/InfoCenter.cpp src/ColorSpectrum.cpp src/OnlineAnalysisInterface.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -406,9 +412,9 @@ compiler_moc_predefs_clean:
 moc/moc_predefs.h: /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 	g++ -std=c++11 -O2 -g -dM -E -o moc/moc_predefs.h /usr/lib64/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc/moc_QRootCanvas.cpp moc/moc_QMainCanvas.cpp moc/moc_Viewer.cpp moc/moc_ComponentsSchematic.cpp moc/moc_HistoWidget.cpp
+compiler_moc_header_make_all: moc/moc_QRootCanvas.cpp moc/moc_QMainCanvas.cpp moc/moc_Viewer.cpp moc/moc_ComponentsSchematic.cpp moc/moc_HistoWidget.cpp moc/moc_OnlineAnalysisInterface.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc/moc_QRootCanvas.cpp moc/moc_QMainCanvas.cpp moc/moc_Viewer.cpp moc/moc_ComponentsSchematic.cpp moc/moc_HistoWidget.cpp
+	-$(DEL_FILE) moc/moc_QRootCanvas.cpp moc/moc_QMainCanvas.cpp moc/moc_Viewer.cpp moc/moc_ComponentsSchematic.cpp moc/moc_HistoWidget.cpp moc/moc_OnlineAnalysisInterface.cpp
 moc/moc_QRootCanvas.cpp: include/QRootCanvas.h \
 		moc/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
@@ -453,6 +459,7 @@ moc/moc_Viewer.cpp: include/Viewer.h \
 		include/HistoItem.h \
 		include/Detector2DView.h \
 		include/Detector2DItem.h \
+		include/OnlineAnalysisInterface.h \
 		moc/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/moc/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/include -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/decoder/include -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gem/include -I'/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/${ROOTSYS}/include' -I'/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/${CODA}/common/include' -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include include/Viewer.h -o moc/moc_Viewer.cpp
@@ -471,6 +478,11 @@ moc/moc_HistoWidget.cpp: include/HistoWidget.h \
 		moc/moc_predefs.h \
 		/usr/lib64/qt5/bin/moc
 	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/moc/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/include -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/decoder/include -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gem/include -I'/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/${ROOTSYS}/include' -I'/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/${CODA}/common/include' -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include include/HistoWidget.h -o moc/moc_HistoWidget.cpp
+
+moc/moc_OnlineAnalysisInterface.cpp: include/OnlineAnalysisInterface.h \
+		moc/moc_predefs.h \
+		/usr/lib64/qt5/bin/moc
+	/usr/lib64/qt5/bin/moc $(DEFINES) --include /home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/moc/moc_predefs.h -I/usr/lib64/qt5/mkspecs/linux-g++ -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/include -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/decoder/include -I/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gem/include -I'/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/${ROOTSYS}/include' -I'/home/daq/test/MPD_tedf/MPD_GEM_View_SSP/gui/${CODA}/common/include' -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I/usr/include/c++/8 -I/usr/include/c++/8/x86_64-redhat-linux -I/usr/include/c++/8/backward -I/usr/lib/gcc/x86_64-redhat-linux/8/include -I/usr/local/include -I/usr/include include/OnlineAnalysisInterface.h -o moc/moc_OnlineAnalysisInterface.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -519,7 +531,8 @@ obj/main.o: src/main.cpp include/Viewer.h \
 		include/HistoView.h \
 		include/HistoItem.h \
 		include/Detector2DView.h \
-		include/Detector2DItem.h
+		include/Detector2DItem.h \
+		include/OnlineAnalysisInterface.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o src/main.cpp
 
 obj/QRootCanvas.o: src/QRootCanvas.cpp include/QRootCanvas.h
@@ -562,6 +575,7 @@ obj/Viewer.o: src/Viewer.cpp include/Viewer.h \
 		include/HistoItem.h \
 		include/Detector2DView.h \
 		include/Detector2DItem.h \
+		include/OnlineAnalysisInterface.h \
 		include/InfoCenter.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Viewer.o src/Viewer.cpp
 
@@ -589,6 +603,9 @@ obj/GEMReplay.o: src/GEMReplay.cpp include/GEMReplay.h \
 		../decoder/include/MPDDataStruct.h \
 		../gem/include/GEMPlane.h \
 		../gem/include/GEMAPV.h \
+		../decoder/include/MPDSSPRawEventDecoder.h \
+		../decoder/include/AbstractRawDecoder.h \
+		../decoder/include/RolStruct.h \
 		../gem/include/ConfigParser.h \
 		../gem/include/ConfigValue.h \
 		../gem/include/GEMMPD.h \
@@ -597,7 +614,6 @@ obj/GEMReplay.o: src/GEMReplay.cpp include/GEMReplay.h \
 		../gem/include/GEMDataHandler.h \
 		../decoder/include/EventParser.h \
 		../decoder/include/GeneralEvioStruct.h \
-		../decoder/include/AbstractRawDecoder.h \
 		../decoder/include/EvioFileReader.h \
 		../gem/include/APVStripMapping.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/GEMReplay.o src/GEMReplay.cpp
@@ -611,11 +627,19 @@ obj/HistoItem.o: src/HistoItem.cpp include/HistoItem.h \
 obj/HistoView.o: src/HistoView.cpp include/HistoView.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/HistoView.o src/HistoView.cpp
 
-obj/Detector2DItem.o: src/Detector2DItem.cpp include/Detector2DItem.h
+obj/Detector2DItem.o: src/Detector2DItem.cpp include/Detector2DItem.h \
+		include/ColorSpectrum.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Detector2DItem.o src/Detector2DItem.cpp
 
 obj/Detector2DView.o: src/Detector2DView.cpp include/Detector2DView.h \
-		include/Detector2DItem.h
+		include/Detector2DItem.h \
+		include/ColorSpectrum.h \
+		../gem/include/APVStripMapping.h \
+		../gem/include/GEMStruct.h \
+		../decoder/include/MPDDataStruct.h \
+		../gem/include/ConfigObject.h \
+		../gem/include/ConfigParser.h \
+		../gem/include/ConfigValue.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Detector2DView.o src/Detector2DView.cpp
 
 obj/HistoWidget.o: src/HistoWidget.cpp include/HistoWidget.h \
@@ -632,6 +656,9 @@ obj/InfoCenter.o: src/InfoCenter.cpp include/InfoCenter.h
 obj/ColorSpectrum.o: src/ColorSpectrum.cpp include/ColorSpectrum.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/ColorSpectrum.o src/ColorSpectrum.cpp
 
+obj/OnlineAnalysisInterface.o: src/OnlineAnalysisInterface.cpp include/OnlineAnalysisInterface.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/OnlineAnalysisInterface.o src/OnlineAnalysisInterface.cpp
+
 obj/moc_QRootCanvas.o: moc/moc_QRootCanvas.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_QRootCanvas.o moc/moc_QRootCanvas.cpp
 
@@ -646,6 +673,9 @@ obj/moc_ComponentsSchematic.o: moc/moc_ComponentsSchematic.cpp
 
 obj/moc_HistoWidget.o: moc/moc_HistoWidget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_HistoWidget.o moc/moc_HistoWidget.cpp
+
+obj/moc_OnlineAnalysisInterface.o: moc/moc_OnlineAnalysisInterface.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/moc_OnlineAnalysisInterface.o moc/moc_OnlineAnalysisInterface.cpp
 
 ####### Install
 

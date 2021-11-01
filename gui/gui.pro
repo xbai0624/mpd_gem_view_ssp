@@ -83,6 +83,7 @@ HEADERS += include/QRootCanvas.h \
            include/HistoWidget.h \
            include/InfoCenter.h \
            include/ColorSpectrum.h \
+           include/OnlineAnalysisInterface.h \
 
 SOURCES += src/main.cpp \
            src/QRootCanvas.cpp \
@@ -98,3 +99,4 @@ SOURCES += src/main.cpp \
            src/HistoWidget.cpp \
            src/InfoCenter.cpp \
            src/ColorSpectrum.cpp \
+           src/OnlineAnalysisInterface.cpp \
