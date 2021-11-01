@@ -1,0 +1,341 @@
+###############################################################
+# apv configurations
+# Items    : the current configuration (APV)
+# CrateID  : the Unique ID for the VME Crate
+# MPDID    : MPD address in VME Crate
+# GEMID    : detector ID
+# dimension: x/y 0/1
+# ADCId    : the ADCId address of APV
+# I2C      : the I2C address of APV
+# Pos      : Position
+# Invert   : how the detector is positioned in the layer First two are normal (1) last two are inverted (0)
+# other    : backup param used for large scare spectrometer
+#
+# notes    : MPD CrateID and MPDID  uniquely define the MPD address
+#            APV crateID, MPDID ADCId uniquely define the APV address
+
+###############################################################
+# layer configurations
+# Items             : Layer
+# LayerID           : layer id
+# ChambersPerLayer  : how many chambers on this layer
+# readout           : readout type (Cartesian/UV)
+# XOffset           : x offset
+# YOffset           : y offset
+# GEMType           : gem chamber type (UVAGEM/INFNGEM/UVGEM)
+# nb_of_apvs_on_chamber_x_plane: how many APVs on gem chamber x plane
+# nb_of_apvs_on_chamber_y_plane: how many APVs on gem chamber y plane
+# x_pitch           : distance between readout strips on chamber x plane (0.4 mm)
+# y_pitch           : distance between readout strips on chamber y plane (0.4 mm)
+# x_flip            : flip x direction: 1 not flip, -1 flip
+# y_flip            : flip y direction or not (if you install two layers back to back, then one layer can be set to -1)
+
+# Layer configurations
+# Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch
+
+Layer,  1,  3,  CARTESIAN,  0,   0,   INFNGEM,   10,   8,   0.4,    0.4,    1,  1
+Layer,  3,  3,  CARTESIAN,  0,   0,   INFNGEM,   10,   8,   0.4,    0.4,    1,  1
+Layer,  4,  4,  CARTESIAN,  0,   0,   UVAGEM,   10,   12,   0.4,    0.4,    1,  1
+
+
+###############################################################
+# This section is for SSP
+###############################################################
+#Items, slot_id,    Layer,  fiber_id,   GEMID,  dimension,  ADCId,  I2C,    Pos,    Invert, other,  backplane,  GEMPOS
+#============================= Crate_0 Layer_2 GEM_0 ===================================
+#
+# Y-dimension fiber 13
+APV,	6,	4,	13,	13,	1,	0,	15,	11,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	1,	14,	10,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	2,	13,	9,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	3,	12,	8,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	4,	11,	7,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	5,	10,	6,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	6,	9,	5,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	7,	8,	4,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	8,	7,	3,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	9,	6,	2,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	10,	5,	1,	0,	normal,	0,	0,
+APV,	6,	4,	13,	13,	1,	11,	4,	0,	0,	normal,	0,	0,
+#
+# X-dimension A (right) fiber 5
+APV,	6,	4,	5,	13,	0,	10,	4,	9,	1,	normal,	1,	0,
+APV,	6,	4,	5,	13,	0,	11,	3,	8,	1,	normal,	1,	0,
+APV,	6,	4,	5,	13,	0,	12,	2,	7,	1,	normal,	1,	0,
+APV,	6,	4,	5,	13,	0,	13,	1,	6,	1,	normal,	1,	0,
+APV,	6,	4,	5,	13,	0,	14,	0,	5,	1,	normal,	1,	0,
+#
+# X-dimension B (left) fiber 6
+APV,	6,	4,	6,	13,	0,	0,	4,	0,	0,	normal,	2,	0,
+APV,	6,	4,	6,	13,	0,	1,	3,	1,	0,	normal,	2,	0,
+APV,	6,	4,	6,	13,	0,	2,	2,	2,	0,	normal,	2,	0,
+APV,	6,	4,	6,	13,	0,	3,	1,	3,	0,	normal,	2,	0,
+APV,	6,	4,	6,	13,	0,	4,	0,	4,	0,	normal,	2,	0,
+#
+#============================= Crate_0 Layer_2 GEM_1 ===================================
+# Y-dimension fiber 14
+APV,	6,	4,	14,	20,	1,	0,	15,	11,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	1,	14,	10,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	2,	13,	9,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	3,	12,	8,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	4,	11,	7,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	5,	10,	6,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	6,	9,	5,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	7,	8,	4,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	8,	7,	3,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	9,	6,	2,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	10,	5,	1,	0,	normal,	0,	1,
+APV,	6,	4,	14,	20,	1,	11,	4,	0,	0,	normal,	0,	1,
+#
+# X-dimension A (right) fiber 5
+APV,	6,	4,	5,	20,	0,	5,	12,	9,	1,	normal,	1,	1,
+APV,	6,	4,	5,	20,	0,	6,	11,	8,	1,	normal,	1,	1,
+APV,	6,	4,	5,	20,	0,	7,	10,	7,	1,	normal,	1,	1,
+APV,	6,	4,	5,	20,	0,	8,	9,	6,	1,	normal,	1,	1,
+APV,	6,	4,	5,	20,	0,	9,	8,	5,	1,	normal,	1,	1,
+#
+# X-dimension B (left) fiber 6
+APV,	6,	4,	6,	20,	0,	5,	12,	0,	0,	normal,	2,	1,
+APV,	6,	4,	6,	20,	0,	6,	11,	1,	0,	normal,	2,	1,
+APV,	6,	4,	6,	20,	0,	7,	10,	2,	0,	normal,	2,	1,
+APV,	6,	4,	6,	20,	0,	8,	9,	3,	0,	normal,	2,	1,
+APV,	6,	4,	6,	20,	0,	9,	8,	4,	0,	normal,	2,	1,
+#
+#============================= Crate_0 Layer_2 GEM_2 ===================================
+# Y-dimension fiber 15
+APV,	6,	4,	15,	17,	1,	0,	15,	0,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	1,	14,	1,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	2,	13,	2,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	3,	12,	3,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	4,	11,	4,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	5,	10,	5,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	6,	9,	6,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	7,	8,	7,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	8,	7,	8,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	9,	6,	9,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	10,	5,	10,	1,	normal,	0,	2,
+APV,	6,	4,	15,	17,	1,	11,	4,	11,	1,	normal,	0,	2,
+#
+# X-dimension A (right) fiber 5
+APV,	6,	4,	5,	17,	0,	0,	20,	9,	1,	normal,	1,	2,
+APV,	6,	4,	5,	17,	0,	1,	19,	8,	1,	normal,	1,	2,
+APV,	6,	4,	5,	17,	0,	2,	18,	7,	1,	normal,	1,	2,
+APV,	6,	4,	5,	17,	0,	3,	17,	6,	1,	normal,	1,	2,
+APV,	6,	4,	5,	17,	0,  	4,	16,	5,  	1,	normal,	1,	2,
+#
+# X-dimension B (left) fiber 6
+APV,	6,	4,	6,	17,	0,	10,	20,	0,	0,	normal,	2,	2,
+APV,	6,	4,	6,	17,	0,	11,	19,	1,	0,	normal,	2,	2,
+APV,	6,	4,	6,	17,	0,	12,	18,	2,	0,	normal,	2,	2,
+APV,	6,	4,	6,	17,	0,	13,	17,	3,	0,	normal,	2,	2,
+APV,	6,	4,	6,	17,	0,	14,	16,	4,	0,	normal,	2,	2,
+#
+#============================= Crate_0 Layer_2 GEM_3 ===================================
+# Y-dimension fiber 
+APV,	6,	4,	4,	25,	1,	0,	15,	0,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	1,	14,	1,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	2,	13,	2,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	3,	12,	3,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	4,	11,	4,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	5,	10,	5,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	6,	9,	6,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	7,	8,	7,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	8,	7,	8,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	9,	6,	9,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	10,	5,	10,	1,	normal,	0,	3,
+APV,	6,	4,	4,	25,	1,	11,	4,	11,	1,	normal,	0,	3,
+#
+# X-dimension A (right) fiber 7 
+APV,	6,	4,	7,	25,	0,	0,	4,	9,	1,	normal,	1,	3,
+APV,	6,	4,	7,	25,	0,	1,	3,	8,	1,	normal,	1,	3,
+APV,	6,	4,	7,	25,	0,	2,	2,	7,	1,	normal,	1,	3,
+APV,	6,	4,	7,	25,	0,	3,	1,	6,	1,	normal,	1,	3,
+APV,	6,	4,	7,	25,	0,	4,	0,	5,	1,	normal,	1,	3,
+#
+# X-dimension B (left) fiber 7
+APV,	6,	4,	7,	25,	0,	8,	12,	0,	0,	normal,	2,	3,
+APV,	6,	4,	7,	25,	0,	9,	11,	1,	0,	normal,	2,	3,
+APV,	6,	4,	7,	25,	0,	10,	10,	2,	0,	normal,	2,	3,
+APV,	6,	4,	7,	25,	0,	11,	9,	3,	0,	normal,	2,	3,
+APV,	6,	4,	7,	25,	0,	12,	8,  	4,	0,	normal,	2,	3,
+#
+#============================= Crate_1 Layer_J0 ===================================
+# J0:M_0_Y_L (Left) - rigid
+APV,	6,	1,	0,	24,	0,	0,	0,	1,	1,	normal, 0,	2,
+APV,	6,	1,	0,	24,	0,	1,	1,	3,	1,	normal, 0,	2,
+APV,	6,	1,	0,	24,	0,	2,	2,	5,	1,	normal, 0,	2,
+APV,	6,	1,	0,	24,	0,	3,	3,	7,	1,	normal, 0,	2,
+APV,	6,	1,	0,	24,	0,	4,	4,	9,	1,	normal, 0,	2,
+
+# J0:M_1_Y_L - rigid
+
+APV,	6,	1,	0,	15,	0,	5,	8,	1,	1,	normal, 0,	1,
+APV,	6,	1,	0,	15,	0,	6,	9,	3,	1,	normal, 0,	1,
+APV,	6,	1,	0,	15,	0,	7,	10,	5,	1,	normal, 0,	1,
+APV,	6,	1,	0,	15,	0,	8,	11,	7,	1,	normal, 0,	1,
+APV,	6,	1,	0,	15,	0,	9,	12,	9,	1,	normal, 0,	1,
+
+# J0:M_2_Y_L - rigid
+
+APV,	6,	1,	0,	12,	0,	10,	16,	1,	1,	normal, 0,	0,
+APV,	6,	1,	0,	12,	0,	11,	17,	3,	1,	normal, 0,	0,
+APV,	6,	1,	0,	12,	0,	12,	18,	5,	1,	normal, 0,	0,
+APV,	6,	1,	0,	12,	0,	13,	19,	7,	1,	normal, 0,	0,
+APV,	6,	1,	0,	12,	0,	14,	20,	9,	1,	normal, 0,	0,
+
+# J0:M_0_X_T (Top) - flex-v1 inverted
+
+APV,	6,	1,	1,	24,	1,	4,	0,	1,	1,	normal, 0,	2,
+APV,	6,	1,	1,	24,	1,	3,	1,	3,	1,	normal, 0,	2,
+APV,	6,	1,	1,	24,	1,	2,	2,	5,	1,	normal, 0,	2,
+APV,	6,	1,	1,	24,	1,	1,	3,	7,	1,	normal, 0,	2,
+
+# J0:M_1_X_T - flex-v1 inverted
+
+APV,	6,	1,	1,	15,	1,	9,	8,	1,	1,	normal, 0,	1,
+APV,	6,	1,	1,	15,	1,	8,	9,	3,	1,	normal, 0,	1,
+APV,	6,	1,	1,	15,	1,	7,	10,	5,	1,	normal, 0,	1,
+APV,	6,	1,	1,	15,	1,	6,	11,	7,	1,	normal, 0,	1,
+
+# J0:M_2_X_T - rigid
+
+APV,	6,	1,	1,	12,	1,	10,	16,	1,	1,	normal, 0,	0,
+APV,	6,	1,	1,	12,	1,	11,	17,	3,	1,	normal, 0,	0,
+APV,	6,	1,	1,	12,	1,	12,	18,	5,	1,	normal, 0,	0,
+APV,	6,	1,	1,	12,	1,	13,	19,	7,	1,	normal, 0,	0,
+
+# J0:M_0_Y_R (Right) - rigid
+
+APV,	6,	1,	2,	24,	0,	0,	0,	8,	0,	normal, 0,	2,
+APV,	6,	1,	2,	24,	0,	1,	1,	6,	0,	normal, 0,	2,
+APV,	6,	1,	2,	24,	0,	2,	2,	4,	0,	normal, 0,	2,
+APV,	6,	1,	2,	24,	0,	3,	3,	2,	0,	normal, 0,	2,
+APV,	6,	1,	2,	24,	0,	4,	4,	0,	0,	normal, 0,	2,
+
+# J0:M_1_Y_R - rigid
+
+APV,	6,	1,	2,	15,	0,	5,	8,	8,	0,	normal, 0,	1,
+APV,	6,	1,	2,	15,	0,	6,	9,	6,	0,	normal, 0,	1,
+APV,	6,	1,	2,	15,	0,	7,	10,	4,	0,	normal, 0,	1,
+APV,	6,	1,	2,	15,	0,	8,	11,	2,	0,	normal, 0,	1,
+APV,	6,	1,	2,	15,	0,	9,	12,	0,	0,	normal, 0,	1,
+
+# J0:M_2_Y_R - rigid
+
+APV,	6,	1,	2,	12,	0,	10,	16,	8,	0,	normal, 0,	0,
+APV,	6,	1,	2,	12,	0,	11,	17,	6,	0,	normal, 0,	0,
+APV,	6,	1,	2,	12,	0,	12,	18,	4,	0,	normal, 0,	0,
+APV,	6,	1,	2,	12,	0,	13,	19,	2,	0,	normal, 0,	0,
+APV,	6,	1,	2,	12,	0,	14,	20,	0,	0,	normal, 0,	0,
+
+# J0:M_0_X_B (Bottom) - rigid
+
+APV,	6,	1,	3,	24,	1,	0,	0,	6,	0,	normal, 0,	2,
+APV,	6,	1,	3,	24,	1,	1,	1,	4,	0,	normal, 0,	2,
+APV,	6,	1,	3,	24,	1,	2,	2,	2,	0,	normal, 0,	2,
+APV,	6,	1,	3,	24,	1,	3,	3,	0,	0,	normal, 0,	2,
+
+# J0:M_1_X_B - flex-v1 inverted
+
+APV,	6,	1,	3,	15,	1,	9,	8,	6,	0,	normal, 0,	1,
+APV,	6,	1,	3,	15,	1,	8,	9,	4,	0,	normal, 0,	1,
+APV,	6,	1,	3,	15,	1,	7,	10,	2,	0,	normal, 0,	1,
+APV,	6,	1,	3,	15,	1,	6,	11,	0,	0,	normal, 0,	1,
+
+# J0:M_2_X_B - flex-v1 inverted
+
+APV,	6,	1,	3,	12,	1,	14,	16,	6,	0,	normal, 0,	0,
+APV,	6,	1,	3,	12,	1,	13,	17,	4,	0,	normal, 0,	0,
+APV,	6,	1,	3,	12,	1,	12,	18,	2,	0,	normal, 0,	0,
+APV,	6,	1,	3,	12,	1,	11,	19,	0,	0,	normal, 0,	0,
+#============================= Crate_1 Layer_J2 ===================================
+# J2:M_0_Y_L (Left) - rigid
+
+APV,	6,	3,	8,	18,	0,	0,	0,	1,	1,	normal, 0,	2,
+APV,	6,	3,	8,	18,	0,	1,	1,	3,	1,	normal, 0,	2,
+APV,	6,	3,	8,	18,	0,	2,	2,	5,	1,	normal, 0,	2,
+APV,	6,	3,	8,	18,	0,	3,	3,	7,	1,	normal, 0,	2,
+APV,	6,	3,	8,	18,	0,	4,	4,	9,	1,	normal, 0,	2,
+
+# J2:M_1_Y_L - rigid
+
+APV,	6,	3,	8,	0,	0,	5,	8,	1,	1,	normal, 0,	1,
+APV,	6,	3,	8,	0,	0,	6,	9,	3,	1,	normal, 0,	1,
+APV,	6,	3,	8,	0,	0,	7,	10,	5,	1,	normal, 0,	1,
+APV,	6,	3,	8,	0,	0,	8,	11,	7,	1,	normal, 0,	1,
+APV,	6,	3,	8,	0,	0,	9,	12,	9,	1,	normal, 0,	1,
+
+# J2:M_2_Y_L - rigid
+
+APV,	6,	3,	8,	4,	0,	10,	16,	1,	1,	normal, 0,	0,
+APV,	6,	3,	8,	4,	0,	11,	17,	3,	1,	normal, 0,	0,
+APV,	6,	3,	8,	4,	0,	12,	18,	5,	1,	normal, 0,	0,
+APV,	6,	3,	8,	4,	0,	13,	19,	7,	1,	normal, 0,	0,
+APV,	6,	3,	8,	4,	0,	14,	20,	9,	1,	normal, 0,	0,
+
+# J2:M_0_X_T (Top) - flex-v1 inverted -since Oct 28 2020
+
+APV,	6,	3,	9,	18,	1,	4,	0,	1,	1,	normal, 0,	2,
+APV,	6,	3,	9,	18,	1,	3,	1,	3,	1,	normal, 0,	2,
+APV,	6,	3,	9,	18,	1,	2,	2,	5,	1,	normal, 0,	2,
+APV,	6,	3,	9,	18,	1,	1,	3,	7,	1,	normal, 0,	2,
+
+# J2:M_1_X_T - flex-v2
+
+APV,	6,	3,	9,	0,	1,	5,	8,	1,	1,	normal, 0,	1,
+APV,	6,	3,	9,	0,	1,	6,	9,	3,	1,	normal, 0,	1,
+APV,	6,	3,	9,	0,	1,	7,	10,	5,	1,	normal, 0,	1,
+APV,	6,	3,	9,	0,	1,	8,	11,	7,	1,	normal, 0,	1,
+
+# J2:M_2_X_T - rigid
+
+APV,	6,	3,	9,	4,	1,	10,	16,	1,	1,	normal, 0,	0,
+APV,	6,	3,	9,	4,	1,	11,	17,	3,	1,	normal, 0,	0,
+APV,	6,	3,	9,	4,	1,	12,	18,	5,	1,	normal, 0,	0,
+APV,	6,	3,	9,	4,	1,	13,	19,	7,	1,	normal, 0,	0,
+
+# J2:M_0_Y_R (Right) - rigid
+
+APV,	6,	3,	10,	18,	0,	0,	0,	8,	0,	normal, 0,	2,
+APV,	6,	3,	10,	18,	0,	1,	1,	6,	0,	normal, 0,	2,
+APV,	6,	3,	10,	18,	0,	2,	2,	4,	0,	normal, 0,	2,
+APV,	6,	3,	10,	18,	0,	3,	3,	2,	0,	normal, 0,	2,
+APV,	6,	3,	10,	18,	0,	4,	4,	0,	0,	normal, 0,	2,
+
+# J2:M_1_Y_R - rigid
+
+APV,	6,	3,	10,	0,	0,	5,	8,	8,	0,	normal, 0,	1,
+APV,	6,	3,	10,	0,	0,	6,	9,	6,	0,	normal, 0,	1,
+APV,	6,	3,	10,	0,	0,	7,	10,	4,	0,	normal, 0,	1,
+APV,	6,	3,	10,	0,	0,	8,	11,	2,	0,	normal, 0,	1,
+APV,	6,	3,	10,	0,	0,	9,	12,	0,	0,	normal, 0,	1,
+
+# J2:M_2_Y_R - rigid
+
+APV,	6,	3,	10,	4,	0,	10,	16,	8,	0,	normal, 0,	0,
+APV,	6,	3,	10,	4,	0,	11,	17,	6,	0,	normal, 0,	0,
+APV,	6,	3,	10,	4,	0,	12,	18,	4,	0,	normal, 0,	0,
+APV,	6,	3,	10,	4,	0,	13,	19,	2,	0,	normal, 0,	0,
+APV,	6,	3,	10,	4,	0,	14,	20,	0,	0,	normal, 0,	0,
+
+# J2:M_0_X_B (Bottom) - rigid
+
+APV,	6,	3,	11,	18,	1,	0,	0,	6,	0,	normal, 0,	2,
+APV,	6,	3,	11,	18,	1,	1,	1,	4,	0,	normal, 0,	2,
+APV,	6,	3,	11,	18,	1,	2,	2,	2,	0,	normal, 0,	2,
+APV,	6,	3,	11,	18,	1,	3,	3,	0,	0,	normal, 0,	2,
+
+# J2:M_1_X_B - flex-v2
+
+APV,	6,	3,	11,	0,	1,	5,	8,	6,	0,	normal, 0,	1.
+APV,	6,	3,	11,	0,	1,	6,	9,	4,	0,	normal, 0,	1,
+APV,	6,	3,	11,	0,	1,	7,	10,	2,	0,	normal, 0,	1,
+APV,	6,	3,	11,	0,	1,	8,	11,	0,	0,	normal, 0,	1,
+
+# J2:M_2_X_B - flex-v2
+
+APV,	6,	3,	11,	4,	1,	10,	16,	6,	0,	normal, 0,	0,
+APV,	6,	3,	11,	4,	1,	11,	17,	4,	0,	normal, 0,	0,
+APV,	6,	3,	11,	4,	1,	12,	18,	2,	0,	normal, 0,	0,
+APV,	6,	3,	11,	4,	1,	13,	19,	0,	0,	normal, 0,	0,
+
