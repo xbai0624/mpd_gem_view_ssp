@@ -19,7 +19,7 @@ void OnlineAnalysisInterface::AddMenuBar()
     pMenuBar = new QMenuBar();
 
     // show analysis configs
-    pShowAnalysisConfig = new QMenu("Analysis Config");
+    pShowAnalysisConfig = new QMenu("Configure");
     pShow = new QAction("Show", this);
     pShowAnalysisConfig -> addAction(pShow);
     pMenuBar -> addMenu(pShowAnalysisConfig);
