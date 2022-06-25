@@ -193,7 +193,9 @@ void Viewer::InitCtrlInterface()
     QSpinBox *event_number = new QSpinBox(pRightCtrlInterface);
     event_number -> setRange(0, 9999);
     event_number -> setObjectName("event_number");
+    QPushButton *btn_save_event = new QPushButton("Save Event to Disk", pRightCtrlInterface);
     _layout2 -> addWidget(l2);
+    _layout2 -> addWidget(btn_save_event);
     _layout2 -> addWidget(event_number);
 
     // function modules for generating pedestals 
@@ -306,6 +308,7 @@ void Viewer::InitCtrlInterface()
     // connect
     connect(file_indicator, SIGNAL(textChanged(const QString &)), this, SLOT(SetFile(const QString &)));
     connect(event_number, SIGNAL(valueChanged(int)), this, SLOT(DrawEvent(int)));
+    connect(btn_save_event, SIGNAL(pressed()), this, SLOT(SaveCurrentEvent()));
     connect(bOpenFile, SIGNAL(pressed()), this, SLOT(OpenFile()));
     connect(b, SIGNAL(pressed()), this, SLOT(GeneratePedestal()));
     connect(le_path, SIGNAL(textChanged(const QString &)), this, SLOT(SetPedestalOutputPath(const QString &)));
@@ -470,6 +473,7 @@ void Viewer::DrawGEMRawHistos(int num)
             mDataFlags[i.first] = i.second;
 
         event_number_checked = num;
+        current_event_number = num;
         event_cache.push_back(mData);
         event_flag_cache.push_back(mDataFlags);
         if(event_cache.size() > max_cache_events) 
@@ -486,6 +490,7 @@ void Viewer::DrawGEMRawHistos(int num)
                 return;
 
         size_t pos = event_cache.size() - index - 1;
+        current_event_number = num;
 
         mData = event_cache.at(pos);
     }
@@ -705,6 +710,39 @@ void Viewer::DrawGEMOnlineHits(int num)
     // draw eye-ball tracking GEM 2D strips
     det_view -> FillEvent(online_hits);
 #endif
+}
+
+
+////////////////////////////////////////////////////////////////
+// save current event
+
+void Viewer::SaveCurrentEvent()
+{
+    std::string file_name = "./Rootfiles/event_" + 
+        std::to_string(current_event_number) + ".txt";
+    std::cout<<file_name<<std::endl;
+
+    std::map<APVAddress, std::vector<int>> _event;
+    if(current_event_number == event_number_checked)
+    {
+        _event = event_cache.back();
+    }
+    else
+    {
+        size_t index = event_number_checked - current_event_number;
+        if(index >= event_cache.size())
+                return;
+        size_t pos = event_cache.size() - index - 1;
+
+        _event = event_cache.at(pos);
+    }
+
+    std::fstream f(file_name.c_str(), std::fstream::out);
+    for(auto &i: _event) {
+        f<<"apv:"<<i.first;
+        for(auto &j: i.second)
+            f<<j<<std::endl;
+    }
 }
 
 
@@ -962,6 +1000,10 @@ void Viewer::GeneratePedestal()
     pGEMReplay -> SetPedestalOutputFile(fPedestalOutputPath);
     pGEMReplay -> SetCommonModeOutputFile(fCommonModeOutputPath);
     pGEMReplay -> SetPedestalInputFile(fPedestalInputPath, fCommonModeInputPath);
+    pGEMReplay -> SetSplitMax(fFileSplitEnd);
+    pGEMReplay -> SetSplitMin(fFileSplitStart);
+    pGEMReplay -> SetMaxPedestalEvents(fPedestalMaxEvents);
+
 
     std::thread th([&]() {
             pGEMReplay -> GeneratePedestal();

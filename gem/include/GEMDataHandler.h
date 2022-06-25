@@ -15,6 +15,7 @@ class GEMRootHitTree;
 class GEMRootClusterTree;
 class MPDVMERawEventDecoder;
 class MPDSSPRawEventDecoder;
+class TriggerDecoder;
 struct APVDataType;
 
 class GEMDataHandler
@@ -84,6 +85,7 @@ public:
     void SetOnlineMode(bool m){onlineMode = m; pedestalMode = !m; onlineMode = !m;}
     void TurnOffClustering(){bReplayCluster = false;}
     void TurnOnClustering(){bReplayCluster = true;}
+    void SetMaxPedestalEvents(const int &s);
 
     // helpers
     std::string ParseOutputFileName(const std::string &input_file_name, const char* prefix="Rootfiles/hit");
@@ -103,6 +105,7 @@ private:
     // decoders
     MPDVMERawEventDecoder *mpd_vme_decoder = nullptr;
     MPDSSPRawEventDecoder *mpd_ssp_decoder = nullptr;
+    TriggerDecoder *trigger_decoder = nullptr;
 
     // data related
     std::deque<EventData> event_data;
@@ -117,11 +120,15 @@ private:
     GEMRootHitTree *root_hit_tree = nullptr;
     std::string replay_hit_output_file = "";
     int fEventNumber = 0;
+    int fMaxPedestalEvents = -1;
 
     // replay data to root cluster tree
     GEMRootClusterTree *root_cluster_tree = nullptr;
     std::string replay_cluster_output_file = "";
     bool bReplayCluster = false;
+
+    // trigger time
+    std::pair<uint32_t, uint32_t> triggerTime;
 };
 
 #endif

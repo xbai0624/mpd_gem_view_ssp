@@ -6,11 +6,13 @@
  * will be removed
  */
 
-//#define SORTING_ALGORITHM
-#define DANNING_ALGORITHM
-#define DANNING_ALGORITHM_RMS_THRESHOLD 5.0 // Ben's firmware is using 5.0
+#define SORTING_ALGORITHM
+//#define DANNING_ALGORITHM
+//#define DANNING_ALGORITHM_RMS_THRESHOLD 5.0 // Ben's firmware is using 5.0
 
 //#define USE_VME
 #define USE_SSP
+
+#define INVERSE_POLARITY_VALID
 
 #endif

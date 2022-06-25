@@ -79,6 +79,7 @@ public slots:
     void ReplayHit();
     void ReplayCluster();
     void OpenOnlineAnalysisInterface();
+    void SaveCurrentEvent();
 
 private:
     // layout
@@ -142,6 +143,7 @@ private:
 private:
     // section for GEM_Viewer status
     int event_number_checked = 0;
+    int current_event_number = 0;
     size_t max_cache_events = 11;
     std::deque<std::map<APVAddress, std::vector<int>>> event_cache;
     std::deque<std::map<APVAddress, APVDataType>> event_flag_cache;

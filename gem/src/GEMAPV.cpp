@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 #include "MPDDataStruct.h"
 #include "GEMSystem.h"
 #include "GEMMPD.h"
@@ -799,7 +800,11 @@ void GEMAPV::ZeroSuppression()
         }
         average /= time_samples;
 
+#ifdef INVERSE_POLARITY_VALID
+        if(abs(average) > pedestal[i].noise * zerosup_thres)
+#else
         if(average > pedestal[i].noise * zerosup_thres)
+#endif
             hit_pos[i] = true;
         else
             hit_pos[i] = false;

@@ -51,6 +51,7 @@ HEADERS += include/EvioFileReader.h \
            include/MPDDataStruct.h \
            include/AbstractRawDecoder.h \
            include/sspApvdec.h \
+           include/TriggerDecoder.h \
 
 SOURCES += src/EvioFileReader.cpp \ 
            src/EventParser.cpp \ 
@@ -58,4 +59,5 @@ SOURCES += src/EvioFileReader.cpp \
            src/MPDSSPRawEventDecoder.cpp \
            src/AbstractRawDecoder.cpp \
            src/MPDDataStruct.cpp \
+           src/TriggerDecoder.cpp \
 

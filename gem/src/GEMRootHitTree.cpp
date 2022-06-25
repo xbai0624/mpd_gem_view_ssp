@@ -26,6 +26,9 @@ GEMRootHitTree::GEMRootHitTree(const char* path)
     pTree->Branch("adc3",adc3,"adc3[nch]/I");
     pTree->Branch("adc4",adc4,"adc4[nch]/I");
     pTree->Branch("adc5",adc5,"adc5[nch]/I");
+
+    pTree->Branch("triggerTimeL", &triggerTimeL, "triggerTimeL/I");
+    pTree->Branch("triggerTimeH", &triggerTimeH, "triggerTimeH/I");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,6 +67,11 @@ void GEMRootHitTree::Fill(GEMSystem *gem_sys, const EventData &ev)
     const std::vector<GEM_Strip_Data> &strip_data = ev.get_gem_data();
     evtID = ev.event_number;
     nch = strip_data.size();
+
+    std::pair<uint32_t, uint32_t> trigger_time = gem_sys -> GetTriggerTime();
+    //std::cout<<trigger_time.first<<", "<<trigger_time.second<<std::endl;
+    triggerTimeL = static_cast<int>(trigger_time.first);
+    triggerTimeH = static_cast<int>(trigger_time.second);
    
     // only save 20000 hits
     if(nch > MAXHITS)

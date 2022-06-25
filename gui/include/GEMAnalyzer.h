@@ -5,6 +5,7 @@
 #include "EventParser.h"
 #include "MPDVMERawEventDecoder.h"
 #include "MPDSSPRawEventDecoder.h"
+#include "TriggerDecoder.h"
 #include "MPDDataStruct.h"
 #include "hardcode.h"
 
@@ -43,6 +44,7 @@ private:
 #else
     MPDSSPRawEventDecoder *pRawEventDecoder;
 #endif
+    TriggerDecoder *trigger_decoder;
 
     std::string fFile;
     uint32_t nEvents = 5000;

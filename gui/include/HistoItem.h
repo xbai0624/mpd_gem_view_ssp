@@ -87,6 +87,8 @@ private:
     float data_x_min, data_x_max, data_y_min, data_y_max;
     // drawing range
     float area_x1, area_x2, area_y1, area_y2;
+    // draw axis mark interval
+    float x_mark_interval=30, y_mark_interval=30;
 };
 
 #endif

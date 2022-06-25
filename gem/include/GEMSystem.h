@@ -143,6 +143,7 @@ public:
     void SavePedestal(const std::string &path) const;
     void SaveCommonModeRange(const std::string &path) const;
     void SaveHistograms(const std::string &path) const;
+    void SetTriggerTime(const std::pair<uint32_t, uint32_t> &);
 
     GEMCluster *GetClusterMethod() {return &gem_recon;}
     GEMDetector *GetDetector(const int &id) const;
@@ -155,6 +156,7 @@ public:
     std::vector<GEMAPV*> GetAPVList() const;
     std::vector<GEMMPD*> GetMPDList() const;
     std::vector<GEMDetector*> GetDetectorList() const;
+    std::pair<uint32_t, uint32_t> GetTriggerTime() const {return triggerTime;}
 
     bool GetPedestalMode() const {return PedestalMode;}
     bool GetOnlineMode() const {return OnlineMode;}
@@ -187,6 +189,8 @@ private:
 
     // a locker for multi threading
     std::mutex __gem_locker;
+
+    std::pair<uint32_t, uint32_t> triggerTime;
 };
 
 #endif

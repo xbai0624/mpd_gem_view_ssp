@@ -153,6 +153,24 @@ const std::unordered_map<APVAddress, uint32_t> & MPDVMERawEventDecoder::GetAPVDa
 }
 
 ////////////////////////////////////////////////////////////////
+// get decoded mpd timing
+
+const std::unordered_map<MPDAddress, uint32_t> & MPDVMERawEventDecoder::GetMPDTiming() 
+    const
+{
+    return mMPDTiming;
+}
+
+////////////////////////////////////////////////////////////////
+// get trigger time
+
+std::pair<uint32_t, uint32_t> MPDVMERawEventDecoder::GetTriggerTime() const
+{
+    return std::pair<uint32_t, uint32_t>(0, 0);
+}
+
+
+////////////////////////////////////////////////////////////////
 // get decoded apv data flags
 
 const std::unordered_map<APVAddress, std::vector<int>> & MPDVMERawEventDecoder::GetAPVOnlineCommonMode() 

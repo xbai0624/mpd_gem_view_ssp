@@ -25,7 +25,7 @@ struct APVDataType
     uint32_t slot_id;
 
     APVDataType():
-        data_flag(0), crate_id(-1), mpd_id(-1), adc_ch(-1), slot_id(11)
+        data_flag(0), crate_id(9999), mpd_id(9999), adc_ch(9999), slot_id(11)
     {}
 
     // copy ctor
@@ -49,6 +49,50 @@ struct APVDataType
         mpd_id = a.mpd_id;
         adc_ch = a.adc_ch;
     }
+
+    void reset() {
+        data_flag = 0;;
+        crate_id = 9999;
+        mpd_id = 9999;
+        adc_ch = 9999;
+        slot_id = 11;
+    }
+};
+
+struct MPDTiming
+{
+    uint32_t timestamp_coarse1;
+    uint32_t timestamp_coarse0;
+    uint32_t timestamp_fine;
+    uint32_t event_count;
+
+    // default value for timing
+    MPDTiming():
+        timestamp_coarse1(9999), timestamp_coarse0(9999), 
+        timestamp_fine(9999), event_count(0)
+    {}
+
+    MPDTiming(const MPDTiming &t):
+        timestamp_coarse1(t.timestamp_coarse1), timestamp_coarse0(t.timestamp_coarse0),
+        timestamp_fine(t.timestamp_fine), event_count(t.event_count)
+    {}
+
+    // copy assignment
+    MPDTiming &operator = (const MPDTiming &t) {
+        timestamp_coarse1 = t.timestamp_coarse1;
+        timestamp_coarse0 = t.timestamp_coarse0;
+        timestamp_fine = t.timestamp_fine;
+        event_count = t.event_count;
+        return *this; 
+    }
+
+    // reset
+    void reset() {
+        timestamp_coarse1 = 9999;
+        timestamp_coarse0 = 9999;
+        timestamp_fine = 9999;
+        event_count = 0;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +113,9 @@ public:
         GetAPVDataFlags() const;
     const std::unordered_map<APVAddress, std::vector<int>> &
         GetAPVOnlineCommonMode() const;
+    const std::unordered_map<MPDAddress, MPDTiming> &
+        GetMPDTiming() const;
+    std::pair<uint32_t, uint32_t> GetTriggerTime() const;
 
     void sspApvDataDecode(const uint32_t & data);
 
@@ -87,11 +134,17 @@ private:
 
     // common mode calculated online (vector size must be 6)
     std::unordered_map<APVAddress, std::vector<int>> mAPVOnlineCommonMode;
+    // apv timing
+    std::unordered_map<MPDAddress, MPDTiming> mMPDTiming;
 
     // the 6 time samples in one strip <channel_no, 6 ADCs>
     uint32_t current_strip_number = -1;
     std::vector<int> vStripADC;
     APVDataType flags;
+    MPDTiming mpd_timing;
+
+    uint32_t trigger_time_l = 0;
+    uint32_t trigger_time_h = 0;
 };
 
 #endif

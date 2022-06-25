@@ -62,6 +62,10 @@ private:
     int CM4_online[MAXAPV];
     int CM5_online[MAXAPV];
 
+    // event trigger time
+    int triggerTimeL;
+    int triggerTimeH;
+
     // clustering method
     GEMCluster *cluster_method = nullptr;
 };

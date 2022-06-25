@@ -43,6 +43,10 @@ GEMRootClusterTree::GEMRootClusterTree(const char* path)
     pTree -> Branch("CM3_online", CM3_online, "CM3_online[nAPV]/I");
     pTree -> Branch("CM4_online", CM4_online, "CM4_online[nAPV]/I");
     pTree -> Branch("CM5_online", CM5_online, "CM5_online[nAPV]/I");
+
+    // trigger time
+    pTree -> Branch("triggerTimeL", &triggerTimeL, "triggerTimeL/I");
+    pTree -> Branch("triggerTimeH", &triggerTimeH, "triggerTimeH/I");
 }
 
 GEMRootClusterTree::~GEMRootClusterTree()
@@ -86,6 +90,11 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
     // set event id
     evtID = static_cast<int>(evt_num);
     nCluster = 0;
+
+    // trigger time
+    std::pair<uint32_t, uint32_t> trigger_time = gem_sys -> GetTriggerTime();
+    triggerTimeL = static_cast<int>(trigger_time.first);
+    triggerTimeH = static_cast<int>(trigger_time.second);
 
     // for comon mode
     nAPV = apv_strip_mapping::Mapping::Instance() -> GetTotalNumberOfAPVs();

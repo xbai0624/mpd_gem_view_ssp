@@ -124,6 +124,14 @@ void GEMReplay::SetSplitMin(const int &s)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// set max pedestal events
+
+void GEMReplay::SetMaxPedestalEvents(const int &s)
+{
+    max_pedestal_events = s;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // get gem system
 
 GEMSystem* GEMReplay::GetGEMSystem()
@@ -138,4 +146,6 @@ GEMDataHandler* GEMReplay::GetGEMDataHandler()
 {
     return data_handler;
 }
+
+
 

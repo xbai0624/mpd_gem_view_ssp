@@ -57,13 +57,15 @@ SOURCES       = src/EvioFileReader.cpp \
 		src/MPDVMERawEventDecoder.cpp \
 		src/MPDSSPRawEventDecoder.cpp \
 		src/AbstractRawDecoder.cpp \
-		src/MPDDataStruct.cpp 
+		src/MPDDataStruct.cpp \
+		src/TriggerDecoder.cpp 
 OBJECTS       = obj/EvioFileReader.o \
 		obj/EventParser.o \
 		obj/MPDVMERawEventDecoder.o \
 		obj/MPDSSPRawEventDecoder.o \
 		obj/AbstractRawDecoder.o \
-		obj/MPDDataStruct.o
+		obj/MPDDataStruct.o \
+		obj/TriggerDecoder.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/common/unix.conf \
 		/usr/lib64/qt5/mkspecs/common/linux.conf \
@@ -147,12 +149,14 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		include/RolStruct.h \
 		include/MPDDataStruct.h \
 		include/AbstractRawDecoder.h \
-		include/sspApvdec.h src/EvioFileReader.cpp \
+		include/sspApvdec.h \
+		include/TriggerDecoder.h src/EvioFileReader.cpp \
 		src/EventParser.cpp \
 		src/MPDVMERawEventDecoder.cpp \
 		src/MPDSSPRawEventDecoder.cpp \
 		src/AbstractRawDecoder.cpp \
-		src/MPDDataStruct.cpp
+		src/MPDDataStruct.cpp \
+		src/TriggerDecoder.cpp
 QMAKE_TARGET  = decoder
 DESTDIR       = lib/
 TARGET        = libdecoder.so.1.0.0
@@ -358,8 +362,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib64/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents include/EvioFileReader.h include/EventParser.h include/GeneralEvioStruct.h include/MPDVMERawEventDecoder.h include/MPDSSPRawEventDecoder.h include/RolStruct.h include/MPDDataStruct.h include/AbstractRawDecoder.h include/sspApvdec.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/EvioFileReader.cpp src/EventParser.cpp src/MPDVMERawEventDecoder.cpp src/MPDSSPRawEventDecoder.cpp src/AbstractRawDecoder.cpp src/MPDDataStruct.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/EvioFileReader.h include/EventParser.h include/GeneralEvioStruct.h include/MPDVMERawEventDecoder.h include/MPDSSPRawEventDecoder.h include/RolStruct.h include/MPDDataStruct.h include/AbstractRawDecoder.h include/sspApvdec.h include/TriggerDecoder.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/EvioFileReader.cpp src/EventParser.cpp src/MPDVMERawEventDecoder.cpp src/MPDSSPRawEventDecoder.cpp src/AbstractRawDecoder.cpp src/MPDDataStruct.cpp src/TriggerDecoder.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -436,6 +440,9 @@ obj/AbstractRawDecoder.o: src/AbstractRawDecoder.cpp include/AbstractRawDecoder.
 
 obj/MPDDataStruct.o: src/MPDDataStruct.cpp include/MPDDataStruct.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MPDDataStruct.o src/MPDDataStruct.cpp
+
+obj/TriggerDecoder.o: src/TriggerDecoder.cpp include/TriggerDecoder.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/TriggerDecoder.o src/TriggerDecoder.cpp
 
 ####### Install
 

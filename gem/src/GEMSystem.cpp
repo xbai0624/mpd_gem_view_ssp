@@ -40,6 +40,9 @@ GEMSystem::GEMSystem(const std::string &config_file, int mpd_cap, int det_cap)
 
     if(!config_file.empty())
         Configure(config_file);
+
+    triggerTime.first = 0.;
+    triggerTime.second = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +55,7 @@ GEMSystem::GEMSystem(const GEMSystem &that)
 : ConfigObject(that),
   gem_recon(that.gem_recon), PedestalMode(that.PedestalMode),
   def_ts(that.def_ts), def_cth(that.def_cth), def_zth(that.def_zth),
-  def_ctth(that.def_ctth)
+  def_ctth(that.def_ctth), triggerTime(that.triggerTime)
 {
     // copy daq system first
     for(auto &mpd : that.mpd_slots)
@@ -98,7 +101,8 @@ GEMSystem::GEMSystem(GEMSystem &&that)
   gem_recon(std::move(that.gem_recon)), PedestalMode(that.PedestalMode),
   mpd_slots(std::move(that.mpd_slots)), det_slots(std::move(that.det_slots)),
   det_name_map(std::move(that.det_name_map)), def_ts(that.def_ts),
-  def_cth(that.def_cth), def_zth(that.def_zth), def_ctth(that.def_ctth)
+  def_cth(that.def_cth), def_zth(that.def_zth), def_ctth(that.def_ctth), 
+  triggerTime(that.triggerTime)
 {
     // reset the system for all components
     for(auto &mpd : mpd_slots)
@@ -251,6 +255,9 @@ void GEMSystem::Clear()
             det.second->UnsetSystem(true);
         delete det.second;
     }
+
+    triggerTime.first = 0;
+    triggerTime.second = 0;
 
     det_name_map.clear();
 }
@@ -884,6 +891,12 @@ void GEMSystem::SetReplayMode(const bool &m)
     OnlineMode = !m;
     PedestalMode = !m;
     ReplayMode = m;
+}
+
+// set trigger time
+void GEMSystem::SetTriggerTime(const std::pair<uint32_t, uint32_t> &t)
+{
+    triggerTime = t;
 }
 
 // collect the zero suppressed data from APV

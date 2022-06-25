@@ -1,6 +1,7 @@
 #include "HistoItem.h"
 
 #include <iostream>
+#include <cmath>
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
@@ -144,15 +145,6 @@ QVector<QLineF> HistoItem::PrepareAxis()
 
 void HistoItem::DrawAxisMarks(QPainter *painter)
 {
-    // find optimal mark interval
-    auto find_interval = [&](const float &min, const float &max) -> float
-    {
-        float res;
-        // draw 10 major marks
-        res = (max - min) / 10;
-        return res;
-    };
-
     // generate mark label
     auto label = [&](const float &data_min, const float &data_max, 
             const float &draw_min, const float &draw_max,
@@ -182,7 +174,7 @@ void HistoItem::DrawAxisMarks(QPainter *painter)
     float x_mark_len = 1.5/100. * (area_x2 - area_x1); // mark length
     float x_pos = area_x1;
     float i = 0;
-    float x_w = find_interval(area_x1, area_x2);
+    float x_w = x_mark_interval;
     while(x_pos < area_x2)
     {
         painter->drawLine(QLineF(x_pos, area_y2, x_pos, area_y2 - x_mark_len));
@@ -200,7 +192,7 @@ void HistoItem::DrawAxisMarks(QPainter *painter)
     float y_mark_len = 1.5/100 * (area_y2 - area_y1);
     float y_pos = area_y1;
     i = 0;
-    float y_w = find_interval(area_y1, area_y2);
+    float y_w = y_mark_interval;
     while(y_pos < area_y2)
     {
         painter -> drawLine(QLineF(area_x1, y_pos, area_x1 + y_mark_len, y_pos));
@@ -268,6 +260,10 @@ void HistoItem::UpdateRange()
     {
         if(min > i) min = i;
         if(max < i) max = i;
+
+        // debug: fix scale
+        //if(i > 580) i = 580;
+        //if(i < -180) i = -180;
     }
 
     // make sure 0 is included in y axis
@@ -277,6 +273,21 @@ void HistoItem::UpdateRange()
 
     // y max should be 10% larger for pretty reason
     data_y_max = max * (1.1);
+
+    // debug: fix scale
+    //data_y_min = -180;
+    //data_y_max = 580;
+    
+    // find optimal mark interval
+    auto get_interval = [&](float &min, float &max) -> float
+    {
+        float res;
+        res = (max - min) / 10;
+        return res;
+    };
+
+    x_mark_interval = get_interval(area_x1, area_x2);
+    y_mark_interval = get_interval(area_y1, area_y2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

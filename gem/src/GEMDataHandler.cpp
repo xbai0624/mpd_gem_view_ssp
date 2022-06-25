@@ -3,6 +3,7 @@
 #include "GEMException.h"
 #include "MPDVMERawEventDecoder.h"
 #include "MPDSSPRawEventDecoder.h"
+#include "TriggerDecoder.h"
 #include "RolStruct.h"
 #include "GEMRootHitTree.h"
 #include "GEMRootClusterTree.h"
@@ -122,6 +123,10 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
         = decoder -> GetAPVDataFlags();
     const std::unordered_map<APVAddress, std::vector<int>> &decoded_online_cm
         = decoder -> GetAPVOnlineCommonMode();
+    //const std::unordered_map<MPDAddress, MPDTiming> &decoded_timing
+    //    = decoder -> GetMPDTiming();
+    triggerTime = trigger_decoder -> GetDecoded();
+    //std::cout<<"low: "<<triggerTime.first<<", high: "<<triggerTime.second<<std::endl;
 
 #ifdef MULTI_THREAD
     const auto & apvs = apv_strip_mapping::Mapping::Instance() -> GetAPVAddressVec();
@@ -207,17 +212,21 @@ int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int sp
     // setup raw event decoder
     if(mpd_vme_decoder == nullptr) {
         mpd_vme_decoder = new MPDVMERawEventDecoder();
+        trigger_decoder = new TriggerDecoder();
 
         // register all raw decoders
         event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_VME), mpd_vme_decoder);
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
     }
 #else
     // setup raw event decoder
     if(mpd_ssp_decoder == nullptr) {
         mpd_ssp_decoder = new MPDSSPRawEventDecoder();
-
+        trigger_decoder = new TriggerDecoder();
+ 
         // register all raw decoders
         event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), mpd_ssp_decoder);
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
     }
 #endif
 
@@ -235,7 +244,7 @@ int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int sp
 
         if(pedestalMode)
         {
-            if(fEventNumber > 5000) // pedestal mode only need 5000 events
+            if(fEventNumber > fMaxPedestalEvents && fMaxPedestalEvents > 0)
                 break;
         }
     }
@@ -407,6 +416,9 @@ void GEMDataHandler::EndProcess(EventData *ev)
     // online mode only saves the last event, to reduce usage of memory
     if(onlineMode && event_data.size())
         event_data.pop_front();
+
+    // pass trigger time
+    gem_sys -> SetTriggerTime(triggerTime);
 
     if(replayMode) {
         if(root_hit_tree == nullptr && !bReplayCluster) {
@@ -583,3 +595,10 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
     return res;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// set max pedestal events
+
+void GEMDataHandler::SetMaxPedestalEvents(const int &s)
+{
+    fMaxPedestalEvents = s;
+}

@@ -35,6 +35,7 @@ public:
     void SetCommonModeOutputFile(const std::string &);
     void SetSplitMax(const int &s);
     void SetSplitMin(const int &s);
+    void SetMaxPedestalEvents(const int &s);
 
     // getters
     GEMSystem* GetGEMSystem();
@@ -51,6 +52,7 @@ private:
     std::string common_mode_input_file = "database/CommonModeRange.txt"; // common mode input file
     int split_max = -1;
     int split_min = 0;
+    int max_pedestal_events = -1;
 
     ConfigObject txt_parser;
 };

@@ -51,6 +51,9 @@ void GEMAnalyzer::Init()
     // register decoder
     pEventParser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), pRawEventDecoder);
 #endif
+
+    trigger_decoder = new TriggerDecoder();
+    pEventParser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

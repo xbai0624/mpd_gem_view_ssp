@@ -22,6 +22,7 @@ enum class Bank_TagID
 {
     FADC    = 3,
     TDC     = 6,
+    Trigger = 7,
     MPD_VME = 10,
     MPD_SSP = 3561
 };

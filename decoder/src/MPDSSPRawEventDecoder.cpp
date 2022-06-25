@@ -60,7 +60,6 @@ MPDSSPRawEventDecoder::MPDSSPRawEventDecoder()
     apvAddress = APVAddress(-1, // crate id = slot id
                             -1, // mpd id   = fiber id
                             -1);// adc ch   = apv id
-
     vStripADC.clear();
 }
 
@@ -108,10 +107,13 @@ void MPDSSPRawEventDecoder::DecodeAPV(const uint32_t *pBuf, uint32_t fBufLen,
         apvAddress.crate_id = vTagTrack[1];
 
         // reorganize data into time sample format
-        if(mAPVData.find(apvAddress) == mAPVData.end()) {
+        if(mAPVData.find(apvAddress) == mAPVData.end())
+        {
             mAPVData[apvAddress].resize(SSP_TIME_SAMPLE * TS_PERIOD_LEN, 0);
+
             flags.SetAPVAddress(apvAddress);
             mAPVDataFlags[apvAddress] = flags;
+            //flags.reset();
         }
 
         for(int ts = 0; ts < SSP_TIME_SAMPLE; ts++)
@@ -155,6 +157,23 @@ MPDSSPRawEventDecoder::GetAPVDataFlags() const
 }
 
 ////////////////////////////////////////////////////////////////
+// get mpd timing
+
+const std::unordered_map<MPDAddress, MPDTiming> &
+MPDSSPRawEventDecoder::GetMPDTiming() const
+{
+    return mMPDTiming;
+}
+
+////////////////////////////////////////////////////////////////
+// get trigger timing
+
+std::pair<uint32_t, uint32_t> MPDSSPRawEventDecoder::GetTriggerTime() const
+{
+    return std::pair<uint32_t, uint32_t>(trigger_time_l, trigger_time_h);
+}
+
+////////////////////////////////////////////////////////////////
 // get online-calculated common mode
 
 const std::unordered_map<APVAddress, std::vector<int>> &
@@ -171,6 +190,8 @@ void MPDSSPRawEventDecoder::Clear()
     mAPVData.clear();
     mAPVDataFlags.clear();
     mAPVOnlineCommonMode.clear();
+    mMPDTiming.clear();
+    vStripADC.clear();
 }
 
 // a helper to get negative values
@@ -255,25 +276,27 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                 {
                     sspApv_trigger_time_1_t d; d.raw = data;
 
-                    //printf("%8X - TRIGGER TIME 1 - time = %08x\n",
-                    //        d.raw,
-                    //        d.bf.trigger_time_l);
+                    printf("%8X - TRIGGER TIME 1 - time = %08x\n",
+                            d.raw,
+                            d.bf.trigger_time_l);
 
                     time_last = 1;
+                    trigger_time_l = d.bf.trigger_time_l;
                 }
                 else
                 {
                     sspApv_trigger_time_2_t d; d.raw = data;
-                    //if( time_last == 1 )
-                    //{
-                    //    printf("%8X - TRIGGER TIME 2 - time = %08x\n",
-                    //            d.raw,
-                    //            d.bf.trigger_time_h);
-                    //}
-                    //else
-                    //    printf("%8X - TRIGGER TIME - (ERROR)\n", data);
+                    if( time_last == 1 )
+                    {
+                        printf("%8X - TRIGGER TIME 2 - time = %08x\n",
+                                d.raw,
+                                d.bf.trigger_time_h);
+                    }
+                    else
+                        printf("%8X - TRIGGER TIME - (ERROR)\n", data);
 
                     time_last = 0;
+                    trigger_time_h = d.bf.trigger_time_h;
                 }
                 break;
             }
@@ -395,6 +418,8 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                     //        d.raw,
                     //        d.bf.timestamp_fine,
                     //        d.bf.timestamp_coarse0);
+                    mpd_timing.timestamp_fine = d.bf.timestamp_fine;
+                    mpd_timing.timestamp_coarse0 = d.bf.timestamp_coarse0;
                 } else {
                     switch(mpd_timestamp_data_word)
                     {
@@ -405,6 +430,7 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                                 //printf("%8x - MPD TIMESTAMP_COARSE1 %10d\n",
                                 //        d.raw,
                                 //        d.bf.timestamp_coarse1);
+                                mpd_timing.timestamp_coarse1 = d.bf.timestamp_coarse1;
                                 break;
                             }
                         case 2:
@@ -414,6 +440,10 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                                 //printf("%8x - MPD TIMESTAMP EVENT_COUNT %10d\n",
                                 //        d.raw,
                                 //        d.bf.event_count);
+                                mpd_timing.event_count = d.bf.event_count;
+
+                                MPDAddress addr(apvAddress.crate_id, apvAddress.mpd_id);
+                                mMPDTiming[addr] = mpd_timing;
                                 break;
                             }
                         default:

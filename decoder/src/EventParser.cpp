@@ -206,8 +206,9 @@ void EventParser::ParseData(const uint32_t *pBuf, [[maybe_unused]] uint32_t fBuf
     }
 
     // decode
-    if(mDecoder.find(tag) != mDecoder.end())
+    if(mDecoder.find(tag) != mDecoder.end()) {
         mDecoder[tag] -> Decode(&pBuf[header_length], length-1, vTagTrack);
+    }
 }
 
 ////////////////////////////////////////////////////////////////

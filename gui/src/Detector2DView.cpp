@@ -33,7 +33,7 @@ void Detector2DView::InitView()
             Detector2DAddress addr(l.first, i);
             det[addr] = new Detector2DItem();
             if(readout_type.find("UV") != std::string::npos) {
-                det[addr] -> SetStripAngle(120, 120);
+                det[addr] -> SetStripAngle(160, 160);
                 det[addr] -> SetReadoutType(readout_type);
             }
             det[addr] -> SetTitle("layer" + std::to_string(l.first) +

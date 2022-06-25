@@ -183,7 +183,8 @@ QVector<std::pair<QLineF, QColor>> Detector2DItem::PrepareStrips()
         QPointF p1, p2;
         float angle_rad = angle * 3.14 / 180. / 2.;
         float distance; // vertical distance to the 0th strip
-        float pitch = 1.35; // it should be sqrt(2), however, need to make it smaller to count margins
+        //float pitch = 1.35; // it should be sqrt(2), however, need to make it smaller to count margins
+        float pitch = 1.15; // it should be sqrt(2), however, need to make it smaller to count margins
         float x_intercept = 0, y_intercept = 0;
 
         if(is_u_strip)
