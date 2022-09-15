@@ -355,8 +355,7 @@ void Viewer::InitLeftTab()
         tabWidgetLayout -> addWidget(c);
         vTabCanvas.push_back(c);
 
-        QString s;
-        s.sprintf("slot %d fiber %d", v_mpd_addr[i].crate_id, v_mpd_addr[i].mpd_id);
+        QString s = QString("slot %1 fiber %2").arg(v_mpd_addr[i].crate_id).arg(v_mpd_addr[i].mpd_id);
         pLeftTab -> addTab(tabWidget, s);
     }
 
@@ -373,8 +372,7 @@ void Viewer::InitLeftTab()
         tabWidgetLayout -> addWidget(c);
         vTabCanvasOnlineHits.push_back(c);
 
-        QString s;
-        s.sprintf("Online Hits Layer: %d", layer_id_vec[i]);
+        QString s = QString("Online Hits Layer: %1").arg(layer_id_vec[i]);
         pLeftTab -> addTab(tabWidget, s);
     }
 

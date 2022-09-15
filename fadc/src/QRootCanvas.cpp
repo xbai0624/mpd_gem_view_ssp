@@ -34,7 +34,7 @@ void QRootCanvas::mouseMoveEvent(QMouseEvent *e)
     if(e->buttons() & Qt::LeftButton) {
         fCanvas->HandleInput(kButton1Motion, e->x(), e->y());
     }
-    else if(e->buttons() & Qt::MidButton){
+    else if(e->buttons() & Qt::MiddleButton){
         fCanvas->HandleInput(kButton2Motion, e->x(), e->y());
     }
     else if(e->buttons() & Qt::RightButton){
@@ -57,7 +57,7 @@ void QRootCanvas::mousePressEvent(QMouseEvent *e)
             fCanvas->HandleInput(kButton1Down, e->x(), e->y());
             emit ItemSelected();
             break;
-        case Qt::MidButton:
+        case Qt::MiddleButton:
             fCanvas->HandleInput(kButton2Down, e->x(), e->y());
             break;
         case Qt::RightButton:
@@ -84,7 +84,7 @@ void QRootCanvas::mouseReleaseEvent(QMouseEvent *e)
         case Qt::LeftButton:
             fCanvas->HandleInput(kButton1Up, e->x(), e->y());
             break;
-        case Qt::MidButton:
+        case Qt::MiddleButton:
             fCanvas->HandleInput(kButton2Up, e->x(), e->y());
             break;
         case Qt::RightButton:

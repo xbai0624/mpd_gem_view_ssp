@@ -92,7 +92,7 @@ void Detector2DItem::DrawAxis(QPainter *painter)
 {
     QPen pen(Qt::black, 1);
     painter -> setPen(pen);
-
+    std::cout<<"........................................"<<std::endl;
     // draw axis
     // (area_x1, area_y1, area_x2, area_y2)
     painter -> drawLine(area_x1, area_y1, area_x1, area_y2);
@@ -102,22 +102,22 @@ void Detector2DItem::DrawAxis(QPainter *painter)
 
     // draw title
     QFontMetrics fm = painter->fontMetrics();
-    int text_width = fm.width(_title), text_height = fm.height();
+    int text_width = fm.horizontalAdvance(_title), text_height = fm.height();
     int x_text = (area_x1 + area_x2) / 2 - text_width / 2, 
         y_text = area_y1 - text_height / 2;
     painter -> drawText(x_text, y_text, _title);
 
     // draw axis ticks
     QPointF origin = Coord(data_x_min, data_y_min);
-    text_width = fm.width("0  "), text_height = fm.height();
+    text_width = fm.horizontalAdvance("0  "), text_height = fm.height();
     origin.setX(origin.x() - text_width/2), origin.setY(origin.y() + text_height - 5);
 
     QPointF max_x = Coord(data_x_max, data_y_min);
-    text_width = fm.width(std::to_string((int)data_x_max).c_str()), text_height = fm.height();
+    text_width = fm.horizontalAdvance(std::to_string((int)data_x_max).c_str()), text_height = fm.height();
     max_x.setX(max_x.x() - text_width/2), max_x.setY(max_x.y() + text_height - 5);
 
     QPointF max_y = Coord(data_x_min, data_y_max);
-    text_width = fm.width(std::to_string((int)data_y_max).c_str()), text_height = fm.height();
+    text_width = fm.horizontalAdvance(std::to_string((int)data_y_max).c_str()), text_height = fm.height();
     max_y.setX(max_y.x() - text_width);
 
     if(readout_type.find("UV") == std::string::npos) {

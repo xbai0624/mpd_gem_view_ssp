@@ -119,7 +119,7 @@ void QMainCanvas::mousePressEvent(QMouseEvent *e)
         case Qt::RightButton:
             emit ItemDeSelected();
             break;
-        case Qt::MidButton:
+        case Qt::MiddleButton:
             break;
         default:
             break;

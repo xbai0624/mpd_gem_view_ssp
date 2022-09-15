@@ -180,7 +180,7 @@ void HistoItem::DrawAxisMarks(QPainter *painter)
         painter->drawLine(QLineF(x_pos, area_y2, x_pos, area_y2 - x_mark_len));
         if(i!=0) {
             QString ss = label(data_x_min, data_x_max, area_x1, area_x2, x_pos);
-            int font_width = fm.width(ss);
+            int font_width = fm.horizontalAdvance(ss);
             int font_height = fm.height();
             painter -> drawText(x_pos - font_width/2, area_y2 + font_height, ss);
         }
@@ -198,7 +198,7 @@ void HistoItem::DrawAxisMarks(QPainter *painter)
         painter -> drawLine(QLineF(area_x1, y_pos, area_x1 + y_mark_len, y_pos));
         if(i != 0) {
             QString ss = label(data_y_min, data_y_max, area_y1, area_y2, y_pos, true);
-            int font_width = fm.width(ss);
+            int font_width = fm.horizontalAdvance(ss);
             int font_height = fm.height();
             painter -> drawText(area_x1 - font_width -2, y_pos + font_height/2, ss);
         }
@@ -207,7 +207,7 @@ void HistoItem::DrawAxisMarks(QPainter *painter)
     }
 
     // draw title
-    int font_width = fm.width(_title);
+    int font_width = fm.horizontalAdvance(_title);
     float x_title =  (area_x1 + area_x2) / 2. - font_width / 2.;
     //float y_title = area_y1 + fm.height();
     float y_title = area_y1 - 2; // 2 pixel away
