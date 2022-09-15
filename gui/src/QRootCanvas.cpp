@@ -15,7 +15,7 @@ QRootCanvas::QRootCanvas(QWidget * parent) : QWidget(parent), fCanvas(0)
     setAttribute(Qt::WA_NativeWindow, true);
     setUpdatesEnabled(kFALSE);
     setMouseTracking(kTRUE);
-    setMinimumSize(100, 100);
+    setMinimumSize(100, 20);
 
     // register the QWidget in TVirtualX, giving its native window id
     int wid = gVirtualX->AddWindow((ULong_t)winId(), width(), height());

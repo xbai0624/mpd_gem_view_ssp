@@ -187,7 +187,7 @@ void Viewer::InitCtrlInterface()
     _layout1 -> addWidget(file_indicator, 0, 1);
     _layout1 -> addWidget(bOpenFile, 0, 2);
 
-    // a event number input window
+   // a event number input window
     QHBoxLayout *_layout2 = new QHBoxLayout();
     QLabel *l2 = new QLabel("Event Number: ", pRightCtrlInterface);
     QSpinBox *event_number = new QSpinBox(pRightCtrlInterface);
@@ -295,6 +295,14 @@ void Viewer::InitCtrlInterface()
     _layout5 -> addWidget(le_cluster_path, 1, 1);
     _layout5 -> addWidget(l_cluster, 2, 0);
     _layout5 -> addWidget(btn_cluster, 2, 1);
+
+    minimum_qt_unit_height(l1, file_indicator, bOpenFile, l2, btn_save_event, event_number,
+            l_num, le_num, l_path, le_path, l_commonMode, le_commonMode, l3, b,
+            l_pedestal_for_replay, le_pedestal_for_replay, btn_choose_pedestal,
+            l_common_mode_for_replay, le_common_mode_for_replay, btn_choose_common_mode,
+            l_mapping, le_mapping, btn_choose_mapping,
+            l_split, le_split_start, le_split, l_replay, le_replay, l4, b4,
+            l_cluster_path, le_cluster_path, l_cluster, btn_cluster);
 
     // add to overall layout
     layout -> addLayout(_layout1);

@@ -8,7 +8,7 @@ TARGET = lib/gem
 #TARGET = main
 
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++17
 CONFIG += warn_on release
 
 ######################################################################

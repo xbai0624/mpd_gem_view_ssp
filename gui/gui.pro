@@ -8,7 +8,7 @@ TARGET = ../viewer
 ######################################################################
 # compiler configs
 
-QMAKE_CXXFLAGS = -std=c++11
+QMAKE_CXXFLAGS = -std=c++17
 CONFIG += Qt force_debug_info
 QT += core gui widgets
 

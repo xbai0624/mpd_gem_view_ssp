@@ -7,7 +7,7 @@ TARGET = fadc
 
 QT += widgets gui core
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++17
 CONFIG += force_debug_info
 
 INCLUDEPATH += include

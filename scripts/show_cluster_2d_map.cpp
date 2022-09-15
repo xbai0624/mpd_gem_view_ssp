@@ -3,8 +3,18 @@
 
 //#define SBS_UV_CHAMBER
 
-#define TOTAL_LAYERS 5
+#define TOTAL_LAYERS 8
 #define N_CHAMBERS_PER_LAYER 4
+
+vector<string> v_root_files = {
+    "../Rootfiles/cluster_0_e1209016_SBSGEMs_1452.root",
+    "../Rootfiles/cluster_0_e1209016_SBSGEMs_1450.root",
+    "../Rootfiles/cluster_0_e1209016_SBSGEMs_1449.root"
+};
+
+const char * cluster_root_file_path = "../Rootfiles/cluster_0_e1209016_SBSGEMs_1452.root";
+const char * cluster_root_file_path2 = "../Rootfiles/cluster_0_e1209016_SBSGEMs_1450.root";
+const char * cluster_root_file_path1 = "../Rootfiles/cluster_0_e1209016_SBSGEMs_1449.root";
 
 ////////////////////////////////////////////////////////////////////////////////
 // uv coordinate to xy coordinate transform
@@ -163,7 +173,7 @@ struct ChamberCluster
     {
         int id = c.plane;
         if(id < 0 || id > 1) {
-            cout<<"plane index is incorrect: "<<id<<endl;
+            cout<<__func__<<": plane index is incorrect: "<<id<<endl;
             return;
         }
         plane_cluster[id].addCluster(c);
@@ -227,8 +237,8 @@ TH2F* GetLayerCluster2DMap(const LayerCluster &layer_cluster, const int &nlayer)
 {
     TH2F *hClusterMap = new TH2F(Form("hClusterMap%d", nlayer), 
             Form("cluster 2d map layer %d", nlayer), 
-            1000, -1500, 1500,
-            1000, -1500, 1500);
+            350, -350, 350,
+            1200, -1200, 1200);
 
     for(auto &chamber : layer_cluster.chamber_cluster) {
         for(auto &c: chamber.Hits2D) {
@@ -237,13 +247,21 @@ TH2F* GetLayerCluster2DMap(const LayerCluster &layer_cluster, const int &nlayer)
             std::pair<float, float> res = convert_uv_to_xy<float, float>(c.xc.pos, c.yc.pos, 60);
             hClusterMap -> Fill(res.first, res.second);
 #else
-            hClusterMap -> Fill(c.xc.pos, c.yc.pos);
+            //hClusterMap -> Fill(c.xc.pos, c.yc.pos);
+            //hClusterMap -> Fill(c.yc.pos, c.xc.pos); // TCS coordinate in Hall, 12-slot plane is the x axis
+            hClusterMap -> Fill(c.yc.pos, -c.xc.pos); // flip the vertical axis, make module 0 on top side
 #endif
         }
     }
 
+    hClusterMap -> GetXaxis() -> SetLabelSize(0.06);
+    hClusterMap -> GetXaxis() -> SetLabelOffset(-0.03);
     hClusterMap -> GetXaxis() -> SetTitle("X [mm]");
     hClusterMap -> GetXaxis() -> CenterTitle();
+    hClusterMap -> GetXaxis() -> SetTitleOffset(0.2);
+
+    hClusterMap -> GetYaxis() -> SetLabelSize(0.06);
+    hClusterMap -> GetYaxis() -> SetLabelOffset(0.01);
     hClusterMap -> GetYaxis() -> SetTitle("Y [mm]");
     hClusterMap -> GetYaxis() -> CenterTitle();
     hClusterMap -> GetYaxis() -> SetTitleOffset(0.8);
@@ -370,12 +388,12 @@ void ShowLayerResults(const LayerCluster &layer_cluster, const int &nlayer)
 }
 
 // main 
-void show_cluster_2d_map(const char* path= "../Rootfiles/cluster_0_gem_cleanroom_3034.root")
+void show_cluster_2d_map()
 {
     const int NLayer = TOTAL_LAYERS;
     std::unordered_map<int, LayerCluster> layer_cluster;
 
-    const int Max = 2000; // max 2000 clusters per event
+    const int Max = 200000; // max 2000 clusters per event
     int evtID;
     int nCluster;
 
@@ -386,8 +404,11 @@ void show_cluster_2d_map(const char* path= "../Rootfiles/cluster_0_gem_cleanroom
     int size[Max];
     float adc[Max];
     float pos[Max];
-    TFile *f = new TFile(path);
-    TTree *T = (TTree*)f->Get("GEMCluster");
+    TChain *T = new TChain("GEMCluster");
+    for(auto &i: v_root_files) {
+        cout<<"adding file: "<<i<<endl;
+        T -> Add(i.c_str());
+    }
 
     T->SetBranchAddress("evtID", &evtID);
     T->SetBranchAddress("nCluster", &nCluster);
@@ -430,18 +451,18 @@ void show_cluster_2d_map(const char* path= "../Rootfiles/cluster_0_gem_cleanroom
 
     // show results
     // cluster 2d map
-    TCanvas *c_2d[TOTAL_LAYERS];
+    TCanvas *c_layer_2d = new TCanvas("c_layer_2d", "layer 2d hit map", 1800, 950);
+    c_layer_2d -> Divide(NLayer, 1);
     TH2F *hClusterMap[NLayer];
-    int _layer_id = 0;
     for(auto &i: layer_cluster) 
     {
-        hClusterMap[_layer_id] = GetLayerCluster2DMap(i.second, _layer_id);
+        hClusterMap[i.first] = GetLayerCluster2DMap(i.second, i.first);
 
-        c_2d[_layer_id] = new TCanvas(Form("layer_%d_2D_map", _layer_id), Form("layer_%d_2D_map", _layer_id), 900, 600);
-        hClusterMap[_layer_id] -> Draw("colz");
-        _layer_id++;
+        c_layer_2d -> cd(i.first+1);
+        hClusterMap[i.first] -> Draw("colz");
     }
-
+    c_layer_2d -> Print("c_layer_2d_hit_map.pdf");
+/*
     // cluster size
     _layer_id = 0;
     for(auto &i: layer_cluster)
@@ -449,4 +470,5 @@ void show_cluster_2d_map(const char* path= "../Rootfiles/cluster_0_gem_cleanroom
         ShowLayerResults(i.second, _layer_id);
         _layer_id++;
     }
+    */
 }

@@ -150,6 +150,16 @@ private:
 
     // a text parser
     ConfigObject txt_parser;
+
+public:
+    template<typename T> void minimum_qt_unit_height(T b)
+    {
+        b -> setMinimumHeight(10);
+    }
+    template<typename T, typename... Args> void minimum_qt_unit_height(T b, Args... args) {
+        minimum_qt_unit_height(b);
+        minimum_qt_unit_height(args...);
+    }
 };
 
 #endif

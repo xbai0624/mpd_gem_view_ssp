@@ -9,7 +9,7 @@ TARGET = lib/decoder
 #TARGET.files = $$TARGET
 #INSTALLS += TARGET
 
-QMAKE_CXXFLAGS = -std=c++11
+QMAKE_CXXFLAGS = -std=c++17
 CONFIG += force_debug_info
 
 # self headers

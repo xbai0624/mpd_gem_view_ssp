@@ -46,6 +46,7 @@ typedef union
 } sspApv_trigger_time_2_t;
 
 /* 5: MPD Frame */
+/*
 typedef struct
 {
     uint32_t mpd_id:5;
@@ -55,6 +56,18 @@ typedef struct
     uint32_t data_type_tag:4;
     uint32_t data_type_defining:1;
 } sspApv_mpd_frame_1;
+*/
+/* latest firmware? hall Gen-rp setup 08/18/2022 */
+typedef struct
+{
+    uint32_t mpd_id:5;
+    uint32_t undef:11;
+    uint32_t fiber:6;
+    uint32_t flags:5;
+    uint32_t data_type_tag:4;
+    uint32_t data_type_defining:1;
+} sspApv_mpd_frame_1;
+
 
 typedef union
 {
