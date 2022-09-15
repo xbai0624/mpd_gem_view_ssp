@@ -7,11 +7,13 @@ gem/obj/
 gem/moc/
 gem/lib/
 gem/Makefile
+gem/example/Makefile
 
 decoder/obj/
 decoder/moc/
 decoder/lib/
 decoder/Makefile
+decoder/example/Makefile
 
 gui/obj/
 gui/moc/
