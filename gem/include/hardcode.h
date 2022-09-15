@@ -12,6 +12,7 @@
 
 //#define USE_VME
 #define USE_SSP
+//#define USE_SRS
 
 #define INVERSE_POLARITY_VALID
 

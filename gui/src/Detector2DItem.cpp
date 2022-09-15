@@ -92,7 +92,6 @@ void Detector2DItem::DrawAxis(QPainter *painter)
 {
     QPen pen(Qt::black, 1);
     painter -> setPen(pen);
-    std::cout<<"........................................"<<std::endl;
     // draw axis
     // (area_x1, area_y1, area_x2, area_y2)
     painter -> drawLine(area_x1, area_y1, area_x1, area_y2);
