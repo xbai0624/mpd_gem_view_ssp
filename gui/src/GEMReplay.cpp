@@ -35,6 +35,7 @@ GEMReplay::~GEMReplay()
 void GEMReplay::GeneratePedestal()
 {
     gem_sys -> SetPedestalMode(true);
+    data_handler -> SetMaxPedestalEvents(max_pedestal_events);
     data_handler -> Replay(ifile, split_min, split_max,
             pedestal_input_file, common_mode_input_file,
             pedestal_output_file, commonMode_output_file);
