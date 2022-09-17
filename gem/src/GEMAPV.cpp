@@ -546,7 +546,7 @@ inline void split_data(const uint32_t &data, float &val1, float &val2)
 void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
 {
     if(2*size > buffer_size) {
-        std::cerr << "Received " << size * 2 << " adc words, "
+        std::cerr << __PRETTY_FUNCTION__ << " Received " << size * 2 << " adc words, "
             << "but APV " << adc_ch << " in MPD " << mpd_id
             << " has only " << buffer_size << " channels" << std::endl;
         return;
@@ -560,6 +560,29 @@ void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
 
     ts_begin = getTimeSampleStart();
 }
+////////////////////////////////////////////////////////////////////////////////
+// fill raw data
+// this is for SRS.
+
+void GEMAPV::FillRawDataSRS(const std::vector<int> &buf, const APVDataType &flags)
+{
+    if(buf.size() > buffer_size) {
+        std::cerr << __PRETTY_FUNCTION__ << " Received " << buf.size() << " adc words, "
+            << "but APV " << adc_ch << " in FEC " << mpd_id
+            << " has only " << buffer_size << " channels" << std::endl;
+        return;
+    }
+
+    for(uint32_t i = 0; i < buf.size(); ++i)
+    {
+        raw_data[i] = static_cast<float>(buf[i]);
+    }
+
+    ts_begin = getTimeSampleStart();
+
+    // set raw data flags
+    raw_data_flags = flags;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // fill raw data
@@ -568,7 +591,7 @@ void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
 void GEMAPV::FillRawDataMPD(const std::vector<int> &buf, const APVDataType &flags)
 {
     if(buf.size() > buffer_size) {
-        std::cerr << "Received " << buf.size() << " adc words, "
+        std::cerr << __PRETTY_FUNCTION__ << " Received " << buf.size() << " adc words, "
             << "but APV " << adc_ch << " in MPD " << mpd_id
             << " has only " << buffer_size << " channels" << std::endl;
         return;
@@ -654,7 +677,8 @@ void GEMAPV::FillPedHist()
 
     for(uint32_t i = 0; i < time_samples; ++i)
     {
-        getAverage(average[i], &raw_data[DATA_INDEX(0, i)]);
+        //getAverage(average[i], &raw_data[DATA_INDEX(0, i)]); // original method
+        getMiddleAverage(average[i], &raw_data[DATA_INDEX(0, i)]); // original method
     }
 
     for(uint32_t i = 0; i < APV_STRIP_SIZE; ++i)
@@ -693,7 +717,7 @@ void GEMAPV::FitPedestal()
     // a helper lambda
     auto fit_vector = [&](const std::vector<int>& vec, double &mean, double &sigma)
     {
-        TH1F h("h", "h", 2800, -800, 2000);
+        TH1F h("h", "h", 4000, -2000, 2000);
 
         for(auto &i: vec)
             h.Fill((float)i);
@@ -788,7 +812,11 @@ void GEMAPV::ZeroSuppression()
     offline_common_mode.clear();
     for(uint32_t ts = 0; ts < time_samples; ++ts)
     {
-        CommonModeCorrection(&raw_data[DATA_INDEX(0, ts)], APV_STRIP_SIZE, ts);
+#ifdef USE_SRS
+        CommonModeCorrection_SRS(&raw_data[DATA_INDEX(0, ts)], APV_STRIP_SIZE, ts);
+#else
+        CommonModeCorrection_MPD(&raw_data[DATA_INDEX(0, ts)], APV_STRIP_SIZE, ts);
+#endif
     }
 
     for(uint32_t i = 0; i < APV_STRIP_SIZE; ++i)
@@ -877,12 +905,11 @@ static void binary_insert(std::vector<float> &vec, const float &val, size_t star
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// do common mode correction (bring the signal average to 0)
+// do common mode correction (bring the signal average to 0): MPD version
 
 #define NUM_HIGH_STRIPS 20
-void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
+void GEMAPV::CommonModeCorrection_MPD(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
 {
-    int count = 0;
     float average = 0;
 
     //-----------------------------------------------------------
@@ -925,23 +952,7 @@ void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unus
 #ifdef SORTING_ALGORITHM
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
-        // remove the highest 20 strips for common mode calculation
-        std::vector<float> high_adc(NUM_HIGH_STRIPS, -9999.);
-        for(uint32_t i = 0; i < size; ++i)
-        {
-            average += buf[i];
-            count++;
-            if(buf[i] > high_adc[0])
-                binary_insert(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
-        }
-        for(uint32_t i = 0; i < NUM_HIGH_STRIPS; i++)
-        {
-            average -= high_adc[i];
-            count--;
-        }
-
-        if(count)
-            average /= (float)count;
+        average = dynamic_ts_common_mode_sorting(buf, size);
     }
     else {
         std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
@@ -950,32 +961,7 @@ void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unus
 #elif defined(DANNING_ALGORITHM)
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
-        // 1) average A
-        float averageA = 0;
-        for(uint32_t i=0; i < size; ++i)
-        {
-            if (buf[i] >= common_mode_range_min && buf[i] <= common_mode_range_max) {
-                averageA += buf[i];
-                count++;
-            }
-        }
-
-        // 2) average B
-        if(count > 0) {
-            averageA /= (float)count;
-            count = 0;
-            for(uint32_t i=0; i < size; ++i)
-            {
-                if(buf[i] < averageA + DANNING_ALGORITHM_RMS_THRESHOLD * pedestal[i].noise) {
-                    average += buf[i];
-                    count++;
-                }
-            }
-
-            if(count > 0) {
-                average /= (float)count;
-            }
-        }
+        average = dynamic_ts_common_mode_danning(buf, size);
     }
 #else
     std::cout<<"ERROR: must specifiy one common mode calculation method..."<<std::endl;
@@ -993,6 +979,121 @@ void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unus
         // save offline common mode
         offline_common_mode.push_back(average);
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// do common mode correction (bring the signal average to 0): SRS version
+
+void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
+{
+    int count = 0;
+    float average = 0;
+
+    // SRS method
+    for(uint32_t i = 0; i < size; ++i)
+    {
+        buf[i] = pedestal[i].offset - buf[i]; // for SRS, SRS is using negative ADC value
+        // this is more reasonable than Kondo's initial version
+        if(buf[i] < pedestal[i].noise * common_thres) {
+            average += buf[i];
+            count++;
+        }
+    }
+
+#ifdef SORTING_ALGORITHM
+    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
+    {
+        average = dynamic_ts_common_mode_sorting(buf, size);
+    }
+    else {
+        std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
+                 <<std::endl;
+    }
+#elif defined(DANNING_ALGORITHM)
+    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
+    {
+        average = dynamic_ts_common_mode_danning(buf, size);
+    }
+#else
+    std::cout<<"ERROR: must specifiy one common mode calculation method..."<<std::endl;
+    exit(0);
+#endif
+
+    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
+    {
+        // common mode correction
+        for(uint32_t i = 0; i < size; ++i)
+        {
+            buf[i] -= average;
+        }
+
+        // save offline common mode
+        offline_common_mode.push_back(average);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// calculate dynamic common mode sorting method
+
+float GEMAPV::dynamic_ts_common_mode_sorting(float *buf, const uint32_t &size)
+{
+    float average = 0.;
+    int count = 0;
+    // remove the highest 20 strips for common mode calculation
+    std::vector<float> high_adc(NUM_HIGH_STRIPS, -9999.);
+    for(uint32_t i = 0; i < size; ++i)
+    {
+        average += buf[i];
+        count++;
+        if(buf[i] > high_adc[0])
+            binary_insert(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
+    }
+    for(uint32_t i = 0; i < NUM_HIGH_STRIPS; i++)
+    {
+        average -= high_adc[i];
+        count--;
+    }
+
+    if(count)
+        average /= (float)count;
+
+    return average;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// calculate dynamic common mode danning method
+
+float GEMAPV::dynamic_ts_common_mode_danning(float *buf, const uint32_t &size)
+{
+    float average = 0;
+    int count = 0;
+    // 1) average A
+    float averageA = 0;
+    for(uint32_t i=0; i < size; ++i)
+    {
+        if (buf[i] >= common_mode_range_min && buf[i] <= common_mode_range_max) {
+            averageA += buf[i];
+            count++;
+        }
+    }
+
+    // 2) average B
+    if(count > 0) {
+        averageA /= (float)count;
+        count = 0;
+        for(uint32_t i=0; i < size; ++i)
+        {
+            if(buf[i] < averageA + DANNING_ALGORITHM_RMS_THRESHOLD * pedestal[i].noise) {
+                average += buf[i];
+                count++;
+            }
+        }
+
+        if(count > 0) {
+            average /= (float)count;
+        }
+    }
+    return average;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1162,7 +1263,7 @@ void GEMAPV::PrintOutCommonModeRange(std::ofstream &out)
     }
 
     // follow Ben's suggestion, set all minimal common mode value to 0
-    min = 0;
+    //min = 0;
 
     out << std::setw(12) << crate_id
         << std::setw(12) << raw_data_flags.slot_id
@@ -1314,6 +1415,27 @@ void GEMAPV::getAverage(float &average, const float *buf)
 
     average /= (float)count;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// get the average within one time sample, remove the highst and lowest 20 strips
+
+void GEMAPV::getMiddleAverage(float &average, const float *buf)
+{
+    average = 0.;
+    int count = 0;
+
+    std::vector<float> arr(buf, buf+APV_STRIP_SIZE);
+    std::sort(arr.begin(), arr.end());
+
+    for(uint32_t i = 40; i < APV_STRIP_SIZE-40; ++i)
+    {
+        average += arr[i];
+        count++;
+    }
+
+    average /= (float)count;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Build strip map

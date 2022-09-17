@@ -24,7 +24,11 @@ enum class Bank_TagID
     TDC     = 6,
     Trigger = 7,
     MPD_VME = 10,
-    MPD_SSP = 3561
+    MPD_SSP = 3561,
+};
+
+const int Fec_Bank_Tag[] = {
+    5, 8, 9, 10, 11, 12
 };
 
 ////////////////////////////////////////////////////////////////

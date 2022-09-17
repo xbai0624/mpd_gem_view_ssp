@@ -15,6 +15,7 @@ class GEMRootHitTree;
 class GEMRootClusterTree;
 class MPDVMERawEventDecoder;
 class MPDSSPRawEventDecoder;
+class SRSRawEventDecoder;
 class TriggerDecoder;
 struct APVDataType;
 
@@ -37,6 +38,7 @@ public:
     // set systems
     void SetGEMSystem(GEMSystem *gem){gem_sys = gem;}
     GEMSystem *GetGEMSystem() const {return gem_sys;}
+    void RegisterRawDecoders();
 
     // file reading and writing
     void Decode(const void *buffer);
@@ -106,6 +108,7 @@ private:
     MPDVMERawEventDecoder *mpd_vme_decoder = nullptr;
     MPDSSPRawEventDecoder *mpd_ssp_decoder = nullptr;
     TriggerDecoder *trigger_decoder = nullptr;
+    SRSRawEventDecoder *srs_decoder = nullptr;
 
     // data related
     std::deque<EventData> event_data;

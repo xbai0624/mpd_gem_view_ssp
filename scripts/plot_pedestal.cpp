@@ -20,7 +20,7 @@ TH1F* plot_apv(const vector<float> &v, int crate, int mpd, int adc, const char* 
 }
 
 // plot pedestal
-void plot_pedestal(const char* path = "../database/gem_ped.dat")
+void plot_pedestal(const char* path = "../database/gem_ped.dat", string content = "offset")
 {
     fstream f(path, fstream::in);
     vector<TH1F*> res;
@@ -28,21 +28,22 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat")
     vector<float> apv_offset;
     vector<float> apv_noise;
 
+    int slot, mpd, adc, crate;
     string line;
     while(getline(f, line)) 
     {
-        int mpd, adc, crate;
         istringstream iss(line);
-        if(line.find("APV") != string::npos) {
-            string tmp;
-            iss >> tmp >> crate >> mpd >> adc;
-
+        if(line.find("APV") != string::npos)
+        {
             if(apv_offset.size() > 0) {
                 res.push_back(plot_apv(apv_offset, crate, mpd, adc, "offset"));
                 res.push_back(plot_apv(apv_noise, crate, mpd, adc, "noise"));
             }
             apv_offset.clear();
             apv_noise.clear();
+
+            string tmp;
+            iss >> tmp >> crate >> slot >> mpd >> adc;
         } else {
             int strip;
             float offset, noise;
@@ -50,6 +51,11 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat")
             apv_offset.push_back(offset);
             apv_noise.push_back(noise);
         }
+    }
+    // save last apv
+    if(apv_offset.size() > 0) {
+        res.push_back(plot_apv(apv_offset, crate, mpd, adc, "offset"));
+        res.push_back(plot_apv(apv_noise, crate, mpd, adc, "noise"));
     }
 
     // save histos
@@ -75,7 +81,7 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat")
 
         TH1F* h = (TH1F*)key->ReadObj();
         string title = h->GetTitle();
-        if(title.find("offset") == string::npos) continue;
+        if(title.find(content) == string::npos) continue;
         if(h->GetBinContent(10) == 5000 || h->GetBinContent(10) == 0) continue;
 
         int nCanvas = nAPV / 16;

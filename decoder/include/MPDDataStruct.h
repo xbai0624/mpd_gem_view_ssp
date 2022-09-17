@@ -275,4 +275,89 @@ namespace std {
     };
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// SSP apv data flag
+
+struct APVDataType
+{
+    uint32_t data_flag;
+    uint32_t crate_id;
+    uint32_t mpd_id;
+    uint32_t adc_ch;
+    uint32_t slot_id;
+
+    APVDataType():
+        data_flag(0), crate_id(9999), mpd_id(9999), adc_ch(9999), slot_id(11)
+    {}
+
+    // copy ctor
+    APVDataType(const APVDataType &r):
+        data_flag(r.data_flag), crate_id(r.crate_id), mpd_id(r.mpd_id),
+        adc_ch(r.adc_ch), slot_id(r.slot_id)
+    {}
+
+    // copy assignment
+    APVDataType & operator = (const APVDataType &r) {
+        data_flag = r.data_flag;
+        crate_id = r.crate_id;
+        mpd_id = r.mpd_id;
+        adc_ch = r.adc_ch;
+        slot_id = r.slot_id;
+        return *this;
+    }
+
+    void SetAPVAddress(const APVAddress &a) {
+        crate_id = a.crate_id;
+        mpd_id = a.mpd_id;
+        adc_ch = a.adc_ch;
+    }
+
+    void reset() {
+        data_flag = 0;;
+        crate_id = 9999;
+        mpd_id = 9999;
+        adc_ch = 9999;
+        slot_id = 11;
+    }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// mpd timing struct
+
+struct MPDTiming
+{
+    uint32_t timestamp_coarse1;
+    uint32_t timestamp_coarse0;
+    uint32_t timestamp_fine;
+    uint32_t event_count;
+
+    // default value for timing
+    MPDTiming():
+        timestamp_coarse1(9999), timestamp_coarse0(9999), 
+        timestamp_fine(9999), event_count(0)
+    {}
+
+    MPDTiming(const MPDTiming &t):
+        timestamp_coarse1(t.timestamp_coarse1), timestamp_coarse0(t.timestamp_coarse0),
+        timestamp_fine(t.timestamp_fine), event_count(t.event_count)
+    {}
+
+    // copy assignment
+    MPDTiming &operator = (const MPDTiming &t) {
+        timestamp_coarse1 = t.timestamp_coarse1;
+        timestamp_coarse0 = t.timestamp_coarse0;
+        timestamp_fine = t.timestamp_fine;
+        event_count = t.event_count;
+        return *this; 
+    }
+
+    // reset
+    void reset() {
+        timestamp_coarse1 = 9999;
+        timestamp_coarse0 = 9999;
+        timestamp_fine = 9999;
+        event_count = 0;
+    }
+};
+
 #endif

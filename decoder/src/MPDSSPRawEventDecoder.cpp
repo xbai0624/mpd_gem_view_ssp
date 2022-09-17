@@ -105,6 +105,8 @@ void MPDSSPRawEventDecoder::DecodeAPV(const uint32_t *pBuf, uint32_t fBufLen,
         // for VTP. (if SSP, comment out this line)
         // crate id was passed by upper level ROC id: vTagTrack[1] (vTagTrack[0] is current level tag)
         apvAddress.crate_id = vTagTrack[1];
+        if(vTagTrack[1] != 24)
+            std::cout<<__PRETTY_FUNCTION__<<" DEBUG: "<<apvAddress<<std::endl;
 
         // reorganize data into time sample format
         if(mAPVData.find(apvAddress) == mAPVData.end())

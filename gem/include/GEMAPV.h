@@ -66,6 +66,7 @@ public:
     void ResetPedHist();
     void FitPedestal();
     void FillRawDataSRS(const uint32_t *buf, const uint32_t &siz);
+    void FillRawDataSRS(const std::vector<int> &buf, const APVDataType &flags=APVDataType());
     void FillRawDataMPD(const std::vector<int> &buf, const APVDataType &flags=APVDataType());
     void FillOnlineCommonMode(const std::vector<int> &);
     void FillZeroSupData(const uint32_t &ch, const uint32_t &ts, const unsigned short &val);
@@ -75,7 +76,10 @@ public:
     void UpdatePedestal(const float &offset, const float &noise, const uint32_t &index);
     void UpdateCommonModeRange(const float &c_min, const float &c_max);
     void ZeroSuppression();
-    void CommonModeCorrection(float *buf, const uint32_t &size, const uint32_t &ts);
+    void CommonModeCorrection_MPD(float *buf, const uint32_t &size, const uint32_t &ts);
+    void CommonModeCorrection_SRS(float *buf, const uint32_t &size, const uint32_t &ts);
+    float dynamic_ts_common_mode_sorting(float *buf, const uint32_t &size);
+    float dynamic_ts_common_mode_danning(float *buf, const uint32_t &size);
     void CollectZeroSupHits(std::vector<GEM_Strip_Data> &hits);
     void CollectZeroSupHits();
     void ResetHitPos();
@@ -124,6 +128,7 @@ public:
 private:
     void initialize();
     void getAverage(float &ave, const float *buf);
+    void getMiddleAverage(float &ave, const float *buf);
     uint32_t getTimeSampleStart();
     void buildStripMap();
 

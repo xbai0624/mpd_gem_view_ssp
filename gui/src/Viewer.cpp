@@ -463,7 +463,7 @@ void Viewer::DrawGEMRawHistos(int num)
     std::map<APVAddress, APVDataType> mDataFlags;
 
     // event number increased - forward
-    if(num > event_number_checked) 
+    if(num > event_number_checked)
     {
         // get apv raw histos
         pGEMAnalyzer -> AnalyzeEvent(num);
@@ -769,7 +769,8 @@ void Viewer::OpenFile()
     QString filename = QFileDialog::getOpenFileName(
             this,
             "Open Document",
-            QDir::currentPath(),
+            //QDir::currentPath(),
+            "/home/xinzhan/evio_data",
             "All files (*.*) ;; evio files (*.evio)");
 
     fFile = filename.toStdString();

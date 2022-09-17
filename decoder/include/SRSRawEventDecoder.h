@@ -24,6 +24,8 @@ public:
     void DecodeFEC(const std::vector<unsigned int> &);
     void DecodeFEC(unsigned int *, int &);
     void decode_impl(unsigned int *buf, int &n, std::vector<int> &apv);
+    std::vector<int> cleanup_srs_apv_header_words(const std::vector<int>&,
+            const int &header=1500, const int &time_sample=6);
     void FillAPVRaw(std::vector<int> &, unsigned int);
 
     //std::unordered_map<int, std::unordered_map<int, std::vector<unsigned int>>> &GetDecoded();
@@ -32,6 +34,9 @@ public:
 
     // general interface
     const std::unordered_map<APVAddress, std::vector<int>> &GetAPV() const;
+    const std::unordered_map<APVAddress, APVDataType> & GetAPVDataFlags() const;
+    const std::unordered_map<APVAddress, std::vector<int>> & GetAPVOnlineCommonMode() const;
+    std::pair<uint32_t, uint32_t> GetTriggerTime() const;
 
     void Word32ToWord16(unsigned int*, unsigned int*, unsigned int*);
 
@@ -52,6 +57,16 @@ private:
     std::unordered_map<int, std::vector<unsigned int>> mFECAPVEvent;
 
     std::vector<int> vActiveADCChannels;
+
+    // flags for common mode online, not used by SRS
+    // flags: lower 6-bit in effect. bit(6)=1: common mode subtracted
+    //                               bit(5)=1: build all strips (zero suppression is disabled)
+    std::unordered_map<APVAddress, APVDataType> mAPVDataFlags;
+    APVAddress apvAddress;
+    APVDataType flags;
+
+    // common mode calculated online (vector size must be 6)
+    std::unordered_map<APVAddress, std::vector<int>> mAPVOnlineCommonMode;
 };
 
 #endif

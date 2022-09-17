@@ -217,7 +217,7 @@ void EventParser::ParseData(const uint32_t *pBuf, [[maybe_unused]] uint32_t fBuf
 void EventParser::RegisterRawDecoder(int tag, AbstractRawDecoder* decoder)
 {
     if(mDecoder.find(tag) != mDecoder.end()) {
-        std::cout<<"Warning: decoder already registered: \" tag: "<<tag<<"\"."
+        std::cout<<__PRETTY_FUNCTION__<<" Warning: decoder already registered: \" tag: "<<tag<<"\"."
                  <<std::endl;
         return;
     }

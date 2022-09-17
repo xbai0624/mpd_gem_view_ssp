@@ -8,11 +8,13 @@
 
 #define SORTING_ALGORITHM
 //#define DANNING_ALGORITHM
-//#define DANNING_ALGORITHM_RMS_THRESHOLD 5.0 // Ben's firmware is using 5.0
+
+// leave this this prameter uncommented
+#define DANNING_ALGORITHM_RMS_THRESHOLD 5.0 // Ben's firmware is using 5.0
 
 //#define USE_VME
-#define USE_SSP
-//#define USE_SRS
+//#define USE_SSP
+#define USE_SRS
 
 #define INVERSE_POLARITY_VALID
 

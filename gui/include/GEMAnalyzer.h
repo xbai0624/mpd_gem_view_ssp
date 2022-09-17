@@ -5,6 +5,7 @@
 #include "EventParser.h"
 #include "MPDVMERawEventDecoder.h"
 #include "MPDSSPRawEventDecoder.h"
+#include "SRSRawEventDecoder.h"
 #include "TriggerDecoder.h"
 #include "MPDDataStruct.h"
 #include "hardcode.h"
@@ -41,6 +42,8 @@ private:
     EventParser *pEventParser;
 #ifdef USE_VME
     MPDVMERawEventDecoder *pRawEventDecoder;
+#elif defined(USE_SRS)
+    SRSRawEventDecoder *pRawEventDecoder;
 #else
     MPDSSPRawEventDecoder *pRawEventDecoder;
 #endif

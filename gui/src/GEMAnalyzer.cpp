@@ -46,6 +46,10 @@ void GEMAnalyzer::Init()
     pRawEventDecoder = new MPDVMERawEventDecoder();
     // register decoder
     pEventParser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_VME), pRawEventDecoder);
+#elif defined(USE_SRS)
+    pRawEventDecoder = new SRSRawEventDecoder();
+    for(auto &i: Fec_Bank_Tag)
+        pEventParser -> RegisterRawDecoder(static_cast<int>(i), pRawEventDecoder);
 #else
     pRawEventDecoder = new MPDSSPRawEventDecoder();
     // register decoder
@@ -158,7 +162,10 @@ void GEMAnalyzer::FillHistos(const std::unordered_map<APVAddress, std::vector<in
         {
             rawHistos[i.first] -> SetBinContent(ts, j);
             rawData[i.first].push_back(j);
-            rawDataFlags[i.first] = event_data_flags.at(i.first);
+            if(event_data_flags.find(i.first) != event_data_flags.end())
+                rawDataFlags[i.first] = event_data_flags.at(i.first);
+            else
+                rawDataFlags[i.first] = APVDataType();
             ts++;
         }
     }

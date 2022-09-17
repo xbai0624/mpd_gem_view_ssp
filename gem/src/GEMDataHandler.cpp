@@ -3,6 +3,7 @@
 #include "GEMException.h"
 #include "MPDVMERawEventDecoder.h"
 #include "MPDSSPRawEventDecoder.h"
+#include "SRSRawEventDecoder.h"
 #include "TriggerDecoder.h"
 #include "RolStruct.h"
 #include "GEMRootHitTree.h"
@@ -108,15 +109,21 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
         const int &ev_number)
 {
     event_parser -> ParseEvent(pBuf, fBufLen);
+
 #ifdef USE_VME
     MPDVMERawEventDecoder* decoder = dynamic_cast<MPDVMERawEventDecoder*>(
             event_parser->GetRawDecoder(static_cast<int>(Bank_TagID::MPD_VME)) 
+            );
+#elif defined(USE_SRS)
+    SRSRawEventDecoder *decoder = dynamic_cast<SRSRawEventDecoder*>(
+            event_parser->GetRawDecoder(static_cast<int>(Fec_Bank_Tag[0]))
             );
 #else
     MPDSSPRawEventDecoder* decoder = dynamic_cast<MPDSSPRawEventDecoder*>(
             event_parser->GetRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP)) 
             );
 #endif
+
     const std::unordered_map<APVAddress, std::vector<int>> & decoded_data 
         = decoder->GetAPV();
     const std::unordered_map<APVAddress, APVDataType> & decoded_data_flags
@@ -165,7 +172,7 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
     for(auto &i: decoded_data)
     {
         if(gem_sys->GetAPV(i.first) == nullptr) {
-            std::cout<<"Warning:: apv: "<<i.first<<" not initialized."<<std::endl
+            std::cout<<__PRETTY_FUNCTION__<<" Warning:: apv: "<<i.first<<" not initialized."<<std::endl
                      <<"          make sure the correct mapping file was loaded."<<std::endl
                      <<"          skipped the current APV data."<<std::endl;
             continue;
@@ -179,6 +186,51 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
 #endif
 
     EndofThisEvent(ev_number);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setup event parser and register raw decoders for it
+
+void GEMDataHandler::RegisterRawDecoders()
+{
+    // setup event parser
+    if(event_parser != nullptr)
+        event_parser -> Reset();
+    else
+        event_parser = new EventParser();
+
+#ifdef USE_VME
+    std::cout<<__PRETTY_FUNCTION__<<" INFO: VME mode."<<std::endl;
+    if(mpd_vme_decoder == nullptr) {
+        mpd_vme_decoder = new MPDVMERawEventDecoder();
+
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_VME), mpd_vme_decoder);
+    }
+#elif defined(USE_SRS)
+    std::cout<<__PRETTY_FUNCTION__<<" INFO: SRS mode."<<std::endl;
+    if(srs_decoder == nullptr)
+    {
+        srs_decoder = new SRSRawEventDecoder();
+
+        // in srs, each fec has a different tag, they all use the same decoder
+        for(auto &i: Fec_Bank_Tag)
+            event_parser -> RegisterRawDecoder(static_cast<int>(i), srs_decoder);
+    }
+#else
+    std::cout<<__PRETTY_FUNCTION__<<" INFO: SSP/VTP mode."<<std::endl;
+    if(mpd_ssp_decoder == nullptr) {
+        mpd_ssp_decoder = new MPDSSPRawEventDecoder();
+ 
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), mpd_ssp_decoder);
+    }
+#endif
+
+    // all needs trigger decoder
+    if(trigger_decoder == nullptr)
+    {
+        trigger_decoder = new TriggerDecoder();
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,32 +255,7 @@ int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int sp
         return 0;
     }
 
-    // setup event parser
-    if(event_parser != nullptr)
-        event_parser -> Reset();
-    else
-        event_parser = new EventParser();
-#ifdef USE_VME
-    // setup raw event decoder
-    if(mpd_vme_decoder == nullptr) {
-        mpd_vme_decoder = new MPDVMERawEventDecoder();
-        trigger_decoder = new TriggerDecoder();
-
-        // register all raw decoders
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_VME), mpd_vme_decoder);
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
-    }
-#else
-    // setup raw event decoder
-    if(mpd_ssp_decoder == nullptr) {
-        mpd_ssp_decoder = new MPDSSPRawEventDecoder();
-        trigger_decoder = new TriggerDecoder();
- 
-        // register all raw decoders
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), mpd_ssp_decoder);
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
-    }
-#endif
+    RegisterRawDecoders();
 
     // parse event
     int count = 0;

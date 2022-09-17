@@ -639,6 +639,35 @@ void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event)
     }
 }
 
+// fill raw data to a certain apv, online cm not availabe
+void GEMSystem::FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw,
+        const APVDataType &flags, EventData &event)
+{
+    GEMAPV *apv = GetAPV(addr);
+
+    if(apv != nullptr) 
+    {
+        apv->FillRawDataSRS(raw, flags);
+
+        if(PedestalMode)
+            apv->FillPedHist();
+        else {
+            apv->ZeroSuppression();
+#ifdef MULTI_THREAD
+            __gem_locker.lock();
+#endif
+            apv->CollectZeroSupHits(event.get_gem_data());
+#ifdef MULTI_THREAD
+            __gem_locker.unlock();
+#endif
+        }
+    }
+    else 
+    {
+        std::cout<<__func__<<" waring:: APV "<<addr<<" not found."<<std::endl;
+    }
+}
+
 // fill raw data to a certain apv, online cm available
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
         const APVDataType &flags, const std::vector<int> &online_cm, EventData &event)

@@ -3,18 +3,17 @@
 
 //#define SBS_UV_CHAMBER
 
-#define TOTAL_LAYERS 8
-#define N_CHAMBERS_PER_LAYER 4
+#define TOTAL_LAYERS 1
+#define N_CHAMBERS_PER_LAYER 1
 
 vector<string> v_root_files = {
-    "../Rootfiles/cluster_0_e1209016_SBSGEMs_1452.root",
-    "../Rootfiles/cluster_0_e1209016_SBSGEMs_1450.root",
-    "../Rootfiles/cluster_0_e1209016_SBSGEMs_1449.root"
+    //"../Rootfiles/cluster_0_e1209016_SBSGEMs_1452.root",
+    //"../Rootfiles/cluster_0_e1209016_SBSGEMs_1450.root",
+    //"../Rootfiles/cluster_0_e1209016_SBSGEMs_1449.root",
+    //"../Rootfiles/cluster_0_uva_xray_1010.evio.0.root",
+    "../Rootfiles/cluster_0_uva_xray_1011.evio.0.root",
+    //"../Rootfiles/cluster_0_e1209016_SBSGEMs-vtp2_1047.evio.0.0.root"
 };
-
-const char * cluster_root_file_path = "../Rootfiles/cluster_0_e1209016_SBSGEMs_1452.root";
-const char * cluster_root_file_path2 = "../Rootfiles/cluster_0_e1209016_SBSGEMs_1450.root";
-const char * cluster_root_file_path1 = "../Rootfiles/cluster_0_e1209016_SBSGEMs_1449.root";
 
 ////////////////////////////////////////////////////////////////////////////////
 // uv coordinate to xy coordinate transform
@@ -462,13 +461,12 @@ void show_cluster_2d_map()
         hClusterMap[i.first] -> Draw("colz");
     }
     c_layer_2d -> Print("c_layer_2d_hit_map.pdf");
-/*
+
     // cluster size
-    _layer_id = 0;
+    int _layer_id = 0;
     for(auto &i: layer_cluster)
     {
         ShowLayerResults(i.second, _layer_id);
         _layer_id++;
     }
-    */
 }

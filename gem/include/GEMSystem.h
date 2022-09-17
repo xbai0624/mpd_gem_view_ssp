@@ -121,6 +121,9 @@ public:
     void RebuildDetectorMap();
     void RebuildDAQMap();
     void FillRawDataSRS(const GEMRawData &raw, EventData &event);
+    // srs online cm not availabe
+    void FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw,
+            const APVDataType &flags, EventData &event);
     // online cm availabe
     void FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
             const APVDataType &flags, const std::vector<int> &online_cm, EventData &event);
