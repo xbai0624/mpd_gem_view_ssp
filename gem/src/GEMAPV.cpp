@@ -885,7 +885,7 @@ void GEMAPV::CollectZeroSupHits()
 // binary insert to a sorted vector and keep that vector to a fixed length
 // sorting costs too much running time
 
-static void binary_insert(std::vector<float> &vec, const float &val, size_t start, size_t end)
+static void binary_insert_find_high(std::vector<float> &vec, const float &val, size_t start, size_t end)
 {
     if(start + 1 == end)
     {
@@ -899,10 +899,30 @@ static void binary_insert(std::vector<float> &vec, const float &val, size_t star
 
     size_t pos = (start + end) / 2;
     if(vec[pos] >= val)
-        binary_insert(vec, val, start, pos);
+        binary_insert_find_high(vec, val, start, pos);
     else
-        binary_insert(vec, val, pos, end);
+        binary_insert_find_high(vec, val, pos, end);
 }
+
+static void binary_insert_find_low(std::vector<float> &vec, const float &val, size_t start, size_t end)
+{
+    if(start + 1 == end)
+    {
+        for(size_t i=0;i<start;i++)
+        {
+            vec[i] = vec[i+1];
+        }
+        vec[start] = val;
+        return;
+    }
+
+    size_t pos = (start + end) / 2;
+    if(vec[pos] < val)
+        binary_insert_find_low(vec, val, start, pos);
+    else
+        binary_insert_find_low(vec, val, pos, end);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // do common mode correction (bring the signal average to 0): MPD version
@@ -983,22 +1003,37 @@ void GEMAPV::CommonModeCorrection_MPD(float *buf, const uint32_t &size, [[maybe_
 
 ////////////////////////////////////////////////////////////////////////////////
 // do common mode correction (bring the signal average to 0): SRS version
-
+//#include <TFile.h>
 void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
 {
-    int count = 0;
+    //int count = 0;
     float average = 0;
+
+    // debug
+    //auto debug_plot_h = [](float *buf, size_t size, const char* key) -> TH1F*
+    //{
+    //    TH1F *h = new TH1F(key, key, 150, 0, 150);
+    //    for(size_t i=0; i<size; i++)
+    //        h -> SetBinContent(i+1, buf[i]);
+    //    return h;
+    //};
+
+    //TH1F *debug_original_h = debug_plot_h(buf, size, "h_original");
+
 
     // SRS method
     for(uint32_t i = 0; i < size; ++i)
     {
-        buf[i] = pedestal[i].offset - buf[i]; // for SRS, SRS is using negative ADC value
+        //buf[i] = pedestal[i].offset - buf[i]; // for SRS, SRS is using negative ADC value
+        buf[i] = buf[i] - pedestal[i].offset;
         // this is more reasonable than Kondo's initial version
-        if(buf[i] < pedestal[i].noise * common_thres) {
-            average += buf[i];
-            count++;
-        }
+        //if(buf[i] < pedestal[i].noise * common_thres) {
+        //    average += buf[i];
+        //    count++;
+        //}
     }
+
+    //TH1F* debug_offset_sub_h = debug_plot_h(buf, size, "h_offset_sub");
 
 #ifdef SORTING_ALGORITHM
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
@@ -1019,17 +1054,30 @@ void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_
     exit(0);
 #endif
 
+    //std::cout<<"common mode: "<<average<<std::endl;
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
         // common mode correction
         for(uint32_t i = 0; i < size; ++i)
         {
+#ifdef USE_SRS
+            buf[i] = average - buf[i];
+#else
             buf[i] -= average;
+#endif
         }
 
         // save offline common mode
         offline_common_mode.push_back(average);
     }
+
+    //TH1F *debug_cm_sub_h = debug_plot_h(buf, size, "h_cm_sub");
+    //TFile *f = new TFile("debug.root", "recreate");
+    //debug_original_h -> Write();
+    //debug_offset_sub_h -> Write();
+    //debug_cm_sub_h -> Write();
+    //f -> Close();
+    //getchar();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1039,15 +1087,29 @@ float GEMAPV::dynamic_ts_common_mode_sorting(float *buf, const uint32_t &size)
 {
     float average = 0.;
     int count = 0;
+
+#ifdef USE_SRS
+    // remove the lowest 20 strips for common mode calculation
+    std::vector<float> high_adc(NUM_HIGH_STRIPS, 9999.);
+#else
     // remove the highest 20 strips for common mode calculation
     std::vector<float> high_adc(NUM_HIGH_STRIPS, -9999.);
+#endif
+
     for(uint32_t i = 0; i < size; ++i)
     {
         average += buf[i];
         count++;
+#ifdef USE_SRS
+        if(buf[i] <= high_adc.front())
+            binary_insert_find_low(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
+#else
         if(buf[i] > high_adc[0])
-            binary_insert(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
+            binary_insert_find_high(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
+#endif
     }
+
+    //std::cout<<"debug: average: "<<average/(float)count<<std::endl;
     for(uint32_t i = 0; i < NUM_HIGH_STRIPS; i++)
     {
         average -= high_adc[i];

@@ -617,7 +617,7 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
 
     res = input.substr(not_dir, pos_start-not_dir);
 
-    res = prefix + std::string("_") + res + "root";
+    res = prefix + std::string("_") + res + ".root";
 
     return res;
 }

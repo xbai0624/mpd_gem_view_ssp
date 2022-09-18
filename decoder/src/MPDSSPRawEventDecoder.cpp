@@ -105,8 +105,6 @@ void MPDSSPRawEventDecoder::DecodeAPV(const uint32_t *pBuf, uint32_t fBufLen,
         // for VTP. (if SSP, comment out this line)
         // crate id was passed by upper level ROC id: vTagTrack[1] (vTagTrack[0] is current level tag)
         apvAddress.crate_id = vTagTrack[1];
-        if(vTagTrack[1] != 24)
-            std::cout<<__PRETTY_FUNCTION__<<" DEBUG: "<<apvAddress<<std::endl;
 
         // reorganize data into time sample format
         if(mAPVData.find(apvAddress) == mAPVData.end())
@@ -278,9 +276,9 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                 {
                     sspApv_trigger_time_1_t d; d.raw = data;
 
-                    printf("%8X - TRIGGER TIME 1 - time = %08x\n",
-                            d.raw,
-                            d.bf.trigger_time_l);
+                    //printf("%8X - TRIGGER TIME 1 - time = %08x\n",
+                    //        d.raw,
+                    //        d.bf.trigger_time_l);
 
                     time_last = 1;
                     trigger_time_l = d.bf.trigger_time_l;
@@ -290,9 +288,9 @@ void MPDSSPRawEventDecoder::sspApvDataDecode(const uint32_t &data)
                     sspApv_trigger_time_2_t d; d.raw = data;
                     if( time_last == 1 )
                     {
-                        printf("%8X - TRIGGER TIME 2 - time = %08x\n",
-                                d.raw,
-                                d.bf.trigger_time_h);
+                        //printf("%8X - TRIGGER TIME 2 - time = %08x\n",
+                        //        d.raw,
+                        //        d.bf.trigger_time_h);
                     }
                     else
                         printf("%8X - TRIGGER TIME - (ERROR)\n", data);

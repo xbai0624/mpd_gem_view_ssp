@@ -3,6 +3,10 @@
 #include <iostream>
 #include <cmath>
 
+#ifdef CONVERT
+#include "APVStripMapping.h"
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
 
@@ -94,10 +98,49 @@ void HistoItem::SetBoundingRect(const QRectF& f)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// convert strip orders
+#ifdef CONVERT
+static std::vector<float> convert_strip(const std::vector<float> &original)
+{
+    std::vector<float> res;
+
+    size_t S = original.size();
+    if(S <= 0) return res;
+
+    res.resize(S);
+    int APV_TS = 129;
+
+    if((int)S % APV_TS != 0) {
+        std::cout<<__PRETTY_FUNCTION__<<" ERROR: incorrect APV raw frame format."
+            <<" skipping converting..."
+            <<std::endl;
+        return original;
+    }
+
+    int TS = (int)S/APV_TS;
+    for(int ts = 0; ts<TS; ts++)
+    {
+        int i = ts*APV_TS;
+        for(int ch = 0; ch<128; ch++)
+        {
+            res[i+ch] = original[i + apv_strip_mapping::mapped_strip_arr.at("INFNXYGEM")[ch]];
+        }
+    }
+
+    return res;
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 // draw histo
 
 QPolygonF HistoItem::PrepareContentShape()
 {
+#ifdef CONVERT
+    // convert strips
+    _contents = convert_strip(_contents);
+#endif
+
     QPolygonF shape;
     if(_contents.size() <= 0) {
         shape << QPointF(0, 0);
