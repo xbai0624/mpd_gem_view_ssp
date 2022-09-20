@@ -10,7 +10,7 @@ TARGET = lib/decoder
 #INSTALLS += TARGET
 
 QMAKE_CXXFLAGS = -std=c++17
-CONFIG += force_debug_info
+CONFIG += release
 
 # self headers
 INCLUDEPATH += . ./include

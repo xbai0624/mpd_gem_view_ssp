@@ -129,11 +129,31 @@ const int _mapped_strip_uva_uv[128] = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// a hypothetical detector, no conversion, use apv interanl index
+
+const int _mapped_strip_apv_internal[128] = {
+    0,   1,   2,   3,   4,   5,   6,   7,   8,   9,
+    10,  11,  12,  13,  14,  15,  16,  17,  18,  19,
+    20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
+    30,  31,  32,  33,  34,  35,  36,  37,  38,  39,
+    40,  41,  42,  43,  44,  45,  46,  47,  48,  49,
+    50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+    60,  61,  62,  63,  64,  65,  66,  67,  68,  69,
+    70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+    80,  81,  82,  83,  84,  85,  86,  87,  88,  89,
+    90,  91,  92,  93,  94,  95,  96,  97,  98,  99,
+    100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+    110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+    120, 121, 122, 123, 124, 125, 126, 127
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // organize strip mappings using unordered_map
 const std::unordered_map<std::string, const int* const> mapped_strip_arr = {
     {"UVAXYGEM", _mapped_strip_uva_xy},
     {"UVAUVGEM", _mapped_strip_uva_uv},
-    {"INFNXYGEM", _mapped_strip_infn_xy}
+    {"INFNXYGEM", _mapped_strip_infn_xy},
+    {"INTERNAL", _mapped_strip_apv_internal}
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,6 +172,19 @@ void print(const typename std::enable_if<std::is_same<T,
         }
         std::cout<<std::endl;
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// remove leading and trailing spaces of a string
+
+static std::string strip(const std::string &str)
+{
+    size_t s = str.find_first_not_of(' ');
+    size_t e = str.find_last_not_of(' ');
+    size_t len = e - s + 1;
+
+    std::string res = str.substr(s, len);
+    return res;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -185,14 +218,18 @@ struct APVInfo
         std::string token;
         std::vector<std::string> tmp;
         while(std::getline(entry, token, ','))
-            tmp.push_back(token);
-
-        crate_id     = std::stoi(tmp[1]);    layer_id    = std::stoi(tmp[2]); 
-        mpd_id       = std::stoi(tmp[3]);    detector_id = std::stoi(tmp[4]);
-        dimension    = std::stoi(tmp[5]);    adc_ch      = std::stoi(tmp[6]); 
-        i2c_ch       = std::stoi(tmp[7]);    apv_pos     = std::stoi(tmp[8]);   
-        invert       = std::stoi(tmp[9]);    discriptor  = tmp[10];          
-        backplane_id = std::stoi(tmp[11]);   gem_pos     = std::stoi(tmp[12]);
+            tmp.push_back(strip(token));
+        try{
+            crate_id     = std::stoi(tmp[1]);    layer_id    = std::stoi(tmp[2]); 
+            mpd_id       = std::stoi(tmp[3]);    detector_id = std::stoi(tmp[4]);
+            dimension    = std::stoi(tmp[5]);    adc_ch      = std::stoi(tmp[6]); 
+            i2c_ch       = std::stoi(tmp[7]);    apv_pos     = std::stoi(tmp[8]);   
+            invert       = std::stoi(tmp[9]);    discriptor  = tmp[10];          
+            backplane_id = std::stoi(tmp[11]);   gem_pos     = std::stoi(tmp[12]);
+        }
+        catch(...){
+            std::cout<<__PRETTY_FUNCTION__<<" error enountered..."<<std::endl;
+        }
     }
 };
 
@@ -221,15 +258,19 @@ struct LayerInfo
         std::string token;
         std::vector<std::string> tmp;
         while(std::getline(entry, token, ','))
-            tmp.push_back(token);
-
-        layer_id     = std::stoi(tmp[1]);   chambers_per_layer = std::stoi(tmp[2]); 
-        readout_type = tmp[3];
-        x_offset     = std::stod(tmp[4]);   y_offset           = std::stod(tmp[5]); 
-        gem_type     = tmp[6];
-        nb_apvs_x    = std::stoi(tmp[7]);   nb_apvs_y          = std::stoi(tmp[8]);          
-        x_pitch      = std::stod(tmp[9]);   y_pitch            = std::stod(tmp[10]);
-        x_flip       = std::stoi(tmp[11]);  y_flip             = std::stoi(tmp[12]);
+            tmp.push_back(strip(token));
+        try{
+            layer_id     = std::stoi(tmp[1]);   chambers_per_layer = std::stoi(tmp[2]); 
+            readout_type = tmp[3];
+            x_offset     = std::stod(tmp[4]);   y_offset           = std::stod(tmp[5]); 
+            gem_type     = tmp[6];
+            nb_apvs_x    = std::stoi(tmp[7]);   nb_apvs_y          = std::stoi(tmp[8]);          
+            x_pitch      = std::stod(tmp[9]);   y_pitch            = std::stod(tmp[10]);
+            x_flip       = std::stoi(tmp[11]);  y_flip             = std::stoi(tmp[12]);
+        }
+        catch(...){
+            std::cout<<__PRETTY_FUNCTION__<<" error enountered..."<<std::endl;
+        }
     }
 };
 
