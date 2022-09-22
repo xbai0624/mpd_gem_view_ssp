@@ -6,6 +6,9 @@ TEMPLATE = lib
 TARGET = lib/epics
 INCLUDEPATH += ./include ../gem/include
 
+MOC_DIR = moc
+OBJECTS_DIR = obj
+
 # You can make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # Please consult the documentation of the deprecated API in order to know

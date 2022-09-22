@@ -28,6 +28,11 @@ fadc/moc/
 fadc/fadc
 fadc/Makefile
 
+epics/obj/
+epics/lib/
+epics/moc/
+epics/Makefile
+
 scripts/tmp_plots/
 scripts/*.pdf
 scripts/*.png
