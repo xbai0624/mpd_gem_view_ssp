@@ -32,6 +32,12 @@ INCLUDEPATH += ../gem/include
 # decoder lib
 LIBS += -L../gem/lib -lgem
 
+######################################################################
+# epics headers
+INCLUDEPATH += ../epics/include
+
+# decoder lib
+LIBS += -L../epics/lib -lepics
 
 ######################################################################
 # ROOT headers libs

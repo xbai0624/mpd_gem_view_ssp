@@ -24,7 +24,8 @@ enum class Bank_TagID
     TDC     = 6,
     Trigger = 7,
     MPD_VME = 10,
-    MPD_SSP = 3561,
+    MPD_SSP = 10, //3561,
+    EPICS   = 0, // top level 131, end-point level 0
 };
 
 const int Fec_Bank_Tag[] = {
