@@ -1,1 +1,1 @@
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:./decoder/lib:./gem/lib:./epics/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PWD}/decoder/lib:${PWD}/gem/lib:${PWD}/epics/lib

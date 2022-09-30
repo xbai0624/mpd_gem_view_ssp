@@ -3,7 +3,7 @@
 
 //#define SBS_UV_CHAMBER
 
-#define TOTAL_LAYERS 1
+#define TOTAL_LAYERS 2
 #define N_CHAMBERS_PER_LAYER 1
 
 vector<string> v_root_files = {
@@ -13,7 +13,8 @@ vector<string> v_root_files = {
     //"../Rootfiles/cluster_0_uva_xray_1010.evio.0.root",
     //"../Rootfiles/cluster_0_uva_xray_1011.evio.0.root",
     //"../Rootfiles/cluster_0_e1209016_SBSGEMs-vtp2_1047.evio.0.0.root",
-    "../Rootfiles/cluster_0_uva_xray_1023.evio.0.root",
+    //"../Rootfiles/cluster_0_uva_xray_1023.evio.0.root",
+    "../Rootfiles/cluster_0_hallc_fadc_ssp_3340..root",
 };
 
 ////////////////////////////////////////////////////////////////////////////////
