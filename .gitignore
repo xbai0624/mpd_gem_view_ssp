@@ -22,6 +22,7 @@ gui/Makefile
 gui/database/gem_ped*.dat
 gui/database/Common*.txt
 gui/database/*bkp
+gui/database/*.root
 
 fadc/obj/
 fadc/moc/

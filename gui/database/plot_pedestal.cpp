@@ -59,7 +59,7 @@ void draw()
 // plot pedestal
 void plot_pedestal()
 {
-    const char* path = "gem_ped.dat";
+    const char* path = "gem_ped_3320.dat";
     fstream f(path, fstream::in);
     vector<TH1F*> res;
 
