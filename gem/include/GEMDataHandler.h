@@ -38,10 +38,10 @@ public:
     // set systems
     void SetGEMSystem(GEMSystem *gem){gem_sys = gem;}
     GEMSystem *GetGEMSystem() const {return gem_sys;}
+    bool OpenEvioFile(const std::string &path);
     void RegisterRawDecoders();
+    int DecodeEvent(int &count);
 
-    // file reading and writing
-    void Decode(const void *buffer);
     // read from multiple evio splits
     int ReadFromSplitEvio(const std::string &path, int split_start = 0,
             int split_end = -1, bool verbose = false);

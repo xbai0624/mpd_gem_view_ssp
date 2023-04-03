@@ -96,9 +96,23 @@ GEMDataHandler &GEMDataHandler::operator=(GEMDataHandler &&rhs)
 ////////////////////////////////////////////////////////////////////////////////
 // decode
 
-void GEMDataHandler::Decode([[maybe_unused]]const void *buffer)
+int GEMDataHandler::DecodeEvent(int &count)
 {
-    // place holder
+    const uint32_t *pBuf;
+    uint32_t fBufLen;
+
+    int status = evio_reader -> ReadNoCopy(&pBuf, &fBufLen);
+
+    if(status != S_SUCCESS)
+        return status;
+
+    count++; // event number in current split evio file
+
+    fEventNumber++; // event number in current run
+
+    ReplayEvent_test(pBuf, fBufLen, fEventNumber);
+
+    return status;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -173,8 +187,8 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
     {
         if(gem_sys->GetAPV(i.first) == nullptr) {
             std::cout<<__PRETTY_FUNCTION__<<" Warning:: apv: "<<i.first<<" not initialized."<<std::endl
-                     <<"          make sure the correct mapping file was loaded."<<std::endl
-                     <<"          skipped the current APV data."<<std::endl;
+                <<"          make sure the correct mapping file was loaded."<<std::endl
+                <<"          skipped the current APV data."<<std::endl;
             continue;
         }
 
@@ -186,6 +200,26 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
 #endif
 
     EndofThisEvent(ev_number);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// open evio file
+
+bool GEMDataHandler::OpenEvioFile(const std::string &path)
+{
+    // open evio file
+    if(evio_reader != nullptr) {
+        evio_reader->CloseFile();
+    } else {
+        evio_reader = new EvioFileReader();
+    }
+
+    evio_reader -> SetFile(path.c_str());
+
+    // open evio file
+    bool status = evio_reader -> OpenFile();
+
+    return status;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -220,7 +254,7 @@ void GEMDataHandler::RegisterRawDecoders()
     std::cout<<__PRETTY_FUNCTION__<<" INFO: SSP/VTP mode."<<std::endl;
     if(mpd_ssp_decoder == nullptr) {
         mpd_ssp_decoder = new MPDSSPRawEventDecoder();
- 
+
         event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), mpd_ssp_decoder);
     }
 #endif
@@ -240,15 +274,8 @@ int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int sp
         [[maybe_unused]]bool verbose)
 {
     // open evio file
-    if(evio_reader != nullptr) {
-        evio_reader->CloseFile();
-    } else {
-        evio_reader = new EvioFileReader();
-    }
-    evio_reader -> SetFile(path.c_str());
+    bool status = OpenEvioFile(path);
 
-    // open evio file
-    bool status = evio_reader -> OpenFile();
     // failed openning file
     if(!status) {
         std::cout<<"Skipped file: "<<path<<std::endl;
@@ -259,25 +286,14 @@ int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int sp
 
     // parse event
     int count = 0;
-    const uint32_t *pBuf;
-    uint32_t fBufLen;
-    while(evio_reader -> ReadNoCopy(&pBuf, &fBufLen) == S_SUCCESS)
+    while(DecodeEvent(count) == S_SUCCESS)
     {
-        count++; // event number in current split evio file
-
-        fEventNumber++; // event number in current run
-
-        ReplayEvent_test(pBuf, fBufLen, fEventNumber);
-
         if(pedestalMode)
         {
             if(fEventNumber > fMaxPedestalEvents && fMaxPedestalEvents > 0)
                 break;
         }
     }
-
-    // wait for end process
-    waitEventProcess();
 
     return count;
 } 
@@ -305,7 +321,7 @@ int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start,
             else 
             {
                 std::cout<<__func__<<" Error: only evio/dat files are accepted."
-                         <<path << std::endl;
+                    <<path << std::endl;
                 return count;
             }
             std::string split_path = path.substr(0, pos);
@@ -605,7 +621,7 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
     }
     else {
         std::cout<<__func__<<" Warning: only evio/dat files are accepted: "<<input
-                 <<std::endl;
+            <<std::endl;
         return std::string("gem_replay.root");
     }
 
