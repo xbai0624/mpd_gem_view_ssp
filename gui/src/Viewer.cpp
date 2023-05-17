@@ -569,7 +569,7 @@ void Viewer::DrawGEMOnlineHits(int num)
 
     if(event_cache.size() <= 0)
         return;
-/*
+
     // get raw data
     std::map<APVAddress, std::vector<int>> event_data;
     std::map<APVAddress, APVDataType> event_data_flag;
@@ -716,7 +716,6 @@ void Viewer::DrawGEMOnlineHits(int num)
     // draw eye-ball tracking GEM 2D strips
     det_view -> FillEvent(online_hits);
 #endif
-    */
 }
 
 
