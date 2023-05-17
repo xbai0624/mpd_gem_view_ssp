@@ -353,7 +353,12 @@ void GEMSystem::ReadNoiseAndOffset(const std::string &path)
     c_parser.SetSplitters(",: \t");
 
     if(!c_parser.ReadFile(path)) {
-        throw GEMException("GEM System", "cannot open pedestal data file " + path);
+	    std::cout<<"ERROR GEMSystem::ReadNoiseAndOffset(): cannot open pdestal file: "
+		    <<path<<std::endl;
+	    std::cout<<"      Using default values. Please check your config file."
+		    <<std::endl;
+	    return;
+        //throw GEMException("GEM System", "cannot open pedestal data file " + path);
     }
 
     GEMAPV *apv = nullptr;
@@ -403,7 +408,12 @@ void GEMSystem::ReadCommonMode(const std::string &path)
     c_parser.SetSplitters(",: \t");
 
     if(!c_parser.ReadFile(path)) {
-        throw GEMException("GEM System", "cannot open pedestal data file " + path);
+	    std::cout<<"ERROR GEMSystem::ReadCommonMode(): cannot open file: "
+		    <<path<<std::endl;
+	    std::cout<<"       Using default values. Please check your config file."
+		    <<std::endl;
+	    return;
+        //throw GEMException("GEM System", "cannot open pedestal data file " + path);
     }
 
     GEMAPV *apv = nullptr;

@@ -4,12 +4,14 @@
 
 TEMPLATE = lib
 TARGET = lib/decoder
+target.path += ./lib
+INSTALLS += target
 
 #TARGET.path = /home/daq/test/MPD/MPD_GEM_View/decoder/lib/
 #TARGET.files = $$TARGET
 #INSTALLS += TARGET
 
-QMAKE_CXXFLAGS = -std=c++17
+CONFIG += c++14
 CONFIG += release
 
 # self headers

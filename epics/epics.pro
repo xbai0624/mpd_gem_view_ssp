@@ -4,7 +4,13 @@
 
 TEMPLATE = lib
 TARGET = lib/epics
+target.path += ./lib
+INSTALLS += target
+
 INCLUDEPATH += ./include ../gem/include
+
+CONFIG += c++14
+CONFIG += release
 
 MOC_DIR = moc
 OBJECTS_DIR = obj

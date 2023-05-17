@@ -4,12 +4,13 @@
 
 TEMPLATE = lib
 TARGET = lib/gem
+target.path += ./lib
+INSTALLS += target
+
 #TEMPLATE = app
 #TARGET = main
 
-
-QMAKE_CXXFLAGS += -std=c++17
-CONFIG += warn_on release
+CONFIG += c++14 warn_on release
 
 ######################################################################
 # self headers

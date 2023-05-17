@@ -8,8 +8,7 @@ TARGET = ../viewer
 ######################################################################
 # compiler configs
 
-QMAKE_CXXFLAGS = -std=c++17
-CONFIG += release
+CONFIG += c++14 release
 QT += core gui widgets
 
 
