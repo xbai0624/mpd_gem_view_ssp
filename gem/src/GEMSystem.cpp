@@ -334,7 +334,7 @@ void GEMSystem::ReadMapFile(const std::string &path)
 }
 
 // Load pedestal and common mode files, update all APVs' pedestal and common mode
-void GEMSystem::ReadPedestalFile(const std::string &path, const std::string &c_path)
+void GEMSystem::ReadPedestalFile(std::string path, std::string c_path)
 {
     // noise + offset
     ReadNoiseAndOffset(path);

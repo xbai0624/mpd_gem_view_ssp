@@ -11,8 +11,7 @@ INSTALLS += target
 #TARGET.files = $$TARGET
 #INSTALLS += TARGET
 
-CONFIG += c++14
-CONFIG += release
+CONFIG += c++14 release
 
 # self headers
 INCLUDEPATH += . ./include

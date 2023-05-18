@@ -11,11 +11,9 @@ TARGET = ../viewer
 CONFIG += c++14 release
 QT += core gui widgets
 
-
 ######################################################################
 # headers
 INCLUDEPATH += . ./include 
-
 
 ######################################################################
 # decoder headers

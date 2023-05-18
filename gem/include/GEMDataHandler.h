@@ -87,6 +87,8 @@ public:
     void SetOnlineMode(bool m){onlineMode = m; pedestalMode = !m; onlineMode = !m;}
     void TurnOffClustering(){bReplayCluster = false;}
     void TurnOnClustering(){bReplayCluster = true;}
+    void EnableOutputRootTree() {root_tree_enabled = true;}
+    void DisableOutputRootTree(){root_tree_enabled = false;}
     void SetMaxPedestalEvents(const int &s);
 
     // helpers
@@ -126,6 +128,7 @@ private:
     int fMaxPedestalEvents = -1;
 
     // replay data to root cluster tree
+    bool root_tree_enabled = true;
     GEMRootClusterTree *root_cluster_tree = nullptr;
     std::string replay_cluster_output_file = "";
     bool bReplayCluster = false;

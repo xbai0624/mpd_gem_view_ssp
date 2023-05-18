@@ -38,4 +38,12 @@ scripts/tmp_plots/
 scripts/*.pdf
 scripts/*.png
 
+tracking_dev/Makefile.tracking_dev_app
+tracking_dev/lib/
+tracking_dev/moc_Viewer.cpp
+tracking_dev/moc_predefs.h
+tracking_dev/obj/
+tracking_viewer
+
+
 .qmake.stash

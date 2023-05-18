@@ -364,7 +364,7 @@ void Viewer::Replay50K()
 
         tracking -> FindTracks();
         ProcessTrackingResult();
-        bool t = ProcessRawGEMResult();
+        [[maybe_unused]]bool t = ProcessRawGEMResult();
         //if(t) break;
     }
 

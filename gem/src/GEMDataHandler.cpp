@@ -464,20 +464,24 @@ void GEMDataHandler::EndProcess(EventData *ev)
     gem_sys -> SetTriggerTime(triggerTime);
 
     if(replayMode) {
-        if(root_hit_tree == nullptr && !bReplayCluster) {
-            root_hit_tree = new GEMRootHitTree(replay_hit_output_file.c_str());
-        }
-        if(root_cluster_tree == nullptr && bReplayCluster) {
-            root_cluster_tree = new GEMRootClusterTree(replay_cluster_output_file.c_str());
+        if(root_tree_enabled) {
+            if(root_hit_tree == nullptr && !bReplayCluster) {
+                root_hit_tree = new GEMRootHitTree(replay_hit_output_file.c_str());
+            }
+            if(root_cluster_tree == nullptr && bReplayCluster) {
+                root_cluster_tree = new GEMRootClusterTree(replay_cluster_output_file.c_str());
+            }
         }
 
-        if(!bReplayCluster)
+        if(!bReplayCluster && root_tree_enabled)
             root_hit_tree -> Fill(gem_sys, *ev);
         else {
             // reconstruct clusters
             gem_sys -> Reconstruct(*ev);
+
             // cluster tree will use gem_sys to extract cluster information
-            root_cluster_tree -> Fill(gem_sys, (*ev).event_number);
+            if(root_tree_enabled)
+                root_cluster_tree -> Fill(gem_sys, (*ev).event_number);
         }
     }
     else {
@@ -633,7 +637,7 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
 
     res = input.substr(not_dir, pos_start-not_dir);
 
-    res = prefix + std::string("_") + res + ".root";
+    res = prefix + std::string("_") + res + "root";
 
     return res;
 }

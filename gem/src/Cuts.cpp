@@ -399,7 +399,7 @@ bool Cuts::cluster_adc_assymetry(const StripCluster &c1, const StripCluster &c2)
     return false;
 }
 
-bool Cuts::track_chi2(const std::vector<StripCluster> &vc)
+bool Cuts::track_chi2([[maybe_unused]]const std::vector<StripCluster> &vc)
 {
     return true;
 }
@@ -656,7 +656,7 @@ bool Cuts::cluster_strip_time_agreement(const StripCluster &c) const
     int seed = __get_seed_strip_index(c);
 
     unsigned int cluster_size = c.hits.size();
-    for(unsigned int i=0; i<cluster_size && i!=seed; i++)
+    for(unsigned int i=0; i<cluster_size && i!=(unsigned int)seed; i++)
     {
         if(!strip_mean_time_agreement(c.hits[seed], c.hits[i]))
             return false;

@@ -85,6 +85,7 @@ public:
     void ResetHitPos();
     void PrintOutPedestal(std::ofstream &out);
     void PrintOutCommonModeRange(std::ofstream &out);
+    void PrintOutCommonModeDBAnaFormat(std::ofstream &out);
     StripNb MapStripPRad(int ch);
     StripNb MapStripMPD(int ch);
     bool IsCrossTalkStrip(const uint32_t &strip) const;

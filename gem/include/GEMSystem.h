@@ -110,7 +110,7 @@ public:
     void DisconnectMPD(const MPDAddress & mpd_addr, bool force_disconn = false);
     void Configure(const std::string &path);
     void ReadMapFile(const std::string &path);
-    void ReadPedestalFile(const std::string &path, const std::string &c_path);
+    void ReadPedestalFile(std::string path = "", std::string c_path = "");
     void ReadNoiseAndOffset(const std::string &path);
     void ReadCommonMode(const std::string &path);
     void Clear();

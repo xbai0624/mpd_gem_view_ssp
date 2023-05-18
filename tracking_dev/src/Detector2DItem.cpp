@@ -102,7 +102,7 @@ void Detector2DItem::DrawAxis(QPainter *painter)
 
     // draw title
     QFontMetrics fm = painter->fontMetrics();
-    int text_width = fm.width(_title), text_height = fm.height();
+    int text_width = fm.horizontalAdvance(_title), text_height = fm.height();
     int x_text = (area_x1 + area_x2) / 2 - text_width / 2, 
         y_text = area_y1 - text_height / 2;
     painter -> drawText(x_text, y_text, _title);

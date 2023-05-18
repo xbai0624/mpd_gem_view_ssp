@@ -59,7 +59,7 @@ void GEMCluster::Configure([[maybe_unused]]const std::string &path)
     charac_dists = ConfigParser::stofs(dist_str, ",", " \t");
 
     gem_cuts = new Cuts();
-    gem_cuts -> Print();
+    //gem_cuts -> Print();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

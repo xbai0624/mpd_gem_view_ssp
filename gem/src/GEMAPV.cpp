@@ -1340,6 +1340,34 @@ void GEMAPV::PrintOutCommonModeRange(std::ofstream &out)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// print out the common mode using analysis format: average, sigma
+//
+// format:
+//  slot_id, fiber_id, apv_id, cModAvg, cModrms
+// crate_id,   mpd_id, adc_ch, cModAvg, cModrms
+
+void GEMAPV::PrintOutCommonModeDBAnaFormat(std::ofstream &out)
+{
+    float avg = 0, rms = 0;
+
+    if(commonModeDist.size() > 0) {
+        TH1F h_temp("h_temp", "h_temp", 1500, 0, 1500);
+        for(auto &i: commonModeDist)
+            h_temp.Fill(i);
+        avg = h_temp.GetMean();
+        rms = h_temp.GetRMS();
+    }
+
+    out << std::setw(12) << crate_id
+        << std::setw(12) << raw_data_flags.slot_id
+        << std::setw(12) << mpd_id
+        << std::setw(12) << adc_ch
+        << std::setw(12) << avg
+        << std::setw(12) << rms
+        << std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // return all the existing histograms
 
 std::vector<TH1I *> GEMAPV::GetHistList()
