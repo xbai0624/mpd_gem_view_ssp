@@ -136,16 +136,19 @@ struct StripHit
 {
     int32_t strip;
     float charge;
+    short max_timebin;
     float position;
     bool cross_talk;
     APVAddress apv_addr;
+    std::vector<float> ts_adc;
 
     StripHit()
-        : strip(0), charge(0.), position(0.), cross_talk(false), apv_addr(-1, -1, -1)
-    {}
-    StripHit(int s, float c, float p, bool f = false, int crate = -1, int mpd = -1, int adc = -1)
-        : strip(s), charge(c), position(p), cross_talk(f), apv_addr(crate, mpd, adc)
-    {}
+        : strip(0), charge(0.), max_timebin(-1), position(0.), cross_talk(false), apv_addr(-1, -1, -1)
+    { ts_adc.clear(); }
+
+    StripHit(int s, float c, short m, float p, bool f = false, int crate = -1, int mpd = -1, int adc = -1)
+        : strip(s), charge(c), max_timebin(m), position(p), cross_talk(f), apv_addr(crate, mpd, adc)
+    { ts_adc.clear(); }
 };
 
 
@@ -156,20 +159,21 @@ struct StripCluster
 {
     float position;
     float peak_charge;
+    short max_timebin;
     float total_charge;
     bool cross_talk;
     std::vector<StripHit> hits;
 
     StripCluster()
-        : position(0.), peak_charge(0.), total_charge(0.), cross_talk(false)
+        : position(0.), peak_charge(0.), max_timebin(-1), total_charge(0.), cross_talk(false)
     {}
 
     StripCluster(const std::vector<StripHit> &p)
-        : position(0.), peak_charge(0.), total_charge(0.), cross_talk(false), hits(p)
+        : position(0.), peak_charge(0.), max_timebin(-1), total_charge(0.), cross_talk(false), hits(p)
     {}
 
     StripCluster(std::vector<StripHit> &&p)
-        : position(0.), peak_charge(0.), total_charge(0.), cross_talk(false), hits(std::move(p))
+        : position(0.), peak_charge(0.), max_timebin(-1), total_charge(0.), cross_talk(false), hits(std::move(p))
     {}
 };
 
@@ -225,19 +229,22 @@ public:
     float y_charge;         // y charge
     float x_peak;           // x peak charge
     float y_peak;           // y peak charge
+    short x_max_timebin;    // x peak time sample
+    short y_max_timebin;    // y peak time sample
     int32_t x_size;         // x hits size
     int32_t y_size;         // y hits size
     float sig_pos;          // position resolution
 
     GEMHit()
     : det_id(-1), x_charge(0.), y_charge(0.), x_peak(0.), y_peak(0.),
-      x_size(0), y_size(0), sig_pos(0.)
+      x_max_timebin(-1), y_max_timebin(-1), x_size(0), y_size(0), sig_pos(0.)
     {}
 
     GEMHit(float xx, float yy, float zz, int d, float xc, float yc,
-           float xp, float yp, int xs, int ys, float sig)
+           float xp, float yp, short x_mt, short y_mt, int xs, int ys, float sig)
     : BaseHit(xx, yy, zz, 0.), det_id(d), x_charge(xc), y_charge(yc),
-      x_peak(xp), y_peak(yp), x_size(xs), y_size(ys), sig_pos(sig)
+      x_peak(xp), y_peak(yp), x_max_timebin(x_mt), y_max_timebin(y_mt), 
+      x_size(xs), y_size(ys), sig_pos(sig)
     {}
 };
 

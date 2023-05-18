@@ -4,6 +4,8 @@
 #include "GEMStruct.h"
 #include "ConfigObject.h"
 
+class Cuts;
+
 class GEMCluster : public ConfigObject
 {
 public:
@@ -13,6 +15,7 @@ public:
     // functions that to be overloaded
     void Configure(const std::string &path = "");
 
+    bool IsGoodStrip(const StripHit &hit) const;
     bool IsGoodCluster(const StripCluster &cluster) const;
     void FormClusters(std::vector<StripHit> &hits,
                       std::vector<StripCluster> &clusters) const;
@@ -22,6 +25,13 @@ public:
                               int det_id,
                               float resolution) const;
     void FilterClusters(std::vector<StripCluster> &clusters) const;
+
+private:
+    // private helpers
+    void split_cluster(std::vector<StripHit>::iterator beg, std::vector<StripHit>::iterator end,
+        double thres, std::vector<StripCluster> &clusters) const;
+    void cluster_hits(std::vector<StripHit>::iterator beg, std::vector<StripHit>::iterator end,
+        int con_thres, double diff_thres, std::vector<StripCluster> &clusters) const;
 
 protected:
     void groupHits(std::vector<StripHit> &h, std::vector<StripCluster> &c) const;
@@ -38,6 +48,9 @@ protected:
 
     // cross talk characteristic distances
     std::vector<float> charac_dists;
+
+    // 
+    Cuts *gem_cuts;
 };
 
 #endif

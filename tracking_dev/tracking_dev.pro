@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = lib
-TARGET = lib/gem
+TARGET = lib/tracking_dev
 target.path += ./lib
 INSTALLS += target
 
@@ -12,23 +12,10 @@ INSTALLS += target
 
 CONFIG += c++14 warn_on release
 
+
 ######################################################################
 # self headers
 INCLUDEPATH += . ./include
-
-
-######################################################################
-# decoder headers
-INCLUDEPATH += ../decoder/include
-#decoder libs
-LIBS += -L../decoder/lib -ldecoder
-
-
-######################################################################
-# coda headers
-INCLUDEPATH += ${CODA}/common/include
-# coda libs
-LIBS += -L${CODA}/Linux-x86_64/lib -levio
 
 
 ######################################################################
@@ -66,50 +53,27 @@ DEFINES += QT_DEPRECATED_WARNINGS #MULTI_THREAD
 
 ######################################################################
 # Input path
-HEADERS += include/GEMStruct.h \
-           include/GEMPedestal.h \
-           include/GEMAPV.h \
-           include/GEMMPD.h \
-           include/GEMPlane.h \
-           include/GEMSystem.h \
-           include/ConfigObject.h \
-           include/ConfigOption.h \
-           include/ConfigParser.h \
-           include/ConfigValue.h \
-           include/GEMCluster.h \
-           include/GEMDetector.h \
-           include/GEMDetectorLayer.h \
-           include/GEMException.h \
-           include/GEMDataHandler.h \
-           include/APVStripMapping.h \
-           include/GEMRootHitTree.h \
-           include/GEMRootClusterTree.h \
-           include/PreAnalysis.h \
-           include/hardcode.h \
-	   include/Cuts.h \
-	   include/ValueType.h \
+HEADERS += include/AbstractDetector.h \
+           include/CoordSystem.h \
+           include/Detector2DItem.h \
+           include/Detector2DView.h \
+           include/histos.hpp \
+           include/Tracking.h \
+           include/tracking_struct.h \
+           include/TrackingDataHandler.h \
+           include/TrackingUtility.h \
+           include/Viewer.h
 
 ######################################################################
 # source path
-SOURCES += src/GEMPedestal.cpp \
-           src/GEMAPV.cpp \
-           src/GEMMPD.cpp \
-           src/GEMPlane.cpp \
-           src/GEMSystem.cpp \
-           src/ConfigObject.cpp \
-           src/ConfigOption.cpp \
-           src/ConfigParser.cpp \
-           src/ConfigValue.cpp \
-           src/GEMCluster.cpp \
-           src/GEMDetector.cpp \
-           src/GEMDetectorLayer.cpp \
-           src/GEMException.cpp \
-           src/GEMDataHandler.cpp \
-           src/GEMRootHitTree.cpp \
-           src/GEMRootClusterTree.cpp \
-           src/APVStripMapping.cpp \
-           src/PreAnalysis.cpp \
-	   src/Cuts.cpp \
-	   src/ValueType.cpp \
-           #src/main.cpp
+SOURCES += src/AbstractDetector.cpp \
+           src/CoordSystem.cpp \
+           src/Detector2DItem.cpp \
+           src/Detector2DView.cpp \
+           #src/main.cpp \
+           src/Tracking.cpp \
+           src/tracking_struct.cpp \
+           src/TrackingDataHandler.cpp \
+           src/TrackingUtility.cpp \
+           src/Viewer.cpp
 

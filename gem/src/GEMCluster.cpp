@@ -15,6 +15,7 @@
 
 
 #include "GEMCluster.h"
+#include "Cuts.h"
 #include <algorithm>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,6 +57,9 @@ void GEMCluster::Configure([[maybe_unused]]const std::string &path)
     charac_dists.clear();
     std::string dist_str = Value<std::string>("Characteristic Distance");
     charac_dists = ConfigParser::stofs(dist_str, ",", " \t");
+
+    gem_cuts = new Cuts();
+    gem_cuts -> Print();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,16 +89,38 @@ const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// is it a good strip
+
+bool GEMCluster::IsGoodStrip(const StripHit &hit) const
+{
+    // time bin cut
+    if(!gem_cuts -> max_time_bin(hit))
+        return false;
+
+    // strip avg time cut
+    if(!gem_cuts -> strip_mean_time(hit))
+        return false;
+
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // a helper function to further separate hits at minimum
 
-template<class Iter>
-void split_cluster(Iter beg, Iter end, double thres, std::vector<StripCluster> &clusters)
+//template<class Iter>
+//inline void split_cluster(Iter beg, Iter end, double thres, std::vector<StripCluster> &clusters)
+void GEMCluster::split_cluster(std::vector<StripHit>::iterator beg, std::vector<StripHit>::iterator end,
+        double thres, std::vector<StripCluster> &clusters) const
 {
+    auto size = end - beg;
+    if(size <= 0)
+        return;
+
+    // for now disable cluster split
     clusters.emplace_back(std::vector<StripHit>(beg, end));
     return;
 
-    // disable cluster split
-    auto size = end - beg;
+    // disable cluster split when cluster size < 3
     if(size < 3) {
         clusters.emplace_back(std::vector<StripHit>(beg, end));
         return;
@@ -142,12 +168,23 @@ void split_cluster(Iter beg, Iter end, double thres, std::vector<StripCluster> &
 ////////////////////////////////////////////////////////////////////////////////
 // cluster consecutive hits
 
-template<class Iter>
-inline void cluster_hits(Iter beg, Iter end, int con_thres, double diff_thres, std::vector<StripCluster> &clusters)
+//template<class Iter>
+//inline void cluster_hits(Iter beg, Iter end, int con_thres, double diff_thres, std::vector<StripCluster> &clusters)
+void GEMCluster::cluster_hits(std::vector<StripHit>::iterator beg, std::vector<StripHit>::iterator end,
+        int con_thres, double diff_thres, std::vector<StripCluster> &clusters) const
 {
     auto cbeg = beg;
     for(auto it = beg; it != end; ++it)
     {
+        if(!IsGoodStrip(*it))
+        {
+            if(cbeg != it) {
+                split_cluster(cbeg, it, diff_thres, clusters);
+            }
+            cbeg = it+1;
+            continue;
+        }
+
         auto it_n = it + 1;
         if((it_n == end) || (it_n->strip - it->strip > con_thres)) {
             split_cluster(cbeg, it_n, diff_thres, clusters);
@@ -159,8 +196,7 @@ inline void cluster_hits(Iter beg, Iter end, int con_thres, double diff_thres, s
 ////////////////////////////////////////////////////////////////////////////////
 // group consecutive hits
 
-void GEMCluster::groupHits(std::vector<StripHit> &hits,
-                           std::vector<StripCluster> &clusters)
+void GEMCluster::groupHits(std::vector<StripHit> &hits, std::vector<StripCluster> &clusters)
 const
 {
     // sort hits by its strip number
@@ -251,20 +287,25 @@ const
     // determine position, peak charge and total charge of the cluster
     cluster.total_charge = 0.;
     cluster.peak_charge = 0.;
+    cluster.max_timebin = -1;
     float weight_pos = 0.;
 
+    short index = 0;
     for(auto &hit : cluster.hits)
     {
-        if(cluster.peak_charge < hit.charge)
+        if(cluster.peak_charge < hit.charge) {
             cluster.peak_charge = hit.charge;
+            cluster.max_timebin = hit.max_timebin;
+        }
 
         cluster.total_charge += hit.charge;
         weight_pos +=  hit.position*hit.charge;
+
+        index++;
     }
 
     cluster.position = weight_pos/cluster.total_charge;
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -275,6 +316,15 @@ bool GEMCluster::IsGoodCluster([[maybe_unused]]const StripCluster &cluster) cons
     // bad size
     if((cluster.hits.size() < min_cluster_hits) ||
        (cluster.hits.size() > max_cluster_hits))
+        return false;
+
+    if(!(gem_cuts -> cluster_strip_time_agreement(cluster)))
+        return false;
+
+    if(!(gem_cuts -> seed_strip_min_peak_adc(cluster)))
+        return false;
+
+    if(!(gem_cuts -> seed_strip_min_sum_adc(cluster)))
         return false;
 
     // not a cross talk cluster
@@ -335,10 +385,17 @@ const
     {
         for(auto &yc : y_cluster)
         {
+            if(!(gem_cuts -> cluster_adc_assymetry(xc, yc)))
+                continue;
+
+            if(!(gem_cuts -> cluster_time_assymetry(xc, yc)))
+                continue;
+
             container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
                                    det_id,                              // detector id
                                    xc.total_charge, yc.total_charge,    // fill in total charge
                                    xc.peak_charge, yc.peak_charge,      // fill in peak charge
+                                   xc.max_timebin, yc.max_timebin,      // fill in the max time bin
                                    xc.hits.size(), yc.hits.size(),      // number of hits
                                    resolution);                         // position resolution
         }
