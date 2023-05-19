@@ -231,6 +231,8 @@ void GEMSystem::Configure(const std::string &path)
         else
             det.second->SetResolution(def_res);
     }
+
+    //PrintStatus();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1147,7 +1149,7 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
 
     std::string det_name = layer -> GetGEMChamberType() + std::to_string(apv_entry.detector_id);
     std::string plane_name = apv_entry.plane_name;
-    int type = apv_entry.dimension;
+    int type = apv_entry.dimension; // x axis or y axis type = Plane::X or Plane::Y
     int connector = layer -> GetNumberOfAPVsOnChamberPlane(type);
     float pitch = layer -> GetChamberPlanePitch(type);
     float size = (double)connector * APV_STRIP_SIZE * pitch;
@@ -1162,7 +1164,10 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
     int direct = layer -> GetFlipByPlaneType(type);
 
     if(type < 0) // did not find proper type
+    {
+        std::cout<<"Error: Cannot find Plane Type, X palne or Y plane?"<<std::endl;
         return;
+    }
 
     GEMDetector *det = GetDetector(det_name);
     if(det == nullptr) {// did not find detector
@@ -1175,7 +1180,7 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
 
     GEMPlane *new_plane = new GEMPlane(plane_name, type, size, connector, orient, direct);
 
-    // failed to add plane
+    // failed to add plane, or plane has already been added
     if(!det->AddPlane(new_plane)) {
         delete new_plane;
         return;
@@ -1270,4 +1275,11 @@ void GEMSystem::buildAPV(std::list<ConfigValue> &apv_args)
     }
 
     pln->ConnectAPV(new_apv, index);
+}
+
+void GEMSystem::PrintStatus()
+{
+    std::cout<<"gem system has "<<layer_slots.size()<<" layers."<<std::endl;
+    for(auto &i: layer_slots)
+        i.second -> PrintStatus();
 }

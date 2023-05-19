@@ -3,8 +3,11 @@
 
 //#define SBS_UV_CHAMBER
 
-#define TOTAL_LAYERS 2
+#define TOTAL_LAYERS 4
 #define N_CHAMBERS_PER_LAYER 1
+
+#define N_CANVAS_PER_LAYER 9
+TCanvas *LayerC[TOTAL_LAYERS][N_CANVAS_PER_LAYER];
 
 vector<string> v_root_files = {
     //"../Rootfiles/cluster_0_e1209016_SBSGEMs_1452.root",
@@ -14,7 +17,8 @@ vector<string> v_root_files = {
     //"../Rootfiles/cluster_0_uva_xray_1011.evio.0.root",
     //"../Rootfiles/cluster_0_e1209016_SBSGEMs-vtp2_1047.evio.0.0.root",
     //"../Rootfiles/cluster_0_uva_xray_1023.evio.0.root",
-    "../Rootfiles/cluster_0_hallc_fadc_ssp_3340..root",
+    //"../Rootfiles/cluster_0_hallc_fadc_ssp_3340..root",
+    "../Rootfiles/cluster_0_s1..root",
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -238,8 +242,8 @@ TH2F* GetLayerCluster2DMap(const LayerCluster &layer_cluster, const int &nlayer)
 {
     TH2F *hClusterMap = new TH2F(Form("hClusterMap%d", nlayer), 
             Form("cluster 2d map layer %d", nlayer), 
-            350, -350, 350,
-            1200, -1200, 1200);
+            100, -60, 60,
+            100, -60, 60);
 
     for(auto &chamber : layer_cluster.chamber_cluster) {
         for(auto &c: chamber.Hits2D) {
@@ -277,56 +281,56 @@ TH2F* GetLayerCluster2DMap(const LayerCluster &layer_cluster, const int &nlayer)
 //      charge correlation (x vs y), size correlation (x vs y), cluster 2d map (x vs y)
 void ShowLayerResults(const LayerCluster &layer_cluster, const int &nlayer)
 {
-    TCanvas *c[9];
+    //TCanvas *c[9];
 
     int chamber_id = 0;
     for(auto &chamber: layer_cluster.chamber_cluster) 
     {
         // get y position
-        float x_size = 600; // mm
+        float x_size = 60; // mm
         float x_min = -x_size/2.;
         float x_max =  x_size/2.;
-        float y_size = 600; // mm
+        float y_size = 60; // mm
         float y_min = -y_size/2.;
         float y_max = y_size/2.;
         // hists
         TH1F *cluster_size_x = new TH1F(Form("x_cluster_size_chamber%d/%d", chamber_id, nlayer),
-                Form("x cluser size chamber %d", chamber_id),
+                Form("x cluser size chamber_%d layer_%d", chamber_id, nlayer),
                 20, -0.5, 19.5);
         cluster_size_x -> GetXaxis() -> SetTitle("cluster size");
         cluster_size_x -> GetXaxis() -> CenterTitle();
         TH1F *cluster_size_y = new TH1F(Form("y_cluster_size_chamber%d/%d", chamber_id, nlayer),
-                Form("y cluser size chamber %d", chamber_id),
+                Form("y cluser size chamber_%d layer_%d", chamber_id, nlayer),
                 20, -0.5, 19.5);
         cluster_size_y -> GetXaxis() -> SetTitle("cluster size");
         cluster_size_y -> GetXaxis() -> CenterTitle();
  
         TH1F *cluster_adc_x = new TH1F(Form("x_cluster_adc_chamber%d/%d", chamber_id, nlayer),
-                Form("x cluser adc chamber %d", chamber_id),
+                Form("x cluser adc chamber_%d layer_%d", chamber_id, nlayer),
                 100, 0, 2500);
         cluster_adc_x -> GetXaxis() -> SetTitle("U channel ADC");
         cluster_adc_x -> GetXaxis() -> CenterTitle();
  
         TH1F *cluster_adc_y = new TH1F(Form("y_cluster_adc_chamber%d/%d", chamber_id, nlayer),
-                Form("y cluser adc chamber %d", chamber_id),
+                Form("y cluser adc chamber_%d layer_%d", chamber_id, nlayer),
                 100, 0, 2500);
         cluster_adc_y -> GetXaxis() -> SetTitle("V channel ADC");
         cluster_adc_y -> GetXaxis() -> CenterTitle();
  
         TH1F *cluster_pos_x = new TH1F(Form("x_cluster_pos_chamber%d/%d", chamber_id, nlayer),
-                Form("x cluser pos chamber %d", chamber_id),
+                Form("x cluser pos chamber_%d layer_%d", chamber_id, nlayer),
                 100, x_min, x_max);
         cluster_pos_x -> GetXaxis() -> SetTitle("strip index");
         cluster_pos_x -> GetXaxis() -> CenterTitle();
  
         TH1F *cluster_pos_y = new TH1F(Form("y_cluster_pos_chamber%d/%d", chamber_id, nlayer),
-                Form("y cluser pos chamber %d", chamber_id),
+                Form("y cluser pos chamber_%d layer_%d", chamber_id, nlayer),
                 100, x_min, x_max);
         cluster_pos_y -> GetXaxis() -> SetTitle("strip index");
         cluster_pos_y -> GetXaxis() -> CenterTitle();
  
         TH2F *charge_correlation = new TH2F(Form("charge_correlation_chamber%d/%d", chamber_id, nlayer),
-                Form("charge_correlation chamber %d", chamber_id),
+                Form("charge_correlation chamber_%d layer_%d", chamber_id, nlayer),
                 1000, 0, 2500, 1000, 0, 2500);
         charge_correlation -> GetXaxis() -> SetTitle("U channel cluster charge");
         charge_correlation -> GetXaxis() -> CenterTitle();
@@ -334,11 +338,11 @@ void ShowLayerResults(const LayerCluster &layer_cluster, const int &nlayer)
         charge_correlation -> GetYaxis() -> CenterTitle();
  
         TH2F *size_correlation = new TH2F(Form("size_correlation_chamber%d/%d", chamber_id, nlayer),
-                Form("size_correlation chamber %d", chamber_id),
+                Form("size_correlation chamber_%d layer_%d", chamber_id, nlayer),
                 20, -0.5, 19.5, 20, -0.5, 19.5);
         TH2F *position_correlation = new TH2F(Form("position_correlation_chamber%d/%d", chamber_id, nlayer),
-                Form("pos_correlation chamber %d", chamber_id),
-                1000, -1000, 1000, 1000, -1000, 1000);
+                Form("pos_correlation chamber_%d layer_%d", chamber_id, nlayer),
+                100, -60, 60, 100, -60, 60);
 
         for(auto &hit2d: chamber.Hits2D) 
         {
@@ -355,41 +359,41 @@ void ShowLayerResults(const LayerCluster &layer_cluster, const int &nlayer)
         // show histos
         gStyle -> SetTitleFontSize(0.1);
 
-        c[0] = new TCanvas(Form("c_layer%d_0", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][0] = new TCanvas(Form("c_layer%d_0", nlayer), Form("layer %d", nlayer), 900, 600);
         position_correlation->Draw("col");
 
-        c[1] = new TCanvas(Form("c_layer%d_1", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][1] = new TCanvas(Form("c_layer%d_1", nlayer), Form("layer %d", nlayer), 900, 600);
         cluster_size_x -> Draw();
 
-        c[2] = new TCanvas(Form("c_layer%d_2", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][2] = new TCanvas(Form("c_layer%d_2", nlayer), Form("layer %d", nlayer), 900, 600);
         cluster_size_y -> Draw();
 
-        c[3] = new TCanvas(Form("c_layer%d_3", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][3] = new TCanvas(Form("c_layer%d_3", nlayer), Form("layer %d", nlayer), 900, 600);
         cluster_adc_x -> Draw(); 
         
-        c[4] = new TCanvas(Form("c_layer%d_4", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][4] = new TCanvas(Form("c_layer%d_4", nlayer), Form("layer %d", nlayer), 900, 600);
         cluster_adc_y -> Draw(); 
        
-        c[5] = new TCanvas(Form("c_layer%d_5", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][5] = new TCanvas(Form("c_layer%d_5", nlayer), Form("layer %d", nlayer), 900, 600);
         cluster_pos_x -> Draw(); 
       
-        c[6] = new TCanvas(Form("c_layer%d_6", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][6] = new TCanvas(Form("c_layer%d_6", nlayer), Form("layer %d", nlayer), 900, 600);
         cluster_pos_y -> Draw(); 
      
-        c[7] = new TCanvas(Form("c_layer%d_7", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][7] = new TCanvas(Form("c_layer%d_7", nlayer), Form("layer %d", nlayer), 900, 600);
         charge_correlation -> Draw("col");
     
-        c[8] = new TCanvas(Form("c_layer%d_8", nlayer), Form("layer %d", nlayer), 900, 600);
+        LayerC[nlayer][8] = new TCanvas(Form("c_layer%d_8", nlayer), Form("layer %d", nlayer), 900, 600);
         size_correlation -> Draw("col");
 
         chamber_id++;
     }
 
-    return c;
+    //return c;
 }
 
 // main 
-void show_cluster_2d_map()
+void show_cluster_2d_map(const char* root_input_path = "")
 {
     const int NLayer = TOTAL_LAYERS;
     std::unordered_map<int, LayerCluster> layer_cluster;
@@ -406,10 +410,14 @@ void show_cluster_2d_map()
     float adc[Max];
     float pos[Max];
     TChain *T = new TChain("GEMCluster");
-    for(auto &i: v_root_files) {
-        cout<<"adding file: "<<i<<endl;
-        T -> Add(i.c_str());
-    }
+
+    cout<<"adding file: "<<root_input_path<<endl;
+    T -> Add(root_input_path);
+    //for(auto &i: v_root_files)
+    //{
+    //    cout<<"adding file: "<<i<<endl;
+    //    T -> Add(i.c_str());
+    //}
 
     T->SetBranchAddress("evtID", &evtID);
     T->SetBranchAddress("nCluster", &nCluster);
@@ -462,7 +470,7 @@ void show_cluster_2d_map()
         c_layer_2d -> cd(i.first+1);
         hClusterMap[i.first] -> Draw("colz");
     }
-    c_layer_2d -> Print("c_layer_2d_hit_map.pdf");
+    c_layer_2d -> Print("results.pdf(");
 
     // cluster size
     int _layer_id = 0;
@@ -471,5 +479,14 @@ void show_cluster_2d_map()
         ShowLayerResults(i.second, _layer_id);
         _layer_id++;
     }
+
+    for(int i=0; i<TOTAL_LAYERS; i++) {
+        for(int j=0; j<N_CANVAS_PER_LAYER; j++)
+        {
+            LayerC[i][j] -> Print("results.pdf");
+        }
+    }
+    c_layer_2d -> Print("results.pdf)");
+
 
 }

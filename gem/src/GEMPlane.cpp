@@ -366,3 +366,8 @@ void GEMPlane::FormClusters(GEMCluster *method)
     method->FormClusters(strip_hits, strip_clusters);
 }
 
+void GEMPlane::PrintStatus()
+{
+    std::cout<<"plane type: "<<GetType()<<" contains "
+        <<apv_list.size() << " apvs."<<std::endl;
+}

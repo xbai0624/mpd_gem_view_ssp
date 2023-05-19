@@ -31,6 +31,46 @@ private:
 
     // information to save
     int evtID;
+
+    // -part 1):
+    // tracking result
+    // tracking result saves all possible tracks that pass chi2 cut
+    //   besttrack - variable that keeps the track index with minimum chi2
+    //   fNtracks_found - saves the total number of tracks found
+    //   fNhitsOntrack - saves how many hits on each track, similar for fXtrack ...
+    //
+    //   ngoodhits - saves the total number of hits that lies on tracks
+    //       this is not exclusive, for example: one hit can lie on two possible tracks
+    //       in this case, the hit will be duplicated/copied, one for each track, and this
+    //       number will reflect that
+    //   fHitXlocal - , fHitYlocal - , ... etc - saves all hits that lies on tracks, similar
+    //       to ngoodhits, they are not exclusive, if a hit lies on two possible
+    //       tracks, it will be copied twice, if three tracks, then copied three times
+    //       this is to be compatible with SBS tree organization
+    //   hit_track_index - saves the track index for this hit
+    //   fHitModule - saves the module id for this hit
+    //
+    //   fHitLayer - only applies for best track, the hit layer id for hits on the best track
+    //       similar for fHitXprojected, ..., and the rest
+    int besttrack;
+    int fNtracks_found;
+    std::vector<int> fNhitsOnTrack;
+    std::vector<float> fXtrack, fYtrack, fXptrack, fYptrack, fChi2Track;
+
+    int ngoodhits; // total number of hits lies on tracks
+    std::vector<float> fHitXlocal, fHitYlocal, fHitZlocal;
+    std::vector<int> hit_track_index;
+    std::vector<int> fHitModule;
+
+    // this is only for best track -- to make it compatible with old code
+    std::vector<int> fHitLayer;
+    std::vector<float> fHitXprojected, fHitYprojected;
+    std::vector<float> fHitResidU, fHitResidV;
+    std::vector<float> fHitUADC, fHitVADC;
+    std::vector<float> fHitIsampMaxUstrip, fHitIsampMaxVstrip;
+
+    // -part 2):
+    // Raw GEM Data
     int nCluster;            // number of clusters in current event
     int Plane[MAXCLUSTERS];  // layer id
     int Prod[MAXCLUSTERS];   // detector i

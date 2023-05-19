@@ -164,6 +164,7 @@ public:
     bool GetPedestalMode() const {return PedestalMode;}
     bool GetOnlineMode() const {return OnlineMode;}
     bool GetReplayMode() const {return ReplayMode;}
+    void PrintStatus();
 
 private:
     // private member functions

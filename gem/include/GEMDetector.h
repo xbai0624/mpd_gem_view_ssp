@@ -75,6 +75,7 @@ public:
     int GetLayerID() const {return layer_id;}
     int GetDetLayerPositionIndex() const {return layer_position_index;}
     const std::string &GetName() const {return det_name;}
+    void PrintStatus();
 
 private:
     GEMSystem *gem_sys;

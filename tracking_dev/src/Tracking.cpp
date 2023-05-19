@@ -42,7 +42,7 @@ void Tracking::CompleteSetup()
     k_max_yz = (tracking_cuts -> __get("track y-z slope range")).arr<double>()[1];
 
     initLayerGroups();
-    //PrintLayerGroups();
+    // PrintLayerGroups();
    
     std::cout<<"INFO:: Tracking setup completed."<<std::endl;
 }
@@ -76,6 +76,7 @@ void Tracking::FindTracks()
 
 void Tracking::ClearPreviousEvent()
 {
+    best_track_index = -1;
     best_track_chi2ndf = LARGE_VALUE;
     best_xtrack = LARGE_VALUE; best_ytrack = LARGE_VALUE;
     best_xptrack = LARGE_VALUE; best_yptrack = LARGE_VALUE;
@@ -86,12 +87,22 @@ void Tracking::ClearPreviousEvent()
     best_track_hit_index.clear();
 
     //
-    for(auto &i: best_track_chi2ndf_by_nlayer)
-        i.second = LARGE_VALUE;
+    //for(auto &i: best_track_chi2ndf_by_nlayer)
+    //    i.second = LARGE_VALUE;
+    best_track_chi2ndf_by_nlayer.clear();
 
     // debug
     //best_hits_on_track.clear();
+
     n_good_track_candidates =  0;
+    v_xtrack.clear(), v_ytrack.clear(), v_xptrack.clear(), v_yptrack.clear();
+    v_track_chi2ndf.clear();
+    v_track_nhits.clear();
+
+    n_total_good_hits = 0;
+    v_xlocal.clear(), v_ylocal.clear(), v_zlocal.clear();
+    v_hit_track_index.clear();
+    v_hit_module.clear();
 }
 
 bool Tracking::GetBestTrack(double &xt, double &yt, double &xp, double &yp, double &chi)
@@ -409,9 +420,28 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     if(xptrack < k_min_xz || xptrack > k_max_xz) return;
     if(yptrack < k_min_yz || yptrack > k_max_yz) return;
 
-    // save best track
+    // chi2ndf too big
+    if(chi2ndf > chi2_cut) return;
+
+    // save all tracks that pass chi2 cut -- NOTE: this is not exlusive
+    n_good_track_candidates += 1.0;
+    v_xtrack.push_back(xtrack), v_ytrack.push_back(ytrack);
+    v_xptrack.push_back(xptrack), v_yptrack.push_back(yptrack);
+    v_track_chi2ndf.push_back(chi2ndf);
+    v_track_nhits.push_back((int)hits.size());
+
+    n_total_good_hits += (int)hits.size();
+    for(auto &i: hits) {
+        v_xlocal.push_back(i.x), v_ylocal.push_back(i.y), v_zlocal.push_back(i.z);
+        v_hit_track_index.push_back((int)v_xtrack.size() - 1);
+        v_hit_module.push_back(i.module_id);
+    }
+
+    // best track, the one with minimum chi2
     if(chi2ndf < best_track_chi2ndf)
     {
+        best_track_index = (int)v_xtrack.size() - 1;
+
         best_track_chi2ndf = chi2ndf;
         best_xtrack = xtrack;
         best_ytrack = ytrack;
@@ -426,14 +456,11 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
 
         // chi2ndf by number of layers
         best_track_chi2ndf_by_nlayer[nhits_on_best_track] = chi2ndf;
-
-        // debug
-        //best_hits_on_track.clear();
-        //best_hits_on_track = hits;
-
-        if(chi2ndf < chi2_cut)
-            n_good_track_candidates += 1.0;
     }
+
+    // debug
+    //best_hits_on_track.clear();
+    //best_hits_on_track = hits;
 }
 
 //
@@ -446,7 +473,8 @@ void Tracking::initLayerGroups()
 
         group_nlayer[i] = res;
 
-        best_track_chi2ndf_by_nlayer[i] = LARGE_VALUE;
+        //best_track_chi2ndf_by_nlayer[i] = LARGE_VALUE;
+        best_track_chi2ndf_by_nlayer.clear();
     }
 }
 

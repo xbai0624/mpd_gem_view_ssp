@@ -121,14 +121,15 @@ private:
     std::string pedestal_output_file = "database/gem_ped.dat";
     std::string commonMode_output_file = "database/CommonModeRange.txt";
 
-    // replay data to root hit tree
-    GEMRootHitTree *root_hit_tree = nullptr;
-    std::string replay_hit_output_file = "";
     int fEventNumber = 0;
     int fMaxPedestalEvents = -1;
 
-    // replay data to root cluster tree
     bool root_tree_enabled = true;
+    // replay data to root hit tree
+    GEMRootHitTree *root_hit_tree = nullptr;
+    std::string replay_hit_output_file = "";
+
+    // replay data to root cluster tree
     GEMRootClusterTree *root_cluster_tree = nullptr;
     std::string replay_cluster_output_file = "";
     bool bReplayCluster = false;

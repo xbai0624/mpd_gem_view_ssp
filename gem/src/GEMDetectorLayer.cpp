@@ -138,3 +138,12 @@ int GEMDetectorLayer::GetFlipByPlaneType(const int &type)
         return 1;
     }
 }
+
+void GEMDetectorLayer::PrintStatus()
+{
+    std::cout<<"Layer Id = "<<GetID()<<" contains "
+        <<fDetectorList.size()<<" detectors."<<std::endl;
+    for(auto &i: fDetectorList) {
+        i -> PrintStatus();
+    }
+}

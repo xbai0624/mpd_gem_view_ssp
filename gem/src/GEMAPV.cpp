@@ -873,13 +873,13 @@ void GEMAPV::CollectZeroSupHits()
 
         plane->AddStripHit(strip_map[i].plane,
                 GetMaxCharge(i),
-		GetMaxTimeBin(i),
+                GetMaxTimeBin(i),
                 IsCrossTalkStrip(i),
                 crate_id,
                 mpd_id,
                 adc_ch,
-		GetRawTSADC(i)
-		);
+                GetRawTSADC(i)
+                );
     }
 }
 
@@ -1022,7 +1022,6 @@ void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_
     //};
 
     //TH1F *debug_original_h = debug_plot_h(buf, size, "h_original");
-
 
     // SRS method
     for(uint32_t i = 0; i < size; ++i)

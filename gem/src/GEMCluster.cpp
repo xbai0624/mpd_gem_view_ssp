@@ -18,6 +18,8 @@
 #include "Cuts.h"
 #include <algorithm>
 
+//#define USE_GEM_CUT
+
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
 
@@ -93,6 +95,7 @@ const
 
 bool GEMCluster::IsGoodStrip(const StripHit &hit) const
 {
+#ifdef USE_GEM_CUT
     // time bin cut
     if(!gem_cuts -> max_time_bin(hit))
         return false;
@@ -100,7 +103,7 @@ bool GEMCluster::IsGoodStrip(const StripHit &hit) const
     // strip avg time cut
     if(!gem_cuts -> strip_mean_time(hit))
         return false;
-
+#endif
     return true;
 }
 
@@ -313,6 +316,7 @@ const
 
 bool GEMCluster::IsGoodCluster([[maybe_unused]]const StripCluster &cluster) const
 {
+#ifdef USE_GEM_CUT
     // bad size
     if((cluster.hits.size() < min_cluster_hits) ||
        (cluster.hits.size() > max_cluster_hits))
@@ -326,7 +330,7 @@ bool GEMCluster::IsGoodCluster([[maybe_unused]]const StripCluster &cluster) cons
 
     if(!(gem_cuts -> seed_strip_min_sum_adc(cluster)))
         return false;
-
+#endif
     // not a cross talk cluster
     return !cluster.cross_talk;
 }
@@ -385,12 +389,13 @@ const
     {
         for(auto &yc : y_cluster)
         {
+#ifdef USE_GEM_CUT
             if(!(gem_cuts -> cluster_adc_assymetry(xc, yc)))
                 continue;
 
             if(!(gem_cuts -> cluster_time_assymetry(xc, yc)))
                 continue;
-
+#endif
             container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
                                    det_id,                              // detector id
                                    xc.total_charge, yc.total_charge,    // fill in total charge

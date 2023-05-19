@@ -101,10 +101,17 @@ int GEMDataHandler::DecodeEvent(int &count)
     const uint32_t *pBuf;
     uint32_t fBufLen;
 
+    if(evio_reader == nullptr) {
+        std::cout<<"ERROR: GEMDataHandler::DecodeEvent(): evio_reader not initialized"
+            <<std::endl;
+        return -1;
+    }
     int status = evio_reader -> ReadNoCopy(&pBuf, &fBufLen);
 
-    if(status != S_SUCCESS)
+    if(status != S_SUCCESS) {
+        std::cout<<"ERROR: failed to read event from evio file."<<std::endl;
         return status;
+    }
 
     count++; // event number in current split evio file
 
@@ -456,10 +463,6 @@ void GEMDataHandler::EndProcess(EventData *ev)
 {
     FillHistograms(*ev);
 
-    // online mode only saves the last event, to reduce usage of memory
-    if(onlineMode && event_data.size())
-        event_data.pop_front();
-
     // pass trigger time
     gem_sys -> SetTriggerTime(triggerTime);
 
@@ -637,7 +640,7 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
 
     res = input.substr(not_dir, pos_start-not_dir);
 
-    res = prefix + std::string("_") + res + "root";
+    res = prefix + std::string("_") + res + ".root";
 
     return res;
 }

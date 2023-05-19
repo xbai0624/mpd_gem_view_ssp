@@ -86,7 +86,8 @@ void Viewer::InitGui()
         fDet2DItem[i] -> PassDetectorHandle(fDet[i]);
 #endif
 
-        std::string title = std::string("layer ") + std::to_string(i);
+        std::string title = std::string("layer ") + std::to_string(i)
+            + std::string(", z = ") + std::to_string((int)fDet[i]->GetZPosition());
         fDet2DItem[i] -> SetTitle(title.c_str());
 
         fDet2DView -> AddDetector(fDet2DItem[i]);
@@ -229,7 +230,7 @@ void Viewer::GenerateEvent()
     ProcessTrackingResult();
 
     for(int i=0; i<NDET; i++)
-        std::cout<<" : det "<<i<<" counts = "<<fDet[i] -> Get2DHitCounts();
+        std::cout<<" : det_"<<i<<" counts = "<<fDet[i] -> Get2DHitCounts();
     std::cout<<std::endl;
 
     fEventNumber++;
@@ -349,7 +350,7 @@ void Viewer::Replay50K()
     tracking_data_handler -> SetReplayMode(true);
 #endif
 
-    while(event_counter++ < 1000000)
+    while(event_counter++ < 50000)
     {
         if(event_counter % 1000 == 0)
             std::cout<<"\r"<<event_counter<<std::flush;
@@ -388,7 +389,7 @@ void Viewer::Replay50K()
         }
     }
 
-    hist_m.save("tracking_result.root");
+    hist_m.save("Rootfiles/tracking_result.root");
 }
 
 void Viewer::FillEventHistos()

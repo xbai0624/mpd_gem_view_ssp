@@ -117,6 +117,7 @@ namespace tracking_dev
     {
         static int count = 0;
         data_handler -> DecodeEvent(count);
+        count++;
 
         PackageEventData();
     }
@@ -126,7 +127,8 @@ namespace tracking_dev
         unsigned int N = detector_list.size();
         for(unsigned int i=0; i<N; i++)
         {
-            TransferDetector(detector_list[i], fDet[i]);
+            int layer_id_ = detector_list[i] -> GetLayerID();
+            TransferDetector(detector_list[i], fDet[layer_id_]);
         }
     }
 
@@ -140,6 +142,12 @@ namespace tracking_dev
         for(auto &i: detector_2d_hits) {
             point_t p(i.x, i.y, z_det, i.x_charge, i.y_charge, i.x_peak, i.y_peak, 
                     i.x_max_timebin, i.y_max_timebin, i.x_size, i.y_size);
+
+            // currently use layer id as module id, this works for now since one layer
+            // has only one module; for the future, module_id should be read
+            // from mapping file, which is easy to implement, since we already have
+            // gem_det pointer here: module_id = gem_det -> GetModuleID();
+            p.module_id = layer;
 
             coord_system -> Transform(p, layer);
             det -> AddHit(p);

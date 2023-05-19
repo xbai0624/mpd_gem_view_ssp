@@ -31,12 +31,29 @@ public:
     void PrintHitStatus();
     void PrintLayerGroups();
 
-    // getters
+    // getters for best track
     bool GetBestTrack(double &xt, double &yt, double &xp, double &yp, double &chi);
-    int GetNGoodTrackCandidates(){return n_good_track_candidates;}
     int GetNHitsonBestTrack(){return nhits_on_best_track;}
     const std::vector<int> &GetBestTrackLayerIndex(){return best_track_layer_index;}
     const std::vector<int> &GetBestTrackHitIndex(){return best_track_hit_index;}
+
+    // getters for all good tracks that pass chi2 cut
+    int GetNGoodTrackCandidates(){return n_good_track_candidates;}
+    int GetBestTrackIndex(){return best_track_index;}
+    const std::vector<double> & GetAllXtrack() const {return v_xtrack;}
+    const std::vector<double> & GetAllYtrack() const {return v_ytrack;}
+    const std::vector<double> & GetAllXptrack() const {return v_xptrack;}
+    const std::vector<double> & GetAllYptrack() const {return v_yptrack;}
+    const std::vector<double> & GetAllChi2ndf() const {return v_track_chi2ndf;}
+    const std::vector<int> & GetAllTrackNhits() const {return v_track_nhits;}
+    int GetTotalNgoodHits() {return n_total_good_hits;}
+    const std::vector<double> & GetAllXlocal() const {return v_xlocal;}
+    const std::vector<double> & GetAllYlocal() const {return v_ylocal;}
+    const std::vector<double> & GetAllZlocal() const {return v_zlocal;}
+    const std::vector<int> & GetAllHitTrackIndex() const {return v_hit_track_index;}
+    const std::vector<int> & GetAllHitModule() const {return v_hit_module;}
+
+
     TrackingUtility* GetTrackingUtility() {return tracking_utility;}
 
 private:
@@ -87,8 +104,6 @@ private:
     double k_min_yz = -9999, k_max_yz = 9999;
     double k_min_xz = -9999, k_max_xz = 9999;
 
-    int nhits_on_best_track;
-
     // all possible groups
     std::unordered_map<int, std::vector<std::vector<int>>> group_nlayer;
 
@@ -96,7 +111,9 @@ private:
     std::vector<int> current_layer_comb; // optional, as (xtrack, ytrack), (xptrack, yptrack) is enough
     std::vector<int> current_hit_comb;   // optional, as (xtrack, ytrack), (xptrack, yptrack) is enough
 
-    // tracking result
+    // tracking result - best track
+    int best_track_index;
+    int nhits_on_best_track;
     std::vector<int> best_track_layer_index; // optional, as (xtrack, ytrack), (xptrack, yptrack) is enough
     std::vector<int> best_track_hit_index;   // optional, as (xtrack, ytrack), (xptrack, yptrack) is enough
     double best_track_chi2ndf = LARGE_VALUE;
@@ -105,14 +122,22 @@ private:
     //
     std::unordered_map<int, double> best_track_chi2ndf_by_nlayer;
 
-    // debug
-    //std::vector<point_t> best_hits_on_track;
-
-    // possible track candidates, this is not exclusive.
+    // tracking result - all good tracks that pass chi2 cut
+    // all possible track candidates, this is not exclusive.
     // for example, if hit_1 is used by track_candidate_1, it can also be used by track_candidate_2
     // this number estimate all possible combinations, b/c each combination have the same weight (we don't
     // know how to assign weight to a track).
     int n_good_track_candidates = 0;
+    std::vector<double> v_xtrack, v_ytrack, v_xptrack, v_yptrack, v_track_chi2ndf;
+    std::vector<int> v_track_nhits;
+
+    int n_total_good_hits;
+    std::vector<double> v_xlocal, v_ylocal, v_zlocal;
+    std::vector<int> v_hit_track_index;
+    std::vector<int> v_hit_module;
+
+    // debug
+    //std::vector<point_t> best_hits_on_track;
 };
 
 };

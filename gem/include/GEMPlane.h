@@ -69,6 +69,7 @@ public:
     const std::vector<StripHit> &GetStripHits() const {return strip_hits;}
     std::vector<StripCluster> &GetStripClusters() {return strip_clusters;}
     const std::vector<StripCluster> &GetStripClusters() const {return strip_clusters;};
+    void PrintStatus();
 
 private:
     GEMDetector *detector;

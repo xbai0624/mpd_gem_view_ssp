@@ -60,6 +60,7 @@ public:
     int GetFlipByPlaneType(const int &type) const;
     double GetChamberPlanePitch(const int &type) const;
     GEMSystem *GetSystem() {return gem_sys;}
+    void PrintStatus();
 
 private:
     int id;

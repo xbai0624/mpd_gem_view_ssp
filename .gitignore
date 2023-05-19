@@ -46,5 +46,6 @@ tracking_dev/obj/
 tracking_dev/moc/
 tracking_viewer
 
-
+.vscode/
 .qmake.stash
+*.evio.*

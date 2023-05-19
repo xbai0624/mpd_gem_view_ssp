@@ -90,6 +90,7 @@ void TrackingUtility::FitLine(const std::vector<point_t> &points, double &xtrack
     }
 
     double ndf = 2. * (double)points.size() - 4;
+    if(ndf <= 0) ndf = 1.;
 
     chi2ndf = chi2 / ndf;
 }

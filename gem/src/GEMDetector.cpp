@@ -192,8 +192,10 @@ bool GEMDetector::AddPlane(const int &type,
 
 bool GEMDetector::AddPlane(GEMPlane *plane)
 {
-    if(plane == nullptr)
+    if(plane == nullptr) {
+        std::cerr<<"Error: adding nullptr plane pointers to detectors."<<std::endl;
         return false;
+    }
 
     int idx = (int)plane->GetType();
 
@@ -387,3 +389,12 @@ const
     return planes[type]->GetAPVList();
 }
 
+
+void GEMDetector::PrintStatus()
+{
+    std::cout<<"detector id = "<<GetDetID()<<" contains "
+        <<planes.size()<<" planes."<<std::endl;
+    for(auto &i: planes) {
+        i -> PrintStatus();
+    }
+}
