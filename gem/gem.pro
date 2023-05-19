@@ -23,7 +23,6 @@ INCLUDEPATH += ../decoder/include
 #decoder libs
 LIBS += -L../decoder/lib -ldecoder
 
-
 ######################################################################
 # coda headers
 INCLUDEPATH += ${CODA}/common/include
@@ -86,8 +85,8 @@ HEADERS += include/GEMStruct.h \
            include/GEMRootClusterTree.h \
            include/PreAnalysis.h \
            include/hardcode.h \
-	   include/Cuts.h \
-	   include/ValueType.h \
+           include/Cuts.h \
+           include/ValueType.h \
 
 ######################################################################
 # source path
@@ -109,7 +108,7 @@ SOURCES += src/GEMPedestal.cpp \
            src/GEMRootClusterTree.cpp \
            src/APVStripMapping.cpp \
            src/PreAnalysis.cpp \
-	   src/Cuts.cpp \
-	   src/ValueType.cpp \
+           src/Cuts.cpp \
+           src/ValueType.cpp \
            #src/main.cpp
 

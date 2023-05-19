@@ -31,6 +31,7 @@ namespace tracking_dev {
 
         // setters
         void SetGEMSystem(GEMSystem *s) {gem_sys = s;}
+        void SetGEMDataHandler(GEMDataHandler *h){data_handler = h;}
         void SetCoordSystem(CoordSystem *c){coord_system = c;}
         void SetTrackingHandler(Tracking *t){tracking = t;}
         void SetEvioFile(const char* p);
@@ -45,8 +46,8 @@ namespace tracking_dev {
         Tracking *GetTrackingHandle(){return tracking;}
 
     private:
-        GEMDataHandler *data_handler;
-        GEMSystem *gem_sys;
+        GEMDataHandler *data_handler = nullptr;
+        GEMSystem *gem_sys = nullptr;
 
         //std::string input_file = "../data/hallc_fadc_ssp_4680.evio.0";
         std::string input_file = "../data/hallc_fadc_ssp_4818.evio.1";

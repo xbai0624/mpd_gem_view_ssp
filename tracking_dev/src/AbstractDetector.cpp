@@ -160,8 +160,8 @@ void AbstractDetector::SetupGrids()
 
     // if point to grid edge distance is smaller than neighbor_grid_margin
     // then include this neighbor grid
-    neighbor_grid_marginx = grid_xwidth / 4.;
-    neighbor_grid_marginy = grid_ywidth / 4.;
+    neighbor_grid_marginx = grid_xwidth / 3.;
+    neighbor_grid_marginy = grid_ywidth / 3.;
 }
 
 std::vector<grid_addr_t> AbstractDetector::GetPointHomeGrids(const point_t &p)

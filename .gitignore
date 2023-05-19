@@ -49,3 +49,9 @@ tracking_viewer
 .vscode/
 .qmake.stash
 *.evio.*
+
+bin/
+replay/Makefile
+replay/moc/
+replay/obj/
+replay/lib/

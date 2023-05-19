@@ -21,11 +21,15 @@ namespace tracking_dev
             exit(1);
         }
 
-        data_handler = new GEMDataHandler();
-        gem_sys = new GEMSystem();
-        gem_sys -> Configure("config/gem.conf");
+        if(gem_sys == nullptr) {
+            gem_sys = new GEMSystem();
+            gem_sys -> Configure("config/gem.conf");
+        }
 
-        data_handler -> SetGEMSystem(gem_sys);
+        if(data_handler == nullptr) {
+            data_handler = new GEMDataHandler();
+            data_handler -> SetGEMSystem(gem_sys);
+        }
 
         pedestal_file = txt_parser.Value<std::string>("GEM Pedestal");
         common_mode_file = txt_parser.Value<std::string>("GEM Common Mode");
@@ -76,7 +80,7 @@ namespace tracking_dev
             double s = gem_cuts -> __get("grid shift").val<double>();
             fDet[i] -> SetGridWidth(v[0], v[1]);
             fDet[i] -> SetGridShift(s);
- 
+
             fDet[i] -> SetDimension(dimension);
 
             tracking -> AddDetector(i, fDet[i]);

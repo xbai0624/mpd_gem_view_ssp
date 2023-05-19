@@ -55,19 +55,18 @@ private:
     int besttrack;
     int fNtracks_found;
     std::vector<int> fNhitsOnTrack;
-    std::vector<float> fXtrack, fYtrack, fXptrack, fYptrack, fChi2Track;
+    std::vector<double> fXtrack, fYtrack, fXptrack, fYptrack, fChi2Track;
 
     int ngoodhits; // total number of hits lies on tracks
-    std::vector<float> fHitXlocal, fHitYlocal, fHitZlocal;
+    std::vector<double> fHitXlocal, fHitYlocal, fHitZlocal;
     std::vector<int> hit_track_index;
     std::vector<int> fHitModule;
-
-    // this is only for best track -- to make it compatible with old code
     std::vector<int> fHitLayer;
-    std::vector<float> fHitXprojected, fHitYprojected;
-    std::vector<float> fHitResidU, fHitResidV;
-    std::vector<float> fHitUADC, fHitVADC;
-    std::vector<float> fHitIsampMaxUstrip, fHitIsampMaxVstrip;
+
+    std::vector<double> fHitXprojected, fHitYprojected;
+    std::vector<double> fHitResidU, fHitResidV;
+    std::vector<double> fHitUADC, fHitVADC;
+    std::vector<double> fHitIsampMaxUstrip, fHitIsampMaxVstrip;
 
     // -part 2):
     // Raw GEM Data
@@ -78,11 +77,11 @@ private:
     int Axis[MAXCLUSTERS];   // plane x/y
     int Size[MAXCLUSTERS];   // cluster size
 
-    float Adc[MAXCLUSTERS];  // cluster adc
-    float Pos[MAXCLUSTERS];  // cluster pos
+    double Adc[MAXCLUSTERS];  // cluster adc
+    double Pos[MAXCLUSTERS];  // cluster pos
 
     int StripNo[MAXCLUSTERS][MAXCLUSTERSIZE];   // max 50 strips per cluster
-    float StripADC[MAXCLUSTERS][MAXCLUSTERSIZE];
+    double StripADC[MAXCLUSTERS][MAXCLUSTERSIZE];
 
     // for common mode study only
     int nAPV;

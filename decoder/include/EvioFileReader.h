@@ -43,6 +43,7 @@ public:
     int ReadEventNum(const uint32_t **pEvent, uint32_t *buflen, uint32_t eventNumber);
 
     int GetEventNumber();
+    std::string GetFilePath(){return fFileName;}
 
 private:
     std::string fFileName;

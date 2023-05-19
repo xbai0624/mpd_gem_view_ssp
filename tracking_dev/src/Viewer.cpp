@@ -87,7 +87,8 @@ void Viewer::InitGui()
 #endif
 
         std::string title = std::string("layer ") + std::to_string(i)
-            + std::string(", z = ") + std::to_string((int)fDet[i]->GetZPosition());
+            + std::string(", z = ") + std::to_string((int)fDet[i]->GetZPosition())
+            + std::string(" mm");
         fDet2DItem[i] -> SetTitle(title.c_str());
 
         fDet2DView -> AddDetector(fDet2DItem[i]);

@@ -109,7 +109,8 @@ int GEMDataHandler::DecodeEvent(int &count)
     int status = evio_reader -> ReadNoCopy(&pBuf, &fBufLen);
 
     if(status != S_SUCCESS) {
-        std::cout<<"ERROR: failed to read event from evio file."<<std::endl;
+        //std::cout<<"ERROR: failed to read event from evio file."<<std::endl;
+        //std::cout<<"       check your data file: "<<evio_reader -> GetFilePath()<<std::endl;
         return status;
     }
 

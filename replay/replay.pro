@@ -3,12 +3,9 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = ../bin/tracking_viewer
-#target.path += ./lib
-#INSTALLS += target
+TARGET = ../bin/replay
 
 CONFIG += c++14 warn_on release
-QT += core gui widgets
 
 ######################################################################
 # self headers
@@ -36,6 +33,13 @@ INCLUDEPATH += ../gem/include
 LIBS += -L../gem/lib -lgem
 
 ######################################################################
+# tracking headers
+INCLUDEPATH += ../tracking_dev/include
+
+# tracking lib
+LIBS += -L../tracking_dev/lib -ltracking_dev
+
+######################################################################
 # root headers
 INCLUDEPATH += ${ROOTSYS}/include
 # root libs
@@ -43,7 +47,6 @@ LIBS += -L${ROOTSYS}/lib -lCore -lRIO -lNet \
 	-lHist -lGraf -lGraf3d -lGpad -lTree \
 	-lRint -lPostscript -lMatrix -lPhysics \
 	-lGui -lRGL -lMathCore
-
 
 ######################################################################
 # moc dir
@@ -68,28 +71,10 @@ DEFINES += QT_DEPRECATED_WARNINGS #MULTI_THREAD
 
 ######################################################################
 # Input path
-HEADERS += include/AbstractDetector.h \
-           include/CoordSystem.h \
-           include/Detector2DItem.h \
-           include/Detector2DView.h \
-           include/histos.hpp \
-           include/Tracking.h \
-           include/tracking_struct.h \
-           include/TrackingDataHandler.h \
-           include/TrackingUtility.h \
-           include/Viewer.h
-
+HEADERS += include/Replay.h \
 
 ######################################################################
 # source path
-SOURCES += src/AbstractDetector.cpp \
-           src/CoordSystem.cpp \
-           src/Detector2DItem.cpp \
-           src/Detector2DView.cpp \
+SOURCES += src/Replay.cpp \
            src/main.cpp \
-           src/Tracking.cpp \
-           src/tracking_struct.cpp \
-           src/TrackingDataHandler.cpp \
-           src/TrackingUtility.cpp \
-           src/Viewer.cpp
 

@@ -13,18 +13,46 @@ GEMRootClusterTree::GEMRootClusterTree(const char* path)
     pTree = new TTree("GEMCluster", "cluster list");
 
     pTree -> Branch("evtID", &evtID, "evtID/I"); 
+
+    // GEM Tracking result
+    pTree->Branch("fNtracks_found", &fNtracks_found, "fNtracks_found/I");
+    pTree->Branch("besttrack", &besttrack, "besttrack/I");
+    pTree->Branch("fNhitsOnTrack", &fNhitsOnTrack);
+    pTree->Branch("fXtrack", &fXtrack);
+    pTree->Branch("fYtrack", &fYtrack);
+    pTree->Branch("fXptrack", &fXptrack);
+    pTree->Branch("fYptrack", &fYptrack);
+    pTree->Branch("fChi2Track", &fChi2Track);
+    pTree->Branch("fNgoodhits", &ngoodhits, "ngoodhits/I");
+    pTree->Branch("fHitXlocal", &fHitXlocal);
+    pTree->Branch("fHitYlocal", &fHitYlocal);
+    pTree->Branch("fHitZlocal", &fHitZlocal);
+    pTree->Branch("fHitTrackIndex", &hit_track_index);
+    pTree->Branch("fHitModule", &fHitModule);
+
+    pTree->Branch("fHitLayer", &fHitLayer);
+    pTree->Branch("fHitXprojected", &fHitXprojected);
+    pTree->Branch("fHitYprojected", &fHitYprojected);
+    pTree->Branch("fHitResidU", &fHitResidU);
+    pTree->Branch("fHitResidV", &fHitResidV);
+    pTree->Branch("fHitUADC", &fHitUADC);
+    pTree->Branch("fHitVADC", &fHitVADC);
+    pTree->Branch("fHitIsampMaxUstrip", &fHitIsampMaxUstrip);
+    pTree->Branch("fHitIsampMaxVstrip", &fHitIsampMaxVstrip);
+
+    // Raw GEM cluster information before tracking
     pTree -> Branch("nCluster", &nCluster, "nCluster/I");
     pTree -> Branch("planeID", Plane, "planeID[nCluster]/I");
     pTree -> Branch("prodID", Prod, "prodID[nCluster]/I");
     pTree -> Branch("moduleID", Module, "moduleID[nCluster]/I");
     pTree -> Branch("axis", Axis, "axis[nCluster]/I");
     pTree -> Branch("size", Size, "size[nCluster]/I");
-    pTree -> Branch("adc", Adc, "adc[nCluster]/F");
-    pTree -> Branch("pos", Pos, "Pos[nCluster]/F");
+    pTree -> Branch("adc", Adc, "adc[nCluster]/D");
+    pTree -> Branch("pos", Pos, "Pos[nCluster]/D");
 
     // save strip information for each cluster
     pTree -> Branch("stripNo", StripNo, "StripNo[nCluster][100]/I");
-    pTree -> Branch("stripAdc", StripADC, "StripADC[nCluster][100]/F");
+    pTree -> Branch("stripAdc", StripADC, "StripADC[nCluster][100]/D");
 
     // save apv common mode information
     pTree -> Branch("nAPV", &nAPV, "nAPV/I");
@@ -74,7 +102,7 @@ static int getChamberBasedStripNo(int strip, int type, int N_APVS_PER_PLANE, int
     if(strip < 0)
     {
         std::cout<<"Error: strip conversion failed, returned without conversion."
-                 <<std::endl;
+            <<std::endl;
         return strip;
     }
     return c_strip;
@@ -128,8 +156,8 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
 
                     // chamber based strip no
                     StripNo[nCluster][nS] = getChamberBasedStripNo(hits[nS].strip, Axis[nCluster],
-                           napvs_per_plane, Module[nCluster]);
- 
+                            napvs_per_plane, Module[nCluster]);
+
                     StripADC[nCluster][nS] = hits[nS].charge;
                 }
 
