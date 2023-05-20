@@ -99,7 +99,8 @@ public:
     GEMRootClusterTree *GetClusterTree() {return root_cluster_tree;}
 
     // helpers
-    std::string ParseOutputFileName(const std::string &input_file_name, const char* prefix="Rootfiles/hit");
+    std::string ParseOutputFileName(const std::string &input_file_name, const char* prefix="");
+    void SetOutputPath(const char* str = "");
 
 private:
     void waitEventProcess();
@@ -132,6 +133,7 @@ private:
     int fMaxPedestalEvents = -1;
 
     bool root_tree_enabled = true;
+    std::string output_path = "Rootfiles/";
     // replay data to root hit tree
     GEMRootHitTree *root_hit_tree = nullptr;
     std::string replay_hit_output_file = "";

@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     ConfigArgs arg_parser;
     arg_parser.AddHelps({"-h", "--help"});
     arg_parser.AddPositional("raw_data", "raw data in evio format");
-    arg_parser.AddArgs<std::string>({"--ouput_root_path"}, "output_root_path", "output data file in root format", "");
+    arg_parser.AddArgs<std::string>({"--output_root_path"}, "output_root_path", "output data file in root format", "");
     arg_parser.AddArg<int>("-n", "nev", "number of events to process (< 0 means all)", -1);
     arg_parser.AddArg<int>("-s", "start_event", "start analysis from event number (default to 0)", 0);
     arg_parser.AddArgs<std::string>({"--pedestal"}, "pedestal_file", "pedestal file", 
@@ -49,6 +49,8 @@ int main(int argc, char* argv[])
     //gem_data_handler -> TurnOffClustering();
     // for cluster replay
     gem_data_handler -> TurnOnClustering();
+    if(args["output_root_path"].String().size() > 0)
+        gem_data_handler -> SetOutputPath(args["output_root_path"].String().c_str());
     gem_data_handler -> SetupReplay(args["raw_data"].String(), 0, -1, args["pedestal_file"].String(), args["common_mode_file"].String());
 
     // -: tracking
@@ -67,11 +69,16 @@ int main(int argc, char* argv[])
     }
 
     // -: do replay
+    int start_event = args["start_event"].Int();
+    int max_event = args["nev"].Int();
     int event_counter = 0;
     const uint32_t *pBuf;
     uint32_t fBufLen;
     while(evio_reader -> ReadNoCopy(&pBuf, &fBufLen) == S_SUCCESS)
     {
+        if(event_counter < start_event)
+            continue;
+
         // raw cluster/hit process
         gem_data_handler -> ProcessEvent(pBuf, fBufLen, event_counter);
 
@@ -83,7 +90,10 @@ int main(int argc, char* argv[])
         fill_tracking_result(tracking_data_handler, new_tracking, gem_data_handler -> GetClusterTree());
 
         gem_data_handler -> EndofThisEvent(event_counter);
+
         event_counter++;
+        if(max_event > 0 && event_counter > max_event)
+            break;
     }
     std::cout<<"total event: "<<event_counter<<std::endl;
     gem_data_handler -> Write();

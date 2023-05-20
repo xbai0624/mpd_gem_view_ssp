@@ -384,11 +384,12 @@ void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, int
         std::cout<<"INFO::Loading pedestal from : "<<_pedestal_input<<std::endl;
         std::cout<<"INFO::Loading common mode from : "<<_common_mode_input<<std::endl;
         gem_sys -> ReadPedestalFile(_pedestal_input, _common_mode_input);
+
         // parse output path
-        std::string _prefix = "Rootfiles/hit_" + std::to_string(split_start);
-        replay_hit_output_file = ParseOutputFileName(r_path, _prefix.c_str());
-        _prefix = "Rootfiles/cluster_" + std::to_string(split_start);
-        replay_cluster_output_file = ParseOutputFileName(r_path, _prefix.c_str());
+        std::string _prefix = "hit_" + std::to_string(split_start);
+        replay_hit_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
+        _prefix = "cluster_" + std::to_string(split_start);
+        replay_cluster_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
         std::cout<<"Replay started..."<<std::endl;
     }
 
@@ -678,6 +679,18 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
     res = prefix + std::string("_") + res + ".root";
 
     return res;
+}
+
+void GEMDataHandler::SetOutputPath(const char *str)
+{
+    std::string _output_path = std::string(str);
+    if(_output_path.size() <= 0)
+        return;
+
+    if(_output_path.back() != '/')
+        output_path = _output_path + std::string("/");
+    else
+        output_path = _output_path;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
