@@ -53,8 +53,10 @@ tracking_viewer
 .qmake.stash
 *.evio.*
 
-bin/
-!/bin/.gitkeep
+bin/data_viewer
+bin/replay
+bin/tracking_viewer
+
 replay/Makefile
 replay/moc/
 replay/obj/
