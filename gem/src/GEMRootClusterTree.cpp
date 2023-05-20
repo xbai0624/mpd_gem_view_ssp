@@ -30,15 +30,15 @@ GEMRootClusterTree::GEMRootClusterTree(const char* path)
     pTree->Branch("fHitTrackIndex", &hit_track_index);
     pTree->Branch("fHitModule", &fHitModule);
 
-    pTree->Branch("fHitLayer", &fHitLayer);
-    pTree->Branch("fHitXprojected", &fHitXprojected);
-    pTree->Branch("fHitYprojected", &fHitYprojected);
-    pTree->Branch("fHitResidU", &fHitResidU);
-    pTree->Branch("fHitResidV", &fHitResidV);
-    pTree->Branch("fHitUADC", &fHitUADC);
-    pTree->Branch("fHitVADC", &fHitVADC);
-    pTree->Branch("fHitIsampMaxUstrip", &fHitIsampMaxUstrip);
-    pTree->Branch("fHitIsampMaxVstrip", &fHitIsampMaxVstrip);
+    pTree->Branch("fBestTrackHitLayer", &fBestTrackHitLayer);
+    pTree->Branch("fBestTrackHitXprojected", &fBestTrackHitXprojected);
+    pTree->Branch("fBestTrackHitYprojected", &fBestTrackHitYprojected);
+    pTree->Branch("fBestTrackHitResidU", &fBestTrackHitResidU);
+    pTree->Branch("fBestTrackHitResidV", &fBestTrackHitResidV);
+    pTree->Branch("fBestTrackHitUADC", &fBestTrackHitUADC);
+    pTree->Branch("fBestTrackHitVADC", &fBestTrackHitVADC);
+    pTree->Branch("fBestTrackHitIsampMaxUstrip", &fBestTrackHitIsampMaxUstrip);
+    pTree->Branch("fBestTrackHitIsampMaxVstrip", &fBestTrackHitIsampMaxVstrip);
 
     // Raw GEM cluster information before tracking
     pTree -> Branch("nCluster", &nCluster, "nCluster/I");
@@ -216,4 +216,23 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
 
     if(nCluster > 0)
         pTree -> Fill();
+}
+
+void GEMRootClusterTree::ClearPrevTracks()
+{
+    besttrack = -1, fNtracks_found = 0;
+    fNhitsOnTrack.clear();
+    fXtrack.clear(), fYtrack.clear(), fXptrack.clear(), fYptrack.clear();
+    fChi2Track.clear();
+
+    ngoodhits = 0;
+    fHitXlocal.clear(), fHitYlocal.clear(), fHitZlocal.clear();
+    hit_track_index.clear();
+    fHitModule.clear();
+
+    fBestTrackHitLayer.clear();
+    fBestTrackHitXprojected.clear(), fBestTrackHitYprojected.clear();
+    fBestTrackHitResidU.clear(), fBestTrackHitResidV.clear();
+    fBestTrackHitUADC.clear(), fBestTrackHitVADC.clear();
+    fBestTrackHitIsampMaxUstrip.clear(), fBestTrackHitIsampMaxVstrip.clear();
 }

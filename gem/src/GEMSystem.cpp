@@ -208,7 +208,7 @@ void GEMSystem::Configure(const std::string &path)
     gem_recon.Configure(Value<std::string>("GEM Cluster Configuration"));
 
     // read gem map, build DAQ system and detectors
-    try{
+    try {
         ReadMapFile(Value<std::string>("GEM Map"));
 
         // this has been moved to GEMDataHandler::Replay() function, it is more reasonable to do it there

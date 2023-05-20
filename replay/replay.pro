@@ -27,7 +27,7 @@ LIBS += -L../decoder/lib -ldecoder
 
 ######################################################################
 # gem headers
-INCLUDEPATH += ../gem/include
+INCLUDEPATH += ../gem/include ../gem/third_party
 
 # decoder lib
 LIBS += -L../gem/lib -lgem
@@ -71,10 +71,9 @@ DEFINES += QT_DEPRECATED_WARNINGS #MULTI_THREAD
 
 ######################################################################
 # Input path
-HEADERS += include/Replay.h \
+#HEADERS += include/Replay.h \
 
 ######################################################################
 # source path
-SOURCES += src/Replay.cpp \
-           src/main.cpp \
+SOURCES += src/main.cpp \
 

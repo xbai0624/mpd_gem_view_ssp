@@ -7,7 +7,7 @@ TARGET = lib/epics
 target.path += ./lib
 INSTALLS += target
 
-INCLUDEPATH += ./include ../gem/include
+INCLUDEPATH += ./include ../gem/include ../gem/conf
 
 CONFIG += c++14
 CONFIG += release

@@ -37,6 +37,9 @@ epics/Makefile
 scripts/tmp_plots/
 scripts/*.pdf
 scripts/*.png
+scripts/Alignment_scripts/*.root
+scripts/Alignment_scripts/*.dat
+scripts/Alignment_scripts/*.txt
 
 tracking_dev/Makefile.tracking_dev_app
 tracking_dev/lib/
@@ -51,7 +54,10 @@ tracking_viewer
 *.evio.*
 
 bin/
+!/bin/.gitkeep
 replay/Makefile
 replay/moc/
 replay/obj/
 replay/lib/
+
+

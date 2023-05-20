@@ -179,9 +179,10 @@ public:
     static std::vector<float> stofs(const std::string &str, const std::string &s, const std::string &w);
     static std::vector<double> stods(const std::string &str, const std::string &s, const std::string &w);
     static std::string str_remove(const std::string &str, const std::string &ignore);
-    static std::string str_replace(const std::string &str, const std::string &ignore, const char &rc = ' ');
+    static std::string str_replace(const std::string &str, const std::string& from, const std::string& to);
     static std::string str_lower(const std::string &str);
     static std::string str_upper(const std::string &str);
+    static std::string str_join(const std::vector<std::string> &strs, const std::string &sep);
     static std::pair<size_t, size_t> find_pair(const std::string &str,
                                                const std::string &open,
                                                const std::string &close,

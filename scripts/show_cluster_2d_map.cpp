@@ -407,8 +407,8 @@ void show_cluster_2d_map(const char* root_input_path = "")
     int layerPosIndex[Max];
     int plane[Max];
     int size[Max];
-    float adc[Max];
-    float pos[Max];
+    double adc[Max];
+    double pos[Max];
     TChain *T = new TChain("GEMCluster");
 
     cout<<"adding file: "<<root_input_path<<endl;

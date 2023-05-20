@@ -1,4 +1,4 @@
-run4680_0.root
+cluster_0_fermilab_beamtest_6.evio.0.root
 endlist
 prefix run4680
 nlayers 4
@@ -35,5 +35,5 @@ sigma 0.8
 NMAX 30000000
 endconfig
 #bb.gem.track.chi2ndf<100&&bb.gem.track.ntrack==1&&bb.gem.track.nhits>=4
-fChi2Track<30&&fNhitsOnTrack>=4
+fChi2Track<300&&fNhitsOnTrack>=4
 endcut

@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = ../bin/viewer
+TARGET = ../bin/data_viewer
 
 ######################################################################
 # compiler configs
@@ -24,7 +24,7 @@ LIBS += -L../decoder/lib -ldecoder
 
 ######################################################################
 # gem headers
-INCLUDEPATH += ../gem/include
+INCLUDEPATH += ../gem/include ../gem/third_party
 
 # decoder lib
 LIBS += -L../gem/lib -lgem

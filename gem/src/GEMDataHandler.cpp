@@ -118,17 +118,17 @@ int GEMDataHandler::DecodeEvent(int &count)
 
     fEventNumber++; // event number in current run
 
-    ReplayEvent_test(pBuf, fBufLen, fEventNumber);
+    ProcessEvent(pBuf, fBufLen, fEventNumber);
+    EndofThisEvent(fEventNumber);
 
     return status;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// replay event
-// functions with '_test' suffix are going to be removed
+// process event
 
-void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBufLen, 
-        const int &ev_number)
+void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen, 
+        [[maybe_unused]]const int &ev_number)
 {
     event_parser -> ParseEvent(pBuf, fBufLen);
 
@@ -148,12 +148,16 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
 
     const std::unordered_map<APVAddress, std::vector<int>> & decoded_data 
         = decoder->GetAPV();
+
     const std::unordered_map<APVAddress, APVDataType> & decoded_data_flags
         = decoder -> GetAPVDataFlags();
+
     const std::unordered_map<APVAddress, std::vector<int>> &decoded_online_cm
         = decoder -> GetAPVOnlineCommonMode();
+
     //const std::unordered_map<MPDAddress, MPDTiming> &decoded_timing
     //    = decoder -> GetMPDTiming();
+
     triggerTime = trigger_decoder -> GetDecoded();
     //std::cout<<"low: "<<triggerTime.first<<", high: "<<triggerTime.second<<std::endl;
 
@@ -206,8 +210,6 @@ void GEMDataHandler::ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBuf
             FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first));
     }
 #endif
-
-    EndofThisEvent(ev_number);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -312,12 +314,13 @@ int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int sp
 int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start, 
         int split_end, bool verbose)
 {
-    if(split_end < 0) { // default input, no split
+    if(split_end < 0)
+    {
+        // default input, no split
         return ReadFromEvio(path.c_str(), -1, verbose);
     } else {
         int count = 0;
-        for(int i=split_start;i<split_end;i++)
-        {
+        for(int i=split_start;i<split_end;i++) {
             // parse all input files
             size_t pos = 0;
             if(path.find("evio") != std::string::npos) {
@@ -355,43 +358,78 @@ void GEMDataHandler::Replay(const std::string &r_path, int split_start, int spli
     // set mode before work starts
     SetMode();
 
-    if(replayMode) {
+    SetupReplay(r_path, split_start, split_end, _pedestal_input, _common_mode_input,
+            _pedestal_output, _commonMode_output);
+
+    int count = ReadFromSplitEvio(r_path, split_start, split_end);
+
+    Write();
+
+    // get time end
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    int _t = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    std::cout<<"Replayed "<<count<<" events";
+    std::cout<<" in "<< _t/60 <<" minutes "<<_t%60 <<" seconds"<<std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setup replay output file names
+
+void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, int split_end,
+        const std::string &_pedestal_input, const std::string &_common_mode_input,
+        const std::string &_pedestal_output, const std::string &_commonMode_output)
+{
+    if(replayMode)
+    {
         std::cout<<"INFO::Loading pedestal from : "<<_pedestal_input<<std::endl;
         std::cout<<"INFO::Loading common mode from : "<<_common_mode_input<<std::endl;
         gem_sys -> ReadPedestalFile(_pedestal_input, _common_mode_input);
         // parse output path
-        //replay_hit_output_file = ParseOutputFileName(r_path, "Rootfiles/hit_"+std::to_string(split_start));
-        //replay_cluster_output_file = ParseOutputFileName(r_path, "Rootfiles/cluster_"+std::to_string(split_start));
         std::string _prefix = "Rootfiles/hit_" + std::to_string(split_start);
         replay_hit_output_file = ParseOutputFileName(r_path, _prefix.c_str());
         _prefix = "Rootfiles/cluster_" + std::to_string(split_start);
         replay_cluster_output_file = ParseOutputFileName(r_path, _prefix.c_str());
         std::cout<<"Replay started..."<<std::endl;
     }
-    if(pedestalMode) {
+
+    if(pedestalMode)
+    {
         std::cout<<"Pedestal started..."<<std::endl;
         if(_pedestal_output.size() > 0) pedestal_output_file = _pedestal_output;
         else std::cout<<"Warning: no pedestal output path specified, using default."<<std::endl;
         if(_commonMode_output.size() > 0) commonMode_output_file = _commonMode_output;
         else std::cout<<"Warning: no common mode output path specified, using default."<<std::endl;
     }
+
     if(onlineMode)
         std::cout<<"Online started..."<<std::endl;
+}
 
-    int count = ReadFromSplitEvio(r_path, split_start, split_end);
+////////////////////////////////////////////////////////////////////////////////
+// write replayed files to disk
 
-    if(replayMode) {
+void GEMDataHandler::Write()
+{
+    if(replayMode)
+    {
         // save replay root tree
         if(!bReplayCluster) {
-            if(root_hit_tree != nullptr)
+            if(root_hit_tree != nullptr) {
                 root_hit_tree -> Write();    // gem hit tree
+            } else {
+                std::cout<<"hit root tree is nullptr."<<std::endl;
+            }
         }
         else {
-            if(root_cluster_tree != nullptr)
+            if(root_cluster_tree != nullptr) {
                 root_cluster_tree -> Write();// gem cluster tree
+            } else {
+                std::cout<<"cluster root tree is nullptr."<<std::endl;
+            }
         }
     }
-    else if(pedestalMode) {
+    else if(pedestalMode)
+    {
         // save pedestal
         gem_sys -> FitPedestal();
         std::cout<<"saving pedestal file to : "<<pedestal_output_file<<std::endl;
@@ -400,13 +438,8 @@ void GEMDataHandler::Replay(const std::string &r_path, int split_start, int spli
         std::cout<<"saving commonMode file to : "<<commonMode_output_file<<std::endl;
         gem_sys -> SaveCommonModeRange(commonMode_output_file.c_str());
     }
-
-    // get time end
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    int _t = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    std::cout<<"Replayed "<<count<<" events";
-    std::cout<<" in "<< _t/60 <<" minutes "<<_t%60 <<" seconds"<<std::endl;
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // clear, erase the data containter and all the connected systems
@@ -467,7 +500,8 @@ void GEMDataHandler::EndProcess(EventData *ev)
     // pass trigger time
     gem_sys -> SetTriggerTime(triggerTime);
 
-    if(replayMode) {
+    if(replayMode)
+    {
         if(root_tree_enabled) {
             if(root_hit_tree == nullptr && !bReplayCluster) {
                 root_hit_tree = new GEMRootHitTree(replay_hit_output_file.c_str());

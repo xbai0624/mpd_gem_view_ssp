@@ -14,7 +14,7 @@ CONFIG += c++14 warn_on release
 
 ######################################################################
 # self headers
-INCLUDEPATH += . ./include
+INCLUDEPATH += . ./include ./third_party
 
 
 ######################################################################
@@ -42,7 +42,7 @@ LIBS += -L${ROOTSYS}/lib -lCore -lRIO -lNet \
 
 ######################################################################
 # moc dir
-MOC = moc
+MOC_DIR = moc
 
 
 ######################################################################
@@ -71,10 +71,11 @@ HEADERS += include/GEMStruct.h \
            include/GEMMPD.h \
            include/GEMPlane.h \
            include/GEMSystem.h \
-           include/ConfigObject.h \
-           include/ConfigOption.h \
-           include/ConfigParser.h \
-           include/ConfigValue.h \
+           third_party/ConfigObject.h \
+           third_party/ConfigOption.h \
+           third_party/ConfigParser.h \
+           third_party/ConfigValue.h \
+           third_party/ConfigArgs.h \
            include/GEMCluster.h \
            include/GEMDetector.h \
            include/GEMDetectorLayer.h \
@@ -95,10 +96,11 @@ SOURCES += src/GEMPedestal.cpp \
            src/GEMMPD.cpp \
            src/GEMPlane.cpp \
            src/GEMSystem.cpp \
-           src/ConfigObject.cpp \
-           src/ConfigOption.cpp \
-           src/ConfigParser.cpp \
-           src/ConfigValue.cpp \
+           third_party/ConfigObject.cpp \
+           third_party/ConfigOption.cpp \
+           third_party/ConfigParser.cpp \
+           third_party/ConfigValue.cpp \
+           third_party/ConfigArgs.cpp \
            src/GEMCluster.cpp \
            src/GEMDetector.cpp \
            src/GEMDetectorLayer.cpp \

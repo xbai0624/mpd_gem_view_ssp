@@ -167,7 +167,6 @@ ConfigValue ConfigParser::TakeFirst()
     if(elements.empty()) {
         cout << "Config Parser Warning: Trying to take elements while there is "
              << "nothing, 0 value returned." << endl;
-        cout << "line causing problem: "<< curr_line << endl;
         return ConfigValue("0");
     }
 
@@ -194,7 +193,7 @@ inline bool compare_str(const char *buf1, const char *buf2, size_t n)
 }
 
 // helper function
-inline string break_line(const string &buf, const std::string &delim, size_t &i, const std::string &glue)
+inline string break_line(const string &buf, const string &delim, size_t &i, const string &glue)
 {
     size_t beg = i;
     if (delim.empty()) {
@@ -676,18 +675,29 @@ string ConfigParser::str_remove(const string &str, const string &iignore)
     return res;
 }
 
-// replace characters in the list with certain char
-string ConfigParser::str_replace(const string &str, const string &list, const char &rc)
+// replace all strings
+string ConfigParser::str_replace(const string &str, const string& from, const string& to)
 {
-    if(list.empty())
-        return str;
+    auto res = str;
+    size_t start_pos = 0;
+    while ((start_pos = res.find(from, start_pos)) != string::npos) {
+        res.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+    return res;
+}
 
-    string res = str;
+// join a vector of strings
+string ConfigParser::str_join(const vector<string> &strs, const string &sep)
+{
+    string res;
 
-    for(auto &c : res)
-    {
-        if(list.find(c) != string::npos)
-            c = rc;
+    if (strs.empty()) { return res; }
+
+    res = strs[0];
+
+    for (size_t i = 1; i < strs.size(); ++i) {
+        res += sep + strs[i];
     }
 
     return res;

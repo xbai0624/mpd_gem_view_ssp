@@ -38,6 +38,7 @@ public:
     // set systems
     void SetGEMSystem(GEMSystem *gem){gem_sys = gem;}
     GEMSystem *GetGEMSystem() const {return gem_sys;}
+    void SetEvioFileReader(EvioFileReader *e) {evio_reader = e;}
     bool OpenEvioFile(const std::string &path);
     void RegisterRawDecoders();
     int DecodeEvent(int &count);
@@ -53,6 +54,12 @@ public:
             const std::string &common_mode_input_file = "",
             const std::string &pedestal_output_file = "", 
             const std::string &commonMode_output_file = "");
+    void SetupReplay(const std::string &r_path, int split_start = 0, int split_end = -1,
+            const std::string &pedestal_input_file = "",
+            const std::string &common_mode_input_file = "",
+            const std::string &pedestal_output_file = "", 
+            const std::string &commonMode_output_file = "");
+    void Write();
     void Reset();
 
     // data handler
@@ -76,11 +83,8 @@ public:
     const EventData &GetEvent(const unsigned int &index) const;
     const std::deque<EventData> &GetEventData() const {return event_data;}
 
-    // analysis tools
     int FindEvent(int event_number) const;
-
-    // test functions
-    void ReplayEvent_test(const uint32_t *pBuf, const uint32_t &fBufLen, const int &ev_number);
+    void ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen, const int &ev_number);
     void SetMode();
     void SetPedestalMode(bool m){pedestalMode = m; replayMode = !m; onlineMode = !m;}
     void SetReplayMode(bool m){replayMode = m; pedestalMode = !m; onlineMode = !m;}
@@ -90,6 +94,9 @@ public:
     void EnableOutputRootTree() {root_tree_enabled = true;}
     void DisableOutputRootTree(){root_tree_enabled = false;}
     void SetMaxPedestalEvents(const int &s);
+
+    GEMRootHitTree * GetHitTree() {return root_hit_tree;}
+    GEMRootClusterTree *GetClusterTree() {return root_cluster_tree;}
 
     // helpers
     std::string ParseOutputFileName(const std::string &input_file_name, const char* prefix="Rootfiles/hit");

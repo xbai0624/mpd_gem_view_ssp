@@ -150,7 +150,7 @@ void GEM_align(const char *configfilename, const char *outputfilename = "newGEMa
 
     TString prefix = "";
 
-    TChain *C = new TChain("EvTree");
+    TChain *C = new TChain("GEMCluster");
 
     // Copied from GEM_reconstruct: For this routine we are only interested in the number of layers and the number of modules, and the geometrical information:
     if (configfile)

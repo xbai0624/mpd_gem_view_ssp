@@ -23,6 +23,8 @@ public:
     void Write();
     void Fill(GEMSystem* gem_sys, const uint32_t &evt_num);
 
+    void ClearPrevTracks();
+
 private:
     TTree *pTree = nullptr;
     TFile *pFile = nullptr;
@@ -32,6 +34,7 @@ private:
     // information to save
     int evtID;
 
+public:
     // -part 1):
     // tracking result
     // tracking result saves all possible tracks that pass chi2 cut
@@ -61,13 +64,15 @@ private:
     std::vector<double> fHitXlocal, fHitYlocal, fHitZlocal;
     std::vector<int> hit_track_index;
     std::vector<int> fHitModule;
-    std::vector<int> fHitLayer;
 
-    std::vector<double> fHitXprojected, fHitYprojected;
-    std::vector<double> fHitResidU, fHitResidV;
-    std::vector<double> fHitUADC, fHitVADC;
-    std::vector<double> fHitIsampMaxUstrip, fHitIsampMaxVstrip;
+    // for best track
+    std::vector<int> fBestTrackHitLayer;
+    std::vector<double> fBestTrackHitXprojected, fBestTrackHitYprojected;
+    std::vector<double> fBestTrackHitResidU, fBestTrackHitResidV;
+    std::vector<double> fBestTrackHitUADC, fBestTrackHitVADC;
+    std::vector<double> fBestTrackHitIsampMaxUstrip, fBestTrackHitIsampMaxVstrip;
 
+private:
     // -part 2):
     // Raw GEM Data
     int nCluster;            // number of clusters in current event
