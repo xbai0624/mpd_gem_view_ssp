@@ -11,11 +11,13 @@
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
 #include <vector>
+#include <deque>
 #include <string>
 #include <iostream>
 
 namespace tracking_dev{
 
+#define CACHE_EVENT_SIZE 100
 class AbstractDetector;
 
 class Detector2DItem : public QGraphicsItem
@@ -38,11 +40,13 @@ public:
     void PassDetectorHandle(AbstractDetector *fD);
 
     void SetDataRange(int x_min, int x_max, int y_min, int y_max);
+    void SetCounter(int i);
 
 protected:
     void UpdateDrawingRange();
+    void UpdateEventContent();
     void DrawAxis(QPainter *painter);
-    void DrawContent(QPainter *painter);
+    void DrawEventContent(QPainter *painter);
     void DrawGrids(QPainter *painter);
     void Clear();
 
@@ -77,6 +81,21 @@ private:
     float margin_x, margin_y;
 
     AbstractDetector *detector;
+
+    // current event to draw
+    std::vector<QPointF> global_hits;
+    std::vector<QPointF> real_hits;
+    std::vector<QPointF> fitted_hits;
+    std::vector<QPointF> background_hits;
+
+    // cache events for drawing purpose
+    std::deque<std::vector<QPointF>> global_hits_cache;
+    std::deque<std::vector<QPointF>> real_hits_cache;
+    std::deque<std::vector<QPointF>> fitted_hits_cache;
+    std::deque<std::vector<QPointF>> background_hits_cache;
+
+    // forward step size
+    int counter = 1;
 };
 
 };

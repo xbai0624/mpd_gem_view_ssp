@@ -44,8 +44,8 @@ void Detector2DItem::paint(QPainter *painter,
     // draw a frame
     DrawAxis(painter);
 
-    // draw contents
-    DrawContent(painter);
+    // draw event contents
+    DrawEventContent(painter);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +135,7 @@ void Detector2DItem::DrawGrids(QPainter *painter)
 ////////////////////////////////////////////////////////////////////////////////
 // draw contents
 
-void Detector2DItem::DrawContent(QPainter *painter)
+void Detector2DItem::DrawEventContent(QPainter *painter)
 {
     QPen linepen(Qt::black);
     linepen.setCapStyle(Qt::RoundCap);
@@ -150,11 +150,11 @@ void Detector2DItem::DrawContent(QPainter *painter)
     //    return res;
     //};
 
+    UpdateEventContent();
+
     // draw all hits
-    auto hits = detector -> GetGlobalHits();
-    for(auto &i: hits) {
-        QPointF p = Coord(i.x, i.y);
-        painter->drawPoint(p);
+    for(auto &i: global_hits) {
+        painter->drawPoint(i);
 
         // draw value
         //painter->save();
@@ -166,44 +166,38 @@ void Detector2DItem::DrawContent(QPainter *painter)
     }
 
     // draw real hits
-    auto real_hits = detector -> GetRealHits();
     linepen.setColor(Qt::blue);
     painter -> setPen(linepen);
     for(auto &i: real_hits) {
-        QPointF p = Coord(i.x, i.y);
         //painter->drawPoint(p);
 
         // real hits blue circle
         linepen.setWidth(1);
         painter->setPen(linepen);
-        painter->drawEllipse(p, 8.0, 8.0);
+        painter->drawEllipse(i, 8.0, 8.0);
 
         linepen.setWidth(5);
         painter->setPen(linepen);
     }
 
     // draw fitted hits
-    auto fitted_hits = detector -> GetFittedHits();
     linepen.setColor(Qt::red);
     painter -> setPen(linepen);
     for(auto &i: fitted_hits) {
-        QPointF p = Coord(i.x, i.y);
         //painter->drawPoint(p); // fitted hits only draw circle
 
         linepen.setWidth(1);
         painter->setPen(linepen);
-        painter->drawEllipse(p, 8.0, 8.0);
+        painter->drawEllipse(i, 8.0, 8.0);
         linepen.setWidth(5);
         painter->setPen(linepen);
     }
 
     // draw background hits
-    auto background_hits = detector -> GetBackgroundHits();
     linepen.setColor(Qt::black);
     painter -> setPen(linepen);
     for(auto &i: background_hits) {
-        QPointF p = Coord(i.x, i.y);
-        painter->drawPoint(p);
+        painter->drawPoint(i);
     }
 }
 
@@ -245,6 +239,79 @@ void Detector2DItem::PassDetectorHandle(AbstractDetector *fD)
 
     //SetDataRange(0., d.x, 0., d.y);
     SetDataRange(-d.x/2., d.x/2., -d.y/2., d.y/2.);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// update the event for drawing
+
+void Detector2DItem::UpdateEventContent()
+{
+    global_hits.clear();
+    real_hits.clear();
+    fitted_hits.clear();
+    background_hits.clear();
+
+    // draw previous events
+    if(counter <= 0) {
+        int index = -counter;
+        counter = 1; // reset counter for next event
+        if(index >= CACHE_EVENT_SIZE) return;
+        
+        global_hits = global_hits_cache.at(index);
+        real_hits = real_hits_cache.at(index);
+        fitted_hits = fitted_hits_cache.at(index);
+        background_hits = background_hits_cache.at(index);
+        return;
+    }
+
+    // draw new events
+    // all hits
+    auto det_hits = detector -> GetGlobalHits();
+    for(auto &i: det_hits) {
+        QPointF p = Coord(i.x, i.y);
+        global_hits.push_back(p);
+    }
+    global_hits_cache.push_front(global_hits);
+    if(global_hits_cache.size() > CACHE_EVENT_SIZE)
+        global_hits_cache.pop_back();
+
+    // real hits
+    auto det_real_hits = detector -> GetRealHits();
+    for(auto &i: det_real_hits) {
+        QPointF p = Coord(i.x, i.y);
+        real_hits.push_back(p);
+    }
+    real_hits_cache.push_front(real_hits);
+    if(real_hits_cache.size() > CACHE_EVENT_SIZE)
+        real_hits_cache.pop_back();
+
+    // draw fitted hits
+    auto det_fitted_hits = detector -> GetFittedHits();
+    for(auto &i: det_fitted_hits) {
+        QPointF p = Coord(i.x, i.y);
+        fitted_hits.push_back(p);
+    }
+    fitted_hits_cache.push_front(fitted_hits);
+    if(fitted_hits_cache.size() > CACHE_EVENT_SIZE)
+        fitted_hits_cache.pop_back();
+
+    // draw background hits
+    auto det_background_hits = detector -> GetBackgroundHits();
+    for(auto &i: det_background_hits) {
+        QPointF p = Coord(i.x, i.y);
+        background_hits.push_back(p);
+    }
+    background_hits_cache.push_front(background_hits);
+    if(background_hits_cache.size() > CACHE_EVENT_SIZE)
+        background_hits_cache.pop_back();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setup a event counter for drawing back events
+
+void Detector2DItem::SetCounter(int i)
+{
+    counter = i;
 }
 
 };

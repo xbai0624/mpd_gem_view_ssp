@@ -68,6 +68,9 @@ namespace tracking_dev {
 
         //
         CoordSystem *coord_system;
+        
+        //
+        int event_counter = 0;
     };
 };
 

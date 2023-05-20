@@ -119,9 +119,8 @@ namespace tracking_dev
 
     void TrackingDataHandler::NextEvent()
     {
-        static int count = 0;
-        data_handler -> DecodeEvent(count);
-        count++;
+        data_handler -> DecodeEvent(event_counter);
+        event_counter++;
 
         PackageEventData();
     }

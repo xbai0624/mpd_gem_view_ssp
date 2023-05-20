@@ -70,7 +70,7 @@ private:
 
     // local hits is only used for detector raw signal check
     std::vector<point_t> local_hits;
-    // for 2D hits, all hits should be global coordinates
+    // for 2D hits, all hits, in global coordinates
     std::vector<point_t> global_hits;
 
     // test - in global coordinates

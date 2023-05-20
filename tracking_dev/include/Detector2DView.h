@@ -38,6 +38,8 @@ public:
     void ReDistributePaintingArea();
     void Refresh();
 
+    void BringUpPreviousEvent(int);
+    
 protected:
     // the parameter for this function must be QResizeEvent
     // it cannot be QEvent, otherwise it won't take effect

@@ -28,7 +28,7 @@ Viewer::Viewer(QWidget *parent) : QWidget(parent)
     gen = new TRandom(0);
 
 #ifdef USE_SIM_DATA
-    InitDetectorSetup();
+    InitToyDetectorSetup();
 #else
     tracking_data_handler = new TrackingDataHandler();
     tracking_data_handler -> Init();
@@ -46,11 +46,11 @@ Viewer::~Viewer()
 {
 }
 
-void Viewer::InitDetectorSetup()
+void Viewer::InitToyDetectorSetup()
 {
     tracking = new Tracking();
 
-    for(int i=0; i<NDET; i++)
+    for(int i=0; i<NDET_SIM; i++)
     {
         point_t dimension(60, 60, 0.1);
         point_t origin(0, 0, (double)i*30);
@@ -70,12 +70,12 @@ void Viewer::InitGui()
     fDet2DView = new Detector2DView(this);
 
 #ifdef USE_SIM_DATA
-    int N = NDET;
+    NDetector_Implemented = NDET_SIM;
 #else
-    int N = tracking_data_handler -> GetNumberofDetectors();
+    NDetector_Implemented = tracking_data_handler -> GetNumberofDetectors();
 #endif
 
-    for(int i=0; i<N; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
     {
         fDet2DItem[i] = new Detector2DItem();
 
@@ -115,7 +115,7 @@ void Viewer::InitGui()
 
     connect(btn_open_file, SIGNAL(clicked()), this, SLOT(OpenFile()));
     connect(label_file, SIGNAL(textChanged(const QString &)), this, SLOT(ProcessNewFile(const QString &)));
-    connect(btn_next, SIGNAL(valueChanged(int)), this, SLOT(GenerateEvent()));
+    connect(btn_next, SIGNAL(valueChanged(int)), this, SLOT(DrawEvent(int)));
     connect(btn_50K, SIGNAL(clicked()), this, SLOT(Replay50K()));
 }
 
@@ -141,11 +141,11 @@ void Viewer::ProcessNewFile(const QString &_s)
 
 void Viewer::ClearPrevEvent()
 {
-    for(int i=0; i<NDET; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
         fDet[i] -> Reset();
 }
 
-void Viewer::GenerateTrackEvent()
+void Viewer::GenerateToyTrackEvent()
 {
     double xrand = gen -> Uniform(-20., 20.);
     double yrand = gen -> Uniform(-20., 20.);
@@ -166,7 +166,7 @@ void Viewer::GenerateTrackEvent()
     //static double x_correct[4] = {-0.1, 1.3, -2.3, 1.1};
     //static double y_correct[4] = {-0.1, 1.3, -2.3, 1.1};
 
-    for(int i=0; i<NDET; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
     {
         point_t origin = fDet[i] -> GetOrigin();
         point_t z_axis = fDet[i] -> GetZAxis();
@@ -187,9 +187,9 @@ void Viewer::GenerateTrackEvent()
     }
 }
 
-void Viewer::AddEventBackground()
+void Viewer::AddToyEventBackground()
 {
-    for(int i=0; i<NDET; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
     {
         for(int j=0; j<N_BACKGROUND; j++)
         {
@@ -209,16 +209,23 @@ void Viewer::AddEventBackground()
     }
 }
 
-void Viewer::GenerateEvent()
+void Viewer::DrawEvent(int event_number)
 {
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::duration<float> fsec;
     auto t0 = Time::now();
+
+    int event_diff = event_number - fEventNumber;
+    if(event_diff <= 0) {
+        fDet2DView -> BringUpPreviousEvent(event_diff);
+        fDet2DView -> Refresh();
+        return;
+    }
  
 #ifdef USE_SIM_DATA
     ClearPrevEvent();
-    GenerateTrackEvent();
-    AddEventBackground();
+    GenerateToyTrackEvent();
+    AddToyEventBackground();
     //ShowGridHitStat();
 #else
     tracking_data_handler -> SetOnlineMode(true);
@@ -230,7 +237,8 @@ void Viewer::GenerateEvent()
     tracking -> FindTracks();
     ProcessTrackingResult();
 
-    for(int i=0; i<NDET; i++)
+    std::cout<<"event number: "<<event_number<<std::endl;
+    for(int i=0; i<NDetector_Implemented; i++)
         std::cout<<" : det_"<<i<<" counts = "<<fDet[i] -> Get2DHitCounts();
     std::cout<<std::endl;
 
@@ -287,7 +295,7 @@ void Viewer::ProcessTrackingResult()
         fDet[layer] -> AddRealHits(p);
     }
 
-    for(int i=0; i<NDET; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
     {
         point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, fDet[i]->GetZPosition());
         fDet[i] -> AddFittedHits(p);
@@ -358,8 +366,8 @@ void Viewer::Replay50K()
 
 #ifdef USE_SIM_DATA
         ClearPrevEvent();
-        GenerateTrackEvent();
-        AddEventBackground();
+        GenerateToyTrackEvent();
+        AddToyEventBackground();
 #else
         tracking_data_handler -> GetCurrentEvent();
 #endif
@@ -377,7 +385,7 @@ void Viewer::Replay50K()
 
     fDet2DView -> Refresh();
 
-    for(int i=0; i<NDET; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
     for(int xbins = 1; xbins < 120; xbins++)
     {
         for(int ybins = 1; ybins < 120; ybins++) {
@@ -395,7 +403,7 @@ void Viewer::Replay50K()
 
 void Viewer::FillEventHistos()
 {
-    for(unsigned int i=0; i<NDET; i++)
+    for(int i=0; i<NDetector_Implemented; i++)
     {
         const std::vector<point_t> & real_hits = fDet[i] -> GetRealHits();
         const std::vector<point_t> & fitted_hits = fDet[i] -> GetFittedHits();
@@ -415,7 +423,7 @@ void Viewer::FillEventHistos()
 
 void Viewer::ShowGridHitStat()
 {
-    for(int i=0; i<NDET; i++) {
+    for(int i=0; i<NDetector_Implemented; i++) {
         std::cout<<"detector : "<<i<<std::endl;
         fDet[i] -> ShowGridHitStat();
     }

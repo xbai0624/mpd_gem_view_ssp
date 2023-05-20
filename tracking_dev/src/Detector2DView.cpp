@@ -71,4 +71,10 @@ void Detector2DView::Refresh()
         i.second -> update();
 }
 
+void Detector2DView::BringUpPreviousEvent(int prev_event_number)
+{
+    for(auto &i: det)
+        i.second -> SetCounter(prev_event_number);
+}
+
 };
