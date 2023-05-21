@@ -124,8 +124,8 @@ void Viewer::OpenFile()
     QString filename = QFileDialog::getOpenFileName(
             this,
             "Open Document",
-            QDir::currentPath(),
-            //"/home/xinzhan/evio_data",
+            //QDir::currentPath(),
+            "/home/xinzhan/evio_data/fermilab_test/",
             "All files (*.*) ;; evio files (*.evio)");
 
     evio_file = filename.toStdString();
@@ -359,7 +359,7 @@ void Viewer::Replay50K()
     tracking_data_handler -> SetReplayMode(true);
 #endif
 
-    while(event_counter++ < 50000)
+    while(event_counter++ < 1000000)
     {
         if(event_counter % 1000 == 0)
             std::cout<<"\r"<<event_counter<<std::flush;

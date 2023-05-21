@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <map>
 #include <iomanip>
 #include "tracking_struct.h"
 #include "Cuts.h"
@@ -53,7 +54,6 @@ public:
     const std::vector<int> & GetAllHitTrackIndex() const {return v_hit_track_index;}
     const std::vector<int> & GetAllHitModule() const {return v_hit_module;}
 
-
     TrackingUtility* GetTrackingUtility() {return tracking_utility;}
 
 private:
@@ -87,6 +87,19 @@ private:
 private:
     void getCombinationList(const std::vector<int> &layers, const int &m,
             std::vector<std::vector<int>>& res);
+    template<typename T> void vectorize_map(const std::map<double, std::vector<T>> &m, std::vector<T> & v)
+    {
+        for(auto &i: m) {
+            for(auto &j: i.second)
+                v.push_back(j);
+        }
+    }
+    template<typename T> void vectorize_map(const std::map<double, T> &m, std::vector<T> &v)
+    {
+        for(auto &i: m)
+            v.push_back(i.second);
+    }
+    void vectorize_map();
 
 private:
     TrackingUtility *tracking_utility;
@@ -99,6 +112,8 @@ private:
 
     int minimum_hits_on_track = 3;
     double chi2_cut = 10;
+    int abort_quantity = 10000;
+    int max_track_save_quanity = 10;
 
     // optics cut
     double k_min_yz = -9999, k_max_yz = 9999;
@@ -130,11 +145,17 @@ private:
     int n_good_track_candidates = 0;
     std::vector<double> v_xtrack, v_ytrack, v_xptrack, v_yptrack, v_track_chi2ndf;
     std::vector<int> v_track_nhits;
-
     int n_total_good_hits;
     std::vector<double> v_xlocal, v_ylocal, v_zlocal;
     std::vector<int> v_hit_track_index;
     std::vector<int> v_hit_module;
+
+    // memory buffer for the above variables, only for fast sorting purpose (sort based on chi2)
+    std::map<double, double> m_xtrack, m_ytrack, m_xptrack, m_yptrack, m_track_chi2ndf;
+    std::map<double, int> m_track_nhits;
+    std::map<double, std::vector<double>> m_xlocal, m_ylocal, m_zlocal;
+    std::map<double, std::vector<int>> m_hit_track_index;
+    std::map<double, std::vector<int>> m_hit_module;
 
     // debug
     //std::vector<point_t> best_hits_on_track;

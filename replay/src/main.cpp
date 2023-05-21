@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include "ConfigArgs.h"
 #include "EvioFileReader.h"
 #include "GEMSystem.h"
@@ -8,6 +9,8 @@
 #include "Tracking.h"
 #include "TrackingUtility.h"
 #include "AbstractDetector.h"
+
+#define PROGRESS_COUNT 1000
 
 void fill_tracking_result(tracking_dev::TrackingDataHandler *tracking_data_handler,
         tracking_dev::Tracking *tracking, GEMRootClusterTree *gem_tree);
@@ -69,6 +72,9 @@ int main(int argc, char* argv[])
     }
 
     // -: do replay
+    auto time_1 = std::chrono::steady_clock::now();
+    auto time_2 = std::chrono::steady_clock::now();
+
     int start_event = args["start_event"].Int();
     int max_event = args["nev"].Int();
     int event_counter = 0;
@@ -76,8 +82,18 @@ int main(int argc, char* argv[])
     uint32_t fBufLen;
     while(evio_reader -> ReadNoCopy(&pBuf, &fBufLen) == S_SUCCESS)
     {
-        if(event_counter < start_event)
+        if(event_counter < start_event) {
+            event_counter++;
             continue;
+        }
+
+        if((event_counter % PROGRESS_COUNT) == 0) {
+            time_2 = std::chrono::steady_clock::now();
+            auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_2 - time_1).count();
+            std::cout << "Processed events - " << event_counter << " - " 
+                << time_elapsed <<" milliseconds per " << PROGRESS_COUNT << " events." << "\r" << std::flush;
+            time_1 = time_2;
+        }
 
         // raw cluster/hit process
         gem_data_handler -> ProcessEvent(pBuf, fBufLen, event_counter);

@@ -62,6 +62,9 @@ void GEMCluster::Configure([[maybe_unused]]const std::string &path)
 
     gem_cuts = new Cuts();
     //gem_cuts -> Print();
+
+    min_cluster_hits = gem_cuts -> __get("min cluster size").val<int>();
+    max_cluster_hits = gem_cuts -> __get("max cluster size").val<int>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -118,10 +121,6 @@ void GEMCluster::split_cluster(std::vector<StripHit>::iterator beg, std::vector<
     auto size = end - beg;
     if(size <= 0)
         return;
-
-    // for now disable cluster split
-    clusters.emplace_back(std::vector<StripHit>(beg, end));
-    return;
 
     // disable cluster split when cluster size < 3
     if(size < 3) {
@@ -322,13 +321,13 @@ bool GEMCluster::IsGoodCluster([[maybe_unused]]const StripCluster &cluster) cons
        (cluster.hits.size() > max_cluster_hits))
         return false;
 
-    if(!(gem_cuts -> cluster_strip_time_agreement(cluster)))
-        return false;
-
     if(!(gem_cuts -> seed_strip_min_peak_adc(cluster)))
         return false;
 
     if(!(gem_cuts -> seed_strip_min_sum_adc(cluster)))
+        return false;
+
+    if(!(gem_cuts -> cluster_strip_time_agreement(cluster)))
         return false;
 #endif
     // not a cross talk cluster
