@@ -443,7 +443,7 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     if(chi2ndf > chi2_cut) return;
 
     // using map here is only for sorting purpose, keep the 20 lowest chi2 tracks
-    if(m_xtrack.size() <= 0 || chi2ndf < m_xtrack.end() -> first)
+    if(m_xtrack.size() <= 0 || chi2ndf < (std::prev(m_xtrack.end()) -> first))
     {
         n_good_track_candidates++;
         m_xtrack[chi2ndf] = xtrack, m_ytrack[chi2ndf] = ytrack;
