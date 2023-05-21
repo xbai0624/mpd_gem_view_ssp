@@ -7,10 +7,10 @@ TARGET = lib/epics
 target.path += ./lib
 INSTALLS += target
 
-INCLUDEPATH += ./include ../gem/include ../gem/conf
-
 CONFIG += c++14
 CONFIG += release
+
+INCLUDEPATH += ./include ../gem/include ../gem/third_party
 
 MOC_DIR = moc
 OBJECTS_DIR = obj

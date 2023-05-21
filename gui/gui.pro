@@ -17,7 +17,7 @@ INCLUDEPATH += . ./include
 
 ######################################################################
 # decoder headers
-INCLUDEPATH += ../decoder/include
+INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
 
 # decoder lib
 LIBS += -L../decoder/lib -ldecoder
@@ -46,14 +46,6 @@ LIBS += -L$(ROOTSYS)/lib -lCore -lRIO -lNet \
         -lHist -lGraf -lGraf3d -lGpad -lTree \
         -lRint -lPostscript -lMatrix -lPhysics \
         -lGui -lRGL
-
-
-######################################################################
-# coda headers
-INCLUDEPATH += ${CODA}/common/include
-
-# coda libs
-LIBS += -L${CODA}/Linux-x86_64/lib -levio
 
 ######################################################################
 #  dir setting

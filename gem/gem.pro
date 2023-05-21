@@ -19,16 +19,9 @@ INCLUDEPATH += . ./include ./third_party
 
 ######################################################################
 # decoder headers
-INCLUDEPATH += ../decoder/include
+INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
 #decoder libs
 LIBS += -L../decoder/lib -ldecoder
-
-######################################################################
-# coda headers
-INCLUDEPATH += ${CODA}/common/include
-# coda libs
-LIBS += -L${CODA}/Linux-x86_64/lib -levio
-
 
 ######################################################################
 # root headers
@@ -39,16 +32,13 @@ LIBS += -L${ROOTSYS}/lib -lCore -lRIO -lNet \
 	-lRint -lPostscript -lMatrix -lPhysics \
 	-lGui -lRGL -lMathCore
 
-
 ######################################################################
 # moc dir
 MOC_DIR = moc
 
-
 ######################################################################
 # obj dir
 OBJECTS_DIR = obj
-
 
 ######################################################################
 # The following define makes your compiler warn you if you use any

@@ -14,14 +14,11 @@ INSTALLS += target
 CONFIG += c++14 release
 
 # self headers
-INCLUDEPATH += . ./include
-# coda headers
-INCLUDEPATH += ${CODA}/common/include
+INCLUDEPATH += . ./include ./evio-5.2
+
 # root headers
 INCLUDEPATH += ${ROOTSYS}/include
 
-# coda libs
-LIBS += -L${CODA}/Linux-x86_64/lib -levio
 # root libs
 LIBS += -L${ROOTSYS}/lib -lCore -lRIO -lNet \
 	-lHist -lGraf -lGraf3d -lGpad -lTree \
@@ -64,3 +61,13 @@ SOURCES += src/EvioFileReader.cpp \
            src/TriggerDecoder.cpp \
            src/SRSRawEventDecoder.cpp \
 
+
+# evio source files
+HEADERS += evio-5.2/evio.h \
+           evio-5.2/msinttypes.h \
+
+SOURCES += evio-5.2/evio.c \
+           evio-5.2/eviofmt.c \
+           evio-5.2/eviofmtdump.c \
+           evio-5.2/eviofmtswap.c \
+           evio-5.2/evioswap.c \

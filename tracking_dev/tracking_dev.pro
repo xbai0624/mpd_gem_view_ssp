@@ -18,15 +18,8 @@ QT += core gui widgets
 INCLUDEPATH += . ./include
 
 ######################################################################
-# coda headers
-INCLUDEPATH += ${CODA}/common/include
-
-# coda libs
-LIBS += -L${CODA}/Linux-x86_64/lib -levio
-
-######################################################################
 # decoder headers
-INCLUDEPATH += ../decoder/include
+INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
 
 # decoder lib
 LIBS += -L../decoder/lib -ldecoder
@@ -35,7 +28,7 @@ LIBS += -L../decoder/lib -ldecoder
 # gem headers
 INCLUDEPATH += ../gem/include ../gem/third_party
 
-# decoder lib
+# gem lib
 LIBS += -L../gem/lib -lgem
 
 ######################################################################

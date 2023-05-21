@@ -1,5 +1,5 @@
 #include "EPICSystem.h"
-
+#include <sstream>
 #include <fstream>
 #include <iostream>
 #include <iomanip>

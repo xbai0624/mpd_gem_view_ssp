@@ -32,6 +32,7 @@ class Cuts
         bool __is_block_end(const std::string &);
         std::string __trim_space(const std::string &s);
         std::string __remove_comments(const std::string &s);
+        bool __cleanup_line(std::string &s);
 
         // helpers
         float __arr_mean(const std::vector<float> &v) const;
@@ -84,13 +85,14 @@ class Cuts
 
     public:
         struct block_t {
+            std::string module_name;
             int layer_id;
             std::vector<double> position;
             std::vector<double> dimension;
             std::vector<double> offset;
             std::vector<double> tilt_angle;
 
-            block_t() : layer_id(0)
+            block_t() : module_name(""), layer_id(0)
             {
                 position.clear(); dimension.clear();
                 offset.clear(); tilt_angle.clear();

@@ -7,21 +7,15 @@ TARGET = fadc
 
 QT += widgets gui core
 
-CONFIG += c++14
-CONFIG += release
+CONFIG += c++14 release
 
-INCLUDEPATH += include
+INCLUDEPATH += ./include
 
 OBJECTS_DIR = obj
 MOC_DIR = moc
 
-# coda headers
-INCLUDEPATH += ${CODA}/common/include
-# coda libs
-LIBS += -L${CODA}/Linux-x86_64/lib -levio
-
 # decoder headers
-INCLUDEPATH += ../decoder/include
+INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
 #decoder libs
 LIBS += -L../decoder/lib -ldecoder
 
@@ -32,8 +26,6 @@ LIBS += -L$(ROOTSYS)/lib -lCore -lRIO -lNet \
         -lHist -lGraf -lGraf3d -lGpad -lTree \
         -lRint -lPostscript -lMatrix -lPhysics \
         -lGui -lRGL -lSpectrum -lMathCore
-
-
 
 # The following define makes your compiler warn you if you use any
 # feature of Qt which has been marked as deprecated (the exact warnings

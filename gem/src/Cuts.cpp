@@ -48,6 +48,9 @@ void Cuts::LoadFile()
     string line;
     while(std::getline(input_file, line))
     {
+        if(!__cleanup_line(line))
+            continue;
+
         if(__is_block_start(line))
         {
             std::vector<std::string> blocks;
@@ -74,6 +77,9 @@ void Cuts::Print()
 
     auto print_block = [&](const block_t &b)
     {
+        std::cout<<std::setfill(' ')<<std::setw(16)<<"module_name:"
+                 <<std::setfill(' ')<<std::setw(16)<<b.module_name
+                 <<std::endl;
         std::cout<<std::setfill(' ')<<std::setw(16)<<"layer_id:"
                  <<std::setfill(' ')<<std::setw(16)<<b.layer_id
                  <<std::endl;
@@ -449,6 +455,17 @@ std::string Cuts::__remove_comments(const string &s)
     return res;
 }
 
+// clean up a line: remove leading and trailing spaces, remove comments
+bool Cuts::__cleanup_line(std::string &s)
+{
+    std::string s1 = __remove_comments(s);
+    s = __trim_space(s1);
+
+    if(s.size() <= 0)
+        return false;
+    return true;
+}
+
 void Cuts::__parse_line(const std::string &line)
 {
     string key;
@@ -542,7 +559,6 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
 
     block_t block_data;
     block_data.layer_id = tmp.at("layer id").val<int>();
-
     block_data.position.clear();
     block_data.position = tmp.at("position").arr<double>();
     block_data.dimension.clear();
@@ -553,6 +569,8 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
     block_data.tilt_angle = tmp.at("tilt angle").arr<double>();
 
     __parse_key_value(block[0], key, value);
+    block_data.module_name = key;
+
     m_block[key] = block_data;
 }
 
@@ -567,14 +585,14 @@ void Cuts::__convert_map()
 
 bool Cuts::__is_block_start(const std::string & line)
 {
-    if(line.find("{") != std::string::npos)
+    if(line.back() == '{')//(line.find("{") != std::string::npos)
         return true;
     return false;
 }
 
 bool Cuts::__is_block_end(const std::string & line)
 {
-    if(line.find("}") != std::string::npos)
+    if(line[0] == '}')//(line.find("}") != std::string::npos)
         return true;
     return false;
 }
