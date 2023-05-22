@@ -325,8 +325,10 @@ namespace histos
             void save(const char* path)
             {
                 TFile *f = new  TFile(path, "recreate");
-                for(auto &i: __histos)
+                for(auto &i: __histos) {
+                    i.second -> SetDirectory(f);
                     i.second -> Write();
+                }
                 f->Close();
             }
 
@@ -425,6 +427,7 @@ namespace histos
             // format TH1F*, TH2F*
             template<typename Histo> void __format_histo(Histo* g)
             {
+                g -> SetDirectory(0);
                 double label_size = 0.045;                                                       
                 double title_size = 0.055;
                 //g->GetXaxis()->SetTitle(x_title.c_str());                                        

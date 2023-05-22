@@ -137,6 +137,10 @@ void Viewer::ProcessNewFile(const QString &_s)
     std::string ss = _s.toStdString();
     std::cout<<"Processing new file: "<<ss<<std::endl;
     tracking_data_handler -> SetEvioFile(ss.c_str());
+
+    // reset event counters
+    fEventNumber = 0;
+    btn_next -> setValue(0);
 }
 
 void Viewer::ClearPrevEvent()
@@ -385,16 +389,17 @@ void Viewer::Replay50K()
 
     fDet2DView -> Refresh();
 
-    for(int i=0; i<NDetector_Implemented; i++)
-    for(int xbins = 1; xbins < 120; xbins++)
-    {
-        for(int ybins = 1; ybins < 120; ybins++) {
-            float did = hist_m.histo_2d<float>((Form("h_didhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
-            float should = hist_m.histo_2d<float>((Form("h_shouldhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
+    for(int i=0; i<NDetector_Implemented; i++) {
+        for(int xbins = 1; xbins < 120; xbins++)
+        {
+            for(int ybins = 1; ybins < 120; ybins++) {
+                float did = hist_m.histo_2d<float>((Form("h_didhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
+                float should = hist_m.histo_2d<float>((Form("h_shouldhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
 
-            float eff = 0;
-            if(should >0) eff = (did / should < 1) ? did / should : 1.;
-            hist_m.histo_2d<float>(Form("h_2defficiency_xy_gem%d", i)) -> SetBinContent(xbins, ybins, eff);
+                float eff = 0;
+                if(should >0) eff = (did / should < 1) ? did / should : 1.;
+                hist_m.histo_2d<float>(Form("h_2defficiency_xy_gem%d", i)) -> SetBinContent(xbins, ybins, eff);
+            }
         }
     }
 

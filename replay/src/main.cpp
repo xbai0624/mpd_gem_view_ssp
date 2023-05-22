@@ -10,6 +10,9 @@
 #include "TrackingUtility.h"
 #include "AbstractDetector.h"
 
+#define GENERATE_GEM_HISTOS_CXX
+#include "generate_gem_histos.h"
+
 #define PROGRESS_COUNT 1000
 
 void fill_tracking_result(tracking_dev::TrackingDataHandler *tracking_data_handler,
@@ -71,6 +74,9 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    // -: data quality check histograms
+    quality_check_histos::pass_handles(gem_system, tracking_data_handler);
+
     // -: do replay
     auto time_1 = std::chrono::steady_clock::now();
     auto time_2 = std::chrono::steady_clock::now();
@@ -90,8 +96,8 @@ int main(int argc, char* argv[])
         if((event_counter % PROGRESS_COUNT) == 0) {
             time_2 = std::chrono::steady_clock::now();
             auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_2 - time_1).count();
-            std::cout << "Processed events - " << event_counter << " - " 
-                << time_elapsed <<" milliseconds per " << PROGRESS_COUNT << " events." << "\r" << std::flush;
+            //std::cout << "Processed events - " << event_counter << " - " 
+            //    << time_elapsed <<" milliseconds per " << PROGRESS_COUNT << " events." << "\r" << std::flush;
             time_1 = time_2;
         }
 
@@ -107,12 +113,16 @@ int main(int argc, char* argv[])
 
         gem_data_handler -> EndofThisEvent(event_counter);
 
+        // fill data quality check histos
+        quality_check_histos::fill_gem_histos();
+
         event_counter++;
         if(max_event > 0 && event_counter > max_event)
             break;
     }
     std::cout<<"total event: "<<event_counter<<std::endl;
     gem_data_handler -> Write();
+    quality_check_histos::save_histos();
 
     return 0;
 }

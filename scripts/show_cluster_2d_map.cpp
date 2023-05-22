@@ -472,18 +472,22 @@ void show_cluster_2d_map(const char* root_input_path = "")
     }
     c_layer_2d -> Print("results.pdf(");
 
+    for(int i=0; i<TOTAL_LAYERS; i++) {
+        for(int j=0; j<N_CANVAS_PER_LAYER; j++)
+            LayerC[i][j] = nullptr;
+    }
+
     // cluster size
-    int _layer_id = 0;
     for(auto &i: layer_cluster)
     {
-        ShowLayerResults(i.second, _layer_id);
-        _layer_id++;
+        ShowLayerResults(i.second, i.first);
     }
 
     for(int i=0; i<TOTAL_LAYERS; i++) {
         for(int j=0; j<N_CANVAS_PER_LAYER; j++)
         {
-            LayerC[i][j] -> Print("results.pdf");
+            if(LayerC[i][j] != nullptr)
+                LayerC[i][j] -> Print("results.pdf");
         }
     }
     c_layer_2d -> Print("results.pdf)");
