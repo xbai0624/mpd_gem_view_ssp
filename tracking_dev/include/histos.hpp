@@ -34,6 +34,11 @@
 //  The programs won't attach anything if it doesn't find                     //
 //  any declared variables, which is enclosed by ${ }                         //
 //                                                                            //
+//  For mulitple variables:                                                   //
+//  ${P} = 2                                                                  //
+//  ${M} = 4                                                                  //
+//  TH1F, h_pln${P}_mod${M}, plane ${P} mod ${M}, ....., x title, y title     //
+//  the program will expand all variables accordingly                         //
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef HISTOS_HPP

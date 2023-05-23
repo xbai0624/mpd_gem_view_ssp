@@ -39,7 +39,8 @@ namespace quality_check_histos
 
 #endif
 
-#define GENERATE_GEM_HISTOS_CXX
+
+
 #ifdef GENERATE_GEM_HISTOS_CXX
 
 
