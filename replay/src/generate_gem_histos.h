@@ -22,11 +22,13 @@ namespace quality_check_histos
     static tracking_dev::TrackingDataHandler *tracking_data_handler;
     static tracking_dev::Tracking *tracking;
     static std::vector<tracking_dev::AbstractDetector*> fDet;
+    static std::string output_file_name;
 
     static int NDetector_Implemented = 0;
 
     // 
     void pass_handles(GEMSystem *sys, tracking_dev::TrackingDataHandler *handle);
+    void set_output_name(std::string name);
     void fill_gem_histos();
     void raw_histos();
     void tracking_histos();
@@ -68,6 +70,11 @@ namespace quality_check_histos
         }
 
         histM.init();
+    }
+
+    void set_output_name(std::string name)
+    {
+        output_file_name = name;
     }
 
 
@@ -263,7 +270,7 @@ namespace quality_check_histos
 
     void save_histos()
     {
-        std::string path = "Rootfiles/data_quality_check.root";
+        std::string path = output_file_name + std::string("_data_quality_check.root");
         std::cout<<"Writing data quality check histograms to : "<<path<<std::endl;
         histM.save(path.c_str());
     }

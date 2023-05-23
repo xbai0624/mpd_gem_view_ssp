@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
 
     // -: data quality check histograms
     quality_check_histos::pass_handles(gem_system, tracking_data_handler);
+    quality_check_histos::set_output_name(gem_data_handler -> GetClusterTreeOutputFileName());
 
     // -: do replay
     auto time_1 = std::chrono::steady_clock::now();

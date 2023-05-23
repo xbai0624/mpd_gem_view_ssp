@@ -97,6 +97,8 @@ public:
 
     GEMRootHitTree * GetHitTree() {return root_hit_tree;}
     GEMRootClusterTree *GetClusterTree() {return root_cluster_tree;}
+    std::string GetClusterTreeOutputFileName(){return replay_cluster_output_file;}
+    std::string GetHitTreeOutputFileName(){return replay_hit_output_file;}
 
     // helpers
     std::string ParseOutputFileName(const std::string &input_file_name, const char* prefix="");
