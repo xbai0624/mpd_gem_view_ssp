@@ -478,7 +478,8 @@ void GEMDataHandler::EndofThisEvent(const int &ev)
     new_event = proc_event;
     proc_event = tmp;
 
-    end_thread = std::thread(&GEMDataHandler::EndProcess, this, proc_event);
+    //end_thread = std::thread(&GEMDataHandler::EndProcess, this, proc_event);
+    EndProcess(proc_event);
 }
 
 

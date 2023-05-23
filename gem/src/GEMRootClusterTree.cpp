@@ -16,6 +16,7 @@ GEMRootClusterTree::GEMRootClusterTree(const char* path)
 
     // GEM Tracking result
     pTree->Branch("fNtracks_found", &fNtracks_found, "fNtracks_found/I");
+    pTree->Branch("fNAllGoodTrackCandidates", &fNAllGoodTrackCandidates, "fNAllGoodTrackCandidates/I");
     pTree->Branch("besttrack", &besttrack, "besttrack/I");
     pTree->Branch("fNhitsOnTrack", &fNhitsOnTrack);
     pTree->Branch("fXtrack", &fXtrack);

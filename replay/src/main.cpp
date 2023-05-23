@@ -96,8 +96,8 @@ int main(int argc, char* argv[])
         if((event_counter % PROGRESS_COUNT) == 0) {
             time_2 = std::chrono::steady_clock::now();
             auto time_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_2 - time_1).count();
-            //std::cout << "Processed events - " << event_counter << " - " 
-            //    << time_elapsed <<" milliseconds per " << PROGRESS_COUNT << " events." << "\r" << std::flush;
+            std::cout << "Processed events - " << event_counter << " - " 
+                << time_elapsed <<" milliseconds per " << PROGRESS_COUNT << " events." << "\r" << std::flush;
             time_1 = time_2;
         }
 
@@ -147,7 +147,8 @@ void fill_tracking_result(tracking_dev::TrackingDataHandler *tracking_data_handl
     if(!found_track) return;
 
     gem_tree->besttrack = tracking -> GetBestTrackIndex();
-    gem_tree->fNtracks_found = tracking -> GetNGoodTrackCandidates();
+    gem_tree->fNtracks_found = tracking -> GetNTracksFound();
+    gem_tree->fNAllGoodTrackCandidates = tracking -> GetNGoodTrackCandidates();
     gem_tree->fNhitsOnTrack = tracking -> GetAllTrackNhits();
     gem_tree->fXtrack = tracking -> GetAllXtrack();
     gem_tree->fYtrack = tracking -> GetAllYtrack();

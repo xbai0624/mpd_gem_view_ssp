@@ -57,6 +57,7 @@ public:
     //       similar for fHitXprojected, ..., and the rest
     int besttrack;
     int fNtracks_found;
+    int fNAllGoodTrackCandidates;
     std::vector<int> fNhitsOnTrack;
     std::vector<double> fXtrack, fYtrack, fXptrack, fYptrack, fChi2Track;
 

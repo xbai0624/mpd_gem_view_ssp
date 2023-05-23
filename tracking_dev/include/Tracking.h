@@ -40,6 +40,7 @@ public:
 
     // getters for all good tracks that pass chi2 cut
     int GetNGoodTrackCandidates(){return n_good_track_candidates;}
+    int GetNTracksFound(){return n_tracks_found;}
     int GetBestTrackIndex(){return best_track_index;}
     const std::vector<double> & GetAllXtrack() const {return v_xtrack;}
     const std::vector<double> & GetAllYtrack() const {return v_ytrack;}
@@ -113,7 +114,7 @@ private:
     int minimum_hits_on_track = 3;
     double chi2_cut = 10;
     int abort_quantity = 10000;
-    int max_track_save_quanity = 10;
+    int max_track_save_quantity = 10;
 
     // optics cut
     double k_min_yz = -9999, k_max_yz = 9999;
@@ -128,6 +129,7 @@ private:
 
     // tracking result - best track
     int best_track_index;
+    int n_tracks_found = 0;
     int nhits_on_best_track;
     std::vector<int> best_track_layer_index; // optional, as (xtrack, ytrack), (xptrack, yptrack) is enough
     std::vector<int> best_track_hit_index;   // optional, as (xtrack, ytrack), (xptrack, yptrack) is enough

@@ -329,11 +329,11 @@ bool Viewer::ProcessRawGEMResult()
         std::vector<StripHit> &y_hits = pln_y -> GetStripHits();
         int xs = (int)x_hits.size(), ys = (int)y_hits.size();
 
-        hist_m.histo_2d<float>(Form("h_fired_strip_plane%d", 0)) -> Fill(layer, xs);
-        hist_m.histo_2d<float>(Form("h_fired_strip_plane%d", 1)) -> Fill(layer, ys);
+        hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(layer, xs);
+        hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(layer, ys);
 
-        hist_m.histo_2d<float>(Form("h_occupancy_plane%d", 0)) -> Fill(layer, xs/256.);
-        hist_m.histo_2d<float>(Form("h_occupancy_plane%d", 1)) -> Fill(layer, ys/256.);
+        hist_m.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(layer, xs/256.);
+        hist_m.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(layer, ys/256.);
     }
 
     std::vector<int> v_nhits;
