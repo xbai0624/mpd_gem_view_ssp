@@ -198,7 +198,7 @@ namespace quality_check_histos
         tracking_dev::point_t pt(xt, yt, 0);
         tracking_dev::point_t dir(xp, yp, 1.);
 
-        // get offset
+        // get residue
         const std::vector<int> & layer_index = tracking -> GetBestTrackLayerIndex();
         const std::vector<int> & hit_index = tracking -> GetBestTrackHitIndex();
         for(unsigned int i=0; i<layer_index.size(); i++)
@@ -235,8 +235,8 @@ namespace quality_check_histos
 
             for(unsigned int hitid=0; hitid<real_hits.size(); hitid++)
             {
-                histM.histo_1d<float>(Form("h_x_offset_gem%d", i)) -> Fill(real_hits[hitid].x - fitted_hits[hitid].x);
-                histM.histo_1d<float>(Form("h_y_offset_gem%d", i)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
+                histM.histo_1d<float>(Form("h_xresid_gem%d_inclusive", i)) -> Fill(real_hits[hitid].x - fitted_hits[hitid].x);
+                histM.histo_1d<float>(Form("h_yresid_gem%d_inclusive", i)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
 
                 histM.histo_2d<float>(Form("h_didhit_xy_gem%d", i)) -> Fill(real_hits[hitid].x, real_hits[hitid].y);
             }
