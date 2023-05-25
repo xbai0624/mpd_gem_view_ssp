@@ -198,7 +198,7 @@ namespace quality_check_histos
         tracking_dev::point_t pt(xt, yt, 0);
         tracking_dev::point_t dir(xp, yp, 1.);
 
-        // get residue
+        // get inclusive residue
         const std::vector<int> & layer_index = tracking -> GetBestTrackLayerIndex();
         const std::vector<int> & hit_index = tracking -> GetBestTrackHitIndex();
         for(unsigned int i=0; i<layer_index.size(); i++)
@@ -243,6 +243,39 @@ namespace quality_check_histos
 
             for(auto &h: fitted_hits) {
                 histM.histo_2d<float>(Form("h_shouldhit_xy_gem%d", i)) -> Fill(h.x, h.y);
+            }
+        }
+
+        // get exclusive residue
+        const std::vector<tracking_dev::point_t> &hits_on_best_track = tracking -> GetVHitsOnBestTrack();
+        size_t n_total_hits_on_best_track = hits_on_best_track.size();
+        if( ((int)n_total_hits_on_best_track - 1 ) >= 3) 
+        {
+            for(size_t _ihit = 0; _ihit<hits_on_best_track.size(); _ihit++)
+            {
+                std::vector<tracking_dev::point_t> temp;
+                for(size_t ihit = 0; ihit < hits_on_best_track.size(); ihit++) {
+                    if(ihit != _ihit)
+                        temp.push_back(hits_on_best_track[ihit]);
+                }
+
+                // do a fit excluding the hit on the current layer
+                double xtrack, ytrack, xptrack, yptrack, chi2ndf;
+                std::vector<double> xresid, yresid;
+                tracking -> GetTrackingUtility() -> FitLine(temp, xtrack, ytrack, xptrack, yptrack, chi2ndf, 
+                        xresid, yresid);
+
+                // project to the current detector
+                int _layer = hits_on_best_track[_ihit].layer_id;
+                tracking_dev::point_t _pt(xtrack, ytrack, 0);
+                tracking_dev::point_t _dir(xptrack, yptrack, 1.);
+                tracking_dev::point_t _p = tracking->GetTrackingUtility() -> projected_point(_pt, _dir, fDet[_layer]->GetZPosition());
+
+                // get exclusive residue
+                double x_exclusive_d = _p.x - hits_on_best_track[_ihit].x;
+                double y_exclusive_d = _p.y - hits_on_best_track[_ihit].y;
+                histM.histo_1d<float>(Form("h_xresid_gem%d_exclusive", _layer)) -> Fill(x_exclusive_d);
+                histM.histo_1d<float>(Form("h_yresid_gem%d_exclusive", _layer)) -> Fill(y_exclusive_d);
             }
         }
 

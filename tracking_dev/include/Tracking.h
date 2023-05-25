@@ -37,6 +37,7 @@ public:
     int GetNHitsonBestTrack(){return nhits_on_best_track;}
     const std::vector<int> &GetBestTrackLayerIndex(){return best_track_layer_index;}
     const std::vector<int> &GetBestTrackHitIndex(){return best_track_hit_index;}
+    const std::vector<point_t> &GetVHitsOnBestTrack(){return best_hits_on_track;}
 
     // getters for all good tracks that pass chi2 cut
     int GetNGoodTrackCandidates(){return n_good_track_candidates;}
@@ -160,7 +161,7 @@ private:
     std::map<double, std::vector<int>> m_hit_module;
 
     // debug
-    //std::vector<point_t> best_hits_on_track;
+    std::vector<point_t> best_hits_on_track;
 };
 
 };

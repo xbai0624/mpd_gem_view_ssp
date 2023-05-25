@@ -93,7 +93,7 @@ void Tracking::ClearPreviousEvent()
     best_track_chi2ndf_by_nlayer.clear();
 
     // debug
-    //best_hits_on_track.clear();
+    best_hits_on_track.clear();
 
     n_good_track_candidates =  0;
     n_tracks_found = 0;
@@ -500,11 +500,11 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
 
         // chi2ndf by number of layers
         best_track_chi2ndf_by_nlayer[nhits_on_best_track] = chi2ndf;
-    }
 
-    // debug
-    //best_hits_on_track.clear();
-    //best_hits_on_track = hits;
+        // debug
+        best_hits_on_track.clear();
+        best_hits_on_track = hits;
+    }
 }
 
 //

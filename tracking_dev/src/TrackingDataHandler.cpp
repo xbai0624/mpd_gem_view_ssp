@@ -151,6 +151,7 @@ namespace tracking_dev
             // from mapping file, which is easy to implement, since we already have
             // gem_det pointer here: module_id = gem_det -> GetModuleID();
             p.module_id = layer;
+            p.layer_id = layer;
 
             coord_system -> Transform(p, layer);
             det -> AddHit(p);
