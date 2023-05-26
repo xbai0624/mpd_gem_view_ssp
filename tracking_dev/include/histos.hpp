@@ -531,7 +531,7 @@ namespace histos
             g->GetXaxis()->SetTitleSize(title_size);                                         
             g->GetXaxis()->SetLabelFont(62);                                                 
             g->GetXaxis()->SetTitleFont(62);
-            g->GetXaxis()->SetTitleOffset(1.0);                                              
+            g->GetXaxis()->SetTitleOffset(0.8);                                              
             g->GetXaxis()->CenterTitle();                                                    
 
             //g->GetYaxis()->SetTitle(y_title.c_str());                                        
@@ -539,7 +539,7 @@ namespace histos
             g->GetYaxis()->SetTitleSize(title_size);                                         
             g->GetYaxis()->SetLabelFont(62);                                                 
             g->GetYaxis()->SetTitleFont(62);
-            g->GetYaxis()->SetTitleOffset(1.1);                                              
+            g->GetYaxis()->SetTitleOffset(0.8);                                              
             g->GetYaxis()->SetNdivisions(505);                                               
             g->GetYaxis()->CenterTitle();   
 
