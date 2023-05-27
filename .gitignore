@@ -63,3 +63,10 @@ replay/obj/
 replay/lib/
 
 temp_test/
+
+alignment/moc/
+alignment/obj/
+alignment/*.root
+alignment/tracks.txt
+alignment/Makefile
+bin/alignment
