@@ -25,9 +25,9 @@ namespace tracking_dev
         static const double z[NLayer] = {
             3.0, 13.0, 63.0, 73.0, 103.0};
         static const double dx[] = {
-            0.0, 1.0, 0, -2.0, -1.0};
+            0.0, 1.0, -0.5, -2.0, -1.0};
         static const double dy[] = {
-            0.0, -2.0, 0, 0.5, 1.0};
+            0.0, -2.0, 1, 0.5, 1.0};
         static const double dz[] = {
             // this standard alignment is extremely not sensitive to z offset
             // 0.0, 3.0, -2.0, 5.0, 3.0

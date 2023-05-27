@@ -55,11 +55,11 @@ namespace tracking_dev
         std::cout << "Iteration: " << MaxIter << ": previous chi2: " << PrevBigChi2 << " current chi2: " << CurrentBigChi2 << std::endl;
         // chi2 doesn't improve anymore, stop iteration
         double ratio_chi2 = (PrevBigChi2 - CurrentBigChi2) / PrevBigChi2;
-        std::cout<<"chi2 ratio change = "<<ratio_chi2<<std::endl;
-        std::cout<<"min chi2 ratio change = "<<MinDeltaChi2ndf<<std::endl;
+        std::cout << "chi2 ratio change = " << ratio_chi2 << std::endl;
+        std::cout << "min chi2 ratio change = " << MinDeltaChi2ndf << std::endl;
         if (ratio_chi2 <= MinDeltaChi2ndf)
         {
-            std::cout<<"chi2 doesn't improve anymore"<<std::endl;
+            std::cout << "chi2 doesn't improve anymore" << std::endl;
             MaxIter = -1;
         }
         PrevBigChi2 = CurrentBigChi2;
@@ -167,6 +167,7 @@ namespace tracking_dev
             exit(0);
         }
 
+        std::cout << "INFO:: Alignment: Writing results to :" << path << std::endl;
         f << a;
         f.close();
     }
@@ -180,16 +181,30 @@ namespace tracking_dev
             exit(0);
         }
         std::vector<double> cache;
-        double tmp;
-        while (f >> tmp)
+        std::string line;
+        while (std::getline(f, line))
         {
-            cache.push_back(tmp);
+            if (line[line.size() - 1] == ',')
+                line = line.substr(0, line.size() - 1);
+
+            try
+            {
+                double tmp = std::stod(line);
+                cache.push_back(tmp);
+                std::cout << tmp << std::endl;
+            }
+            catch (...)
+            {
+                std::cout << "ERROR:: failed to convert string to double" << std::endl;
+            }
         }
 
         size_t N = cache.size();
         a.SetDimension(N, 1);
         for (size_t i = 0; i < N; i++)
             a(i, 0) = cache[i];
+        std::cout << "INFO:: Alignment: started with parameter: " << std::endl
+                  << a << std::endl;
     }
 
     void StandardAlign::SetupToyModel()

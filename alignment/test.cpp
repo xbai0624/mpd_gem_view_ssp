@@ -13,8 +13,10 @@ int main(int argc, char* argv[])
     StandardAlign *align = new StandardAlign();
     align -> SetupToyModel();
     align -> SetNlayer(5);
-    align -> SetAnchorLayers(0, 2);
+    // align -> LoadTextFile("alignment/ref.txt");
+    align -> SetAnchorLayers(0); // fix alignment for layers ...
     align -> Solve();
+    align -> WriteTextFile("alignment/new_results.txt");
 
     return 0;
 }
