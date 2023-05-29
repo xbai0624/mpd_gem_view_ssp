@@ -62,7 +62,7 @@ namespace tracking_dev
         TrackingUtility *tool = new TrackingUtility();
 
         TRandom *gen = new TRandom(0);
-        auto generate_event = [&]() -> std::vector<point_t>
+        auto generate_event = [&](std::vector<point_t> &true_points) -> std::vector<point_t>
         {
             fHitLayer.clear();
             fHitXlocal.clear(), fHitYlocal.clear();
@@ -80,16 +80,19 @@ namespace tracking_dev
 
             std::vector<point_t> res;
             point_t h0(bx, by, z[0]);
+            true_points.push_back(h0);
             res.push_back(h0);
             fHitLayer.push_back(0);
             fHitXlocal.push_back(bx);
             fHitYlocal.push_back(by);
-            for (int i = 1; i < 5; i++)
+            for (int i = 1; i < NLayer; i++)
             {
                 double real_z = z[i] + dz[i];
                 point_t hi = tool->projected_point(h0, dir, real_z);
                 hi.x = gen->Gaus(hi.x, resolution);
                 hi.y = gen->Gaus(hi.y, resolution);
+
+                true_points.push_back(hi);
                 hi.x = hi.x + dx[i];
                 hi.y = hi.y + dy[i];
                 res.push_back(hi);
@@ -103,9 +106,10 @@ namespace tracking_dev
 
         for (int i = 0; i < NEVENTS; i++)
         {
-            event_t event;
-            event.hits = generate_event();
+            event_t event, true_event;
+            event.hits = generate_event(true_event.hits);
             all_events.push_back(event);
+            all_true_events.push_back(true_event);
 
             // fill tree
             double fXtrack_, fYtrack_, fXptrack_, fYptrack_;
@@ -126,7 +130,8 @@ namespace tracking_dev
         }
 
         // save events to file
-        WriteTextFile("alignment/tracks.txt");
+        WriteTextFile(all_events, "alignment/tracks.txt");
+        WriteTextFile(all_true_events, "alignment/true_tracks.txt");
         TFile *f = new TFile("alignment/tracks_tree.root", "recreate");
         T->Write();
         f->Close();
@@ -157,7 +162,7 @@ namespace tracking_dev
         // WriteTextFile("alignment/tracks_new.txt");
     }
 
-    void ToyModel::WriteTextFile(const char *path)
+    void ToyModel::WriteTextFile(const std::vector<event_t> & events, const char *path)
     {
         std::fstream f(path, std::fstream::out);
         if (!f.is_open())
@@ -166,7 +171,7 @@ namespace tracking_dev
             exit(0);
         }
 
-        for (auto &i : all_events)
+        for (auto &i : events)
         {
             for (auto &hit : i.hits)
             {

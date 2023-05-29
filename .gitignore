@@ -68,6 +68,7 @@ alignment/moc/
 alignment/obj/
 alignment/*.root
 alignment/tracks.txt
+alignment/true_tracks.txt
 alignment/Makefile
 alignment/new_results.txt
 bin/alignment

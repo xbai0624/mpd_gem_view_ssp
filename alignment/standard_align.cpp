@@ -26,8 +26,11 @@ namespace tracking_dev
         }
 
         M.SetDimension(nparam, nparam);
+        M.Zero();
         b.SetDimension(nparam, 1);
+        b.Zero();
         a.SetDimension(nparam, 1);
+        a.Zero();
     }
 
     void StandardAlign::Solve()

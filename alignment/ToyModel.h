@@ -24,11 +24,12 @@ namespace tracking_dev {
 
         void Generate();
         void Load();
-        void WriteTextFile(const char* path);
+        void WriteTextFile(const std::vector<event_t> & events, const char* path);
         const std::vector<event_t> & GetAllEvents(){return all_events;}
 
     private:
         std::vector<event_t> all_events;
+        std::vector<event_t> all_true_events; // for debug
     };
 };
 
