@@ -1,6 +1,6 @@
 
 
-void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_beamtest_8.evio.0.root_data_quality_check.root")
+void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_beamtest_96.evio.0.root_data_quality_check.root")
 {
     TFile *f = new TFile(path);
 

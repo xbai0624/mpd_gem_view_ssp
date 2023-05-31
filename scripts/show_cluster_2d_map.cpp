@@ -398,17 +398,16 @@ void show_cluster_2d_map(const char* root_input_path = "")
     const int NLayer = TOTAL_LAYERS;
     std::unordered_map<int, LayerCluster> layer_cluster;
 
-    const int Max = 200000; // max 2000 clusters per event
     int evtID;
     int nCluster;
 
-    int layerID[Max];
-    int detID[Max];
-    int layerPosIndex[Max];
-    int plane[Max];
-    int size[Max];
-    double adc[Max];
-    double pos[Max];
+    vector<int> *layerID = nullptr;
+    vector<int> *detID = nullptr;
+    vector<int> *layerPosIndex = nullptr;
+    vector<int> *plane = nullptr;
+    vector<int> *size = nullptr;
+    vector<double> *adc = nullptr;
+    vector<double> *pos = nullptr;
     TChain *T = new TChain("GEMCluster");
 
     cout<<"adding file: "<<root_input_path<<endl;
@@ -421,13 +420,13 @@ void show_cluster_2d_map(const char* root_input_path = "")
 
     T->SetBranchAddress("evtID", &evtID);
     T->SetBranchAddress("nCluster", &nCluster);
-    T->SetBranchAddress("planeID", layerID);
-    T->SetBranchAddress("prodID", detID);
-    T->SetBranchAddress("moduleID", layerPosIndex);
-    T->SetBranchAddress("axis", plane);
-    T->SetBranchAddress("size", size);
-    T->SetBranchAddress("adc", adc);
-    T->SetBranchAddress("pos", pos);
+    T->SetBranchAddress("planeID", &layerID);
+    T->SetBranchAddress("prodID", &detID);
+    T->SetBranchAddress("moduleID", &layerPosIndex);
+    T->SetBranchAddress("axis", &plane);
+    T->SetBranchAddress("size", &size);
+    T->SetBranchAddress("adc", &adc);
+    T->SetBranchAddress("pos", &pos);
 
     int Entries = T->GetEntries();
     cout<<"total enries: "<<Entries<<endl;
@@ -442,15 +441,15 @@ void show_cluster_2d_map(const char* root_input_path = "")
         // loop for each cluster
         for(int i=0; i<nCluster; i++) {
             GEMCluster cluster;
-            cluster.layerID = layerID[i];
-            cluster.detID = detID[i];
-            cluster.layerPosIndex = layerPosIndex[i];
-            cluster.plane = plane[i];
-            cluster.size = size[i];
-            cluster.adc = adc[i];
-            cluster.pos = pos[i];
+            cluster.layerID = layerID->at(i);
+            cluster.detID = detID->at(i);
+            cluster.layerPosIndex = layerPosIndex->at(i);
+            cluster.plane = plane->at(i);
+            cluster.size = size->at(i);
+            cluster.adc = adc->at(i);
+            cluster.pos = pos->at(i);
 
-            layer_cluster[layerID[i]].addCluster(cluster);
+            layer_cluster[layerID->at(i)].addCluster(cluster);
         }
 
         // match clusters
