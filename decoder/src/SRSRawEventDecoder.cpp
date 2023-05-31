@@ -131,7 +131,7 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
                     mAPVDataFlags[addr] = flags;
                 }
                 else {
-                    cout<<"decode_impl:: Error: duplicated APV detected..."
+                    cout<<"decode_impl:: Error: duplicated APV ("<<addr<<") detected..."
                         <<endl;
                 }
             }
@@ -164,7 +164,7 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
                         mAPVDataFlags[addr] = flags;
                     }
                     else {
-                        cout<<"decode_impl:: Error: duplicated APV detected..."
+                        cout<<"decode_impl:: Error: duplicated APV ("<<addr<<") detected..."
                             <<endl;
                     }
                 }
