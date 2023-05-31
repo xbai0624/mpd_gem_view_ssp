@@ -10,9 +10,9 @@ class GEMCluster;
 ////////////////////////////////////////////////////////////////////////////////
 // replay evio files, and cluster all hits, save clusters to root tree
 
-#define MAXCLUSTERS 200000
-#define MAXCLUSTERSIZE 100
-#define MAXAPV 1000
+//#define MAXCLUSTERS 200000
+//#define MAXCLUSTERSIZE 100
+//#define MAXAPV 1000
 
 class GEMRootClusterTree
 {
@@ -24,6 +24,7 @@ public:
     void Fill(GEMSystem* gem_sys, const uint32_t &evt_num);
 
     void ClearPrevTracks();
+    void ClearPrevRawEvent();
 
 private:
     TTree *pTree = nullptr;
@@ -77,35 +78,49 @@ private:
     // -part 2):
     // Raw GEM Data
     int nCluster;            // number of clusters in current event
-    int Plane[MAXCLUSTERS];  // layer id
-    int Prod[MAXCLUSTERS];   // detector i
-    int Module[MAXCLUSTERS]; // detector position index in layer
-    int Axis[MAXCLUSTERS];   // plane x/y
-    int Size[MAXCLUSTERS];   // cluster size
+    std::vector<int> Plane;  // layer id
+    std::vector<int> Prod;   // detector i
+    std::vector<int> Module; // detector position index in layer
+    std::vector<int> Axis;   // plane x/y
+    std::vector<int> Size;   // cluster size
 
-    double Adc[MAXCLUSTERS];  // cluster adc
-    double Pos[MAXCLUSTERS];  // cluster pos
+    std::vector<double> Adc;  // cluster adc
+    std::vector<double> Pos;  // cluster pos
 
-    int StripNo[MAXCLUSTERS][MAXCLUSTERSIZE];   // max 50 strips per cluster
-    double StripADC[MAXCLUSTERS][MAXCLUSTERSIZE];
+    // stripNo and stripADC are pushed into the vectors sequentially
+    // following the order of clusters, so to find all strips for a 
+    // specific cluster, one needs to do the following:
+    //
+    // int strip_counter = 0;
+    // for(int i_cluster =0; i_cluster<nCluster; i_cluster++)
+    // {
+    //     for(int i_strip=0, i_strip<Size[i_cluster]; i_strip++) {
+    //         int stripNo = StripNo[strip_counter + i_strip];
+    //         double stripAdc = StripADC[strip_counter + i_strip];
+    //     }
+    //
+    //     strip_counter += Size[i_cluster];
+    // }
+    std::vector<int> StripNo;
+    std::vector<double> StripADC;
 
     // for common mode study only
     int nAPV;
-    int apv_crate_id[MAXAPV];
-    int apv_mpd_id[MAXAPV];
-    int apv_adc_ch[MAXAPV];
-    int CM0_offline[MAXAPV];
-    int CM1_offline[MAXAPV];
-    int CM2_offline[MAXAPV];
-    int CM3_offline[MAXAPV];
-    int CM4_offline[MAXAPV];
-    int CM5_offline[MAXAPV];
-    int CM0_online[MAXAPV];
-    int CM1_online[MAXAPV];
-    int CM2_online[MAXAPV];
-    int CM3_online[MAXAPV];
-    int CM4_online[MAXAPV];
-    int CM5_online[MAXAPV];
+    std::vector<int> apv_crate_id;
+    std::vector<int> apv_mpd_id;
+    std::vector<int> apv_adc_ch;
+    std::vector<int> CM0_offline;
+    std::vector<int> CM1_offline;
+    std::vector<int> CM2_offline;
+    std::vector<int> CM3_offline;
+    std::vector<int> CM4_offline;
+    std::vector<int> CM5_offline;
+    std::vector<int> CM0_online;
+    std::vector<int> CM1_online;
+    std::vector<int> CM2_online;
+    std::vector<int> CM3_online;
+    std::vector<int> CM4_online;
+    std::vector<int> CM5_online;
 
     // event trigger time
     int triggerTimeL;

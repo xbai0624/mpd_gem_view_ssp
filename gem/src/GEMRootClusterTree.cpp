@@ -43,35 +43,35 @@ GEMRootClusterTree::GEMRootClusterTree(const char* path)
 
     // Raw GEM cluster information before tracking
     pTree -> Branch("nCluster", &nCluster, "nCluster/I");
-    pTree -> Branch("planeID", Plane, "planeID[nCluster]/I");
-    pTree -> Branch("prodID", Prod, "prodID[nCluster]/I");
-    pTree -> Branch("moduleID", Module, "moduleID[nCluster]/I");
-    pTree -> Branch("axis", Axis, "axis[nCluster]/I");
-    pTree -> Branch("size", Size, "size[nCluster]/I");
-    pTree -> Branch("adc", Adc, "adc[nCluster]/D");
-    pTree -> Branch("pos", Pos, "Pos[nCluster]/D");
+    pTree -> Branch("planeID", &Plane);
+    pTree -> Branch("prodID", &Prod);
+    pTree -> Branch("moduleID", &Module);
+    pTree -> Branch("axis", &Axis);
+    pTree -> Branch("size", &Size);
+    pTree -> Branch("adc", &Adc);
+    pTree -> Branch("pos", &Pos);
 
     // save strip information for each cluster
-    pTree -> Branch("stripNo", StripNo, "StripNo[nCluster][100]/I");
-    pTree -> Branch("stripAdc", StripADC, "StripADC[nCluster][100]/D");
+    pTree -> Branch("stripNo", &StripNo);
+    pTree -> Branch("stripAdc", &StripADC);
 
     // save apv common mode information
     pTree -> Branch("nAPV", &nAPV, "nAPV/I");
-    pTree -> Branch("apv_crate_id", apv_crate_id, "apv_crate_id[nAPV]/I");
-    pTree -> Branch("apv_mpd_id", apv_mpd_id, "apv_mpd_id[nAPV]/I");
-    pTree -> Branch("apv_adc_ch", apv_adc_ch, "apv_adc_ch[nAPV]/I");
-    pTree -> Branch("CM0_offline", CM0_offline, "CM0_offline[nAPV]/I");
-    pTree -> Branch("CM1_offline", CM1_offline, "CM1_offline[nAPV]/I");
-    pTree -> Branch("CM2_offline", CM2_offline, "CM2_offline[nAPV]/I");
-    pTree -> Branch("CM3_offline", CM3_offline, "CM3_offline[nAPV]/I");
-    pTree -> Branch("CM4_offline", CM4_offline, "CM4_offline[nAPV]/I");
-    pTree -> Branch("CM5_offline", CM5_offline, "CM5_offline[nAPV]/I");
-    pTree -> Branch("CM0_online", CM0_online, "CM0_online[nAPV]/I");
-    pTree -> Branch("CM1_online", CM1_online, "CM1_online[nAPV]/I");
-    pTree -> Branch("CM2_online", CM2_online, "CM2_online[nAPV]/I");
-    pTree -> Branch("CM3_online", CM3_online, "CM3_online[nAPV]/I");
-    pTree -> Branch("CM4_online", CM4_online, "CM4_online[nAPV]/I");
-    pTree -> Branch("CM5_online", CM5_online, "CM5_online[nAPV]/I");
+    pTree -> Branch("apv_crate_id", &apv_crate_id);
+    pTree -> Branch("apv_mpd_id", &apv_mpd_id);
+    pTree -> Branch("apv_adc_ch", &apv_adc_ch);
+    pTree -> Branch("CM0_offline", &CM0_offline);
+    pTree -> Branch("CM1_offline", &CM1_offline);
+    pTree -> Branch("CM2_offline", &CM2_offline);
+    pTree -> Branch("CM3_offline", &CM3_offline);
+    pTree -> Branch("CM4_offline", &CM4_offline);
+    pTree -> Branch("CM5_offline", &CM5_offline);
+    pTree -> Branch("CM0_online", &CM0_online);
+    pTree -> Branch("CM1_online", &CM1_online);
+    pTree -> Branch("CM2_online", &CM2_online);
+    pTree -> Branch("CM3_online", &CM3_online);
+    pTree -> Branch("CM4_online", &CM4_online);
+    pTree -> Branch("CM5_online", &CM5_online);
 
     // trigger time
     pTree -> Branch("triggerTimeL", &triggerTimeL, "triggerTimeL/I");
@@ -118,7 +118,8 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
 
     // set event id
     evtID = static_cast<int>(evt_num);
-    nCluster = 0;
+
+    ClearPrevRawEvent();
 
     // trigger time
     std::pair<uint32_t, uint32_t> trigger_time = gem_sys -> GetTriggerTime();
@@ -127,7 +128,6 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
 
     // for comon mode
     nAPV = apv_strip_mapping::Mapping::Instance() -> GetTotalNumberOfAPVs();
-    int apv_index = 0;
 
     // get detector list
     std::vector<GEMDetector*> detectors = gem_sys -> GetDetectorList();
@@ -135,36 +135,37 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
     {
         std::vector<GEMPlane*> planes = i->GetPlaneList();
 
-        for(auto &pln: planes) 
+        for(auto &pln: planes)
         {
             const std::vector<StripCluster> & clusters = pln -> GetStripClusters();
             int napvs_per_plane = pln -> GetCapacity();
-            for(auto &c: clusters) {
-                Plane[nCluster] = i -> GetLayerID();
-                Prod[nCluster] = i -> GetDetID();
-                Module[nCluster] = i -> GetDetLayerPositionIndex();
-                Axis[nCluster] = static_cast<int>(pln -> GetType());
-                Size[nCluster] = c.hits.size();
-                Adc[nCluster] = c.peak_charge;
-                Pos[nCluster] = c.position;
+
+            for(auto &c: clusters)
+            {
+                Plane.push_back(i -> GetLayerID());
+                Prod.push_back(i -> GetDetID());
+                Module.push_back(i -> GetDetLayerPositionIndex());
+                Axis.push_back(static_cast<int>(pln -> GetType()));
+                Size.push_back(c.hits.size());
+                Adc.push_back(c.peak_charge);
+                Pos.push_back(c.position);
 
                 // strips in this cluster
                 const std::vector<StripHit> &hits = c.hits;
-                for(size_t nS = 0; nS < hits.size() && nS < 100; ++nS)
+                for(size_t nS = 0; nS < hits.size(); ++nS)
                 {
                     // layer based strip no
-                    //StripNo[nCluster][nS] = hits[nS].strip;
+                    //StripNo.push_back(hits[nS].strip);
 
                     // chamber based strip no
-                    StripNo[nCluster][nS] = getChamberBasedStripNo(hits[nS].strip, Axis[nCluster],
-                            napvs_per_plane, Module[nCluster]);
+                    int s = getChamberBasedStripNo(hits[nS].strip, Axis.back(),
+                            napvs_per_plane, Module.back());
+                    StripNo.push_back(s);
 
-                    StripADC[nCluster][nS] = hits[nS].charge;
+                    StripADC.push_back(hits[nS].charge);
                 }
 
                 nCluster++;
-                if(nCluster >= MAXCLUSTERS)
-                    break;
             }
 
             // extract common mode for each apv on this plane
@@ -174,43 +175,41 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
                 auto & online_common_mode = apv->GetOnlineCommonMode();
                 auto & offline_common_mode = apv->GetOfflineCommonMode();
 
-                apv_crate_id[apv_index] = apv->GetAddress().crate_id;
-                apv_mpd_id[apv_index] = apv->GetAddress().mpd_id;
-                apv_adc_ch[apv_index] = apv->GetAddress().adc_ch;
+                apv_crate_id.push_back(apv->GetAddress().crate_id);
+                apv_mpd_id.push_back(apv->GetAddress().mpd_id);
+                apv_adc_ch.push_back(apv->GetAddress().adc_ch);
 
                 if(online_common_mode.size() != 6) {
-                    CM0_online[apv_index] = -9999;
-                    CM1_online[apv_index] = -9999;
-                    CM2_online[apv_index] = -9999;
-                    CM3_online[apv_index] = -9999;
-                    CM4_online[apv_index] = -9999;
-                    CM5_online[apv_index] = -9999;
+                    CM0_online.push_back(-9999);
+                    CM1_online.push_back(-9999);
+                    CM2_online.push_back(-9999);
+                    CM3_online.push_back(-9999);
+                    CM4_online.push_back(-9999);
+                    CM5_online.push_back(-9999);
                 } else {
-                    CM0_online[apv_index] = online_common_mode[0];
-                    CM1_online[apv_index] = online_common_mode[1]; 
-                    CM2_online[apv_index] = online_common_mode[2]; 
-                    CM3_online[apv_index] = online_common_mode[3]; 
-                    CM4_online[apv_index] = online_common_mode[4]; 
-                    CM5_online[apv_index] = online_common_mode[5]; 
+                    CM0_online.push_back(online_common_mode[0]);
+                    CM1_online.push_back(online_common_mode[1]); 
+                    CM2_online.push_back(online_common_mode[2]); 
+                    CM3_online.push_back(online_common_mode[3]); 
+                    CM4_online.push_back(online_common_mode[4]); 
+                    CM5_online.push_back(online_common_mode[5]); 
                 }
 
                 if(offline_common_mode.size() != 6) {
-                    CM0_offline[apv_index] = -9999;
-                    CM1_offline[apv_index] = -9999;
-                    CM2_offline[apv_index] = -9999;
-                    CM3_offline[apv_index] = -9999;
-                    CM4_offline[apv_index] = -9999;
-                    CM5_offline[apv_index] = -9999;
+                    CM0_offline.push_back(-9999);
+                    CM1_offline.push_back(-9999);
+                    CM2_offline.push_back(-9999);
+                    CM3_offline.push_back(-9999);
+                    CM4_offline.push_back(-9999);
+                    CM5_offline.push_back(-9999);
                 } else {
-                    CM0_offline[apv_index] = offline_common_mode[0];
-                    CM1_offline[apv_index] = offline_common_mode[1]; 
-                    CM2_offline[apv_index] = offline_common_mode[2]; 
-                    CM3_offline[apv_index] = offline_common_mode[3]; 
-                    CM4_offline[apv_index] = offline_common_mode[4]; 
-                    CM5_offline[apv_index] = offline_common_mode[5]; 
+                    CM0_offline.push_back(offline_common_mode[0]);
+                    CM1_offline.push_back(offline_common_mode[1]); 
+                    CM2_offline.push_back(offline_common_mode[2]); 
+                    CM3_offline.push_back(offline_common_mode[3]); 
+                    CM4_offline.push_back(offline_common_mode[4]); 
+                    CM5_offline.push_back(offline_common_mode[5]); 
                 }
-
-                apv_index++;
             }
         }
     }
@@ -236,4 +235,38 @@ void GEMRootClusterTree::ClearPrevTracks()
     fBestTrackHitResidU.clear(), fBestTrackHitResidV.clear();
     fBestTrackHitUADC.clear(), fBestTrackHitVADC.clear();
     fBestTrackHitIsampMaxUstrip.clear(), fBestTrackHitIsampMaxVstrip.clear();
+}
+
+void GEMRootClusterTree::ClearPrevRawEvent()
+{
+    nCluster = 0;
+    Plane.clear();
+    Prod.clear();
+    Module.clear();
+    Axis.clear();
+    Size.clear();
+
+    Adc.clear();
+    Pos.clear();
+
+    StripNo.clear();
+    StripADC.clear();
+
+    // for common mode study only
+    nAPV = 0;
+    apv_crate_id.clear();
+    apv_mpd_id.clear();
+    apv_adc_ch.clear();
+    CM0_offline.clear();
+    CM1_offline.clear();
+    CM2_offline.clear();
+    CM3_offline.clear();
+    CM4_offline.clear();
+    CM5_offline.clear();
+    CM0_online.clear();
+    CM1_online.clear();
+    CM2_online.clear();
+    CM3_online.clear();
+    CM4_online.clear();
+    CM5_online.clear();
 }
