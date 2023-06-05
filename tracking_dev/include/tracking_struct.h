@@ -129,12 +129,14 @@ struct grid_addr_t
     {
         if(x > t.x) return false;
         if(y > t.y) return false;
+		return true;
     }
 
     bool operator>(const grid_addr_t &t) const
     {
         if(y < t.y) return false;
         if(x < t.x) return false;
+		return true;
     }
 };
 

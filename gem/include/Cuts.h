@@ -7,8 +7,8 @@
 
 #include "ValueType.h"
 
-class StripHit;
-class StripCluster;
+struct StripHit;
+struct StripCluster;
 
 class Cuts
 {
