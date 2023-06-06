@@ -7,8 +7,8 @@ using namespace tracking_dev;
 
 int main(int argc, char* argv[])
 {
-    // ToyModel *toy = new ToyModel();
-    // toy -> Generate();
+    //ToyModel *toy = new ToyModel();
+    //toy -> Generate();
 
     StandardAlign *align = new StandardAlign();
     align -> SetupToyModel();

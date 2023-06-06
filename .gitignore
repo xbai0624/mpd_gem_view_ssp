@@ -87,3 +87,4 @@ decoder/.qmake.stash
 gem/.qmake.stash
 gui/.qmake.stash
 
+.DS_Store
