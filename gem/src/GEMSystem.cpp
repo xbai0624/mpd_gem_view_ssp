@@ -628,7 +628,7 @@ const
 }
 
 // fill raw data to a certain apv
-void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event)
+void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event, bool do_zeroSup)
 {
     GEMAPV *apv = GetAPV(raw.addr);
 
@@ -639,11 +639,18 @@ void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event)
         if(PedestalMode)
             apv->FillPedHist();
         else {
-            apv->ZeroSuppression();
+			if(do_zeroSup)
+				apv->ZeroSuppression();
+
 #ifdef MULTI_THREAD
             __gem_locker.lock();
 #endif
-            apv->CollectZeroSupHits(event.get_gem_data());
+
+			if(do_zeroSup)
+				apv->CollectZeroSupHits(event.get_gem_data());
+			else
+				apv->CollectRawHits(event.get_gem_data());
+
 #ifdef MULTI_THREAD
             __gem_locker.unlock();
 #endif
@@ -653,7 +660,7 @@ void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event)
 
 // fill raw data to a certain apv, online cm not availabe
 void GEMSystem::FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw,
-        const APVDataType &flags, EventData &event)
+        const APVDataType &flags, EventData &event, bool do_zeroSup)
 {
     GEMAPV *apv = GetAPV(addr);
 
@@ -664,11 +671,18 @@ void GEMSystem::FillRawDataSRS(const APVAddress &addr, const std::vector<int> &r
         if(PedestalMode)
             apv->FillPedHist();
         else {
-            apv->ZeroSuppression();
+			if(do_zeroSup)
+				apv->ZeroSuppression();
+
 #ifdef MULTI_THREAD
             __gem_locker.lock();
 #endif
-            apv->CollectZeroSupHits(event.get_gem_data());
+
+			if(do_zeroSup)
+				apv->CollectZeroSupHits(event.get_gem_data());
+			else
+				apv->CollectRawHits(event.get_gem_data());
+
 #ifdef MULTI_THREAD
             __gem_locker.unlock();
 #endif
@@ -682,7 +696,7 @@ void GEMSystem::FillRawDataSRS(const APVAddress &addr, const std::vector<int> &r
 
 // fill raw data to a certain apv, online cm available
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-        const APVDataType &flags, const std::vector<int> &online_cm, EventData &event)
+        const APVDataType &flags, const std::vector<int> &online_cm, EventData &event, bool do_zeroSup)
 {
     GEMAPV *apv = GetAPV(addr);
 
@@ -694,11 +708,18 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
         if(PedestalMode)
             apv->FillPedHist();
         else {
-            apv->ZeroSuppression();
+			if(do_zeroSup)
+				apv->ZeroSuppression();
+
 #ifdef MULTI_THREAD
             __gem_locker.lock();
 #endif
-            apv->CollectZeroSupHits(event.get_gem_data());
+
+			if(do_zeroSup)
+				apv->CollectZeroSupHits(event.get_gem_data());
+			else
+				apv->CollectRawHits(event.get_gem_data());
+
 #ifdef MULTI_THREAD
             __gem_locker.unlock();
 #endif
@@ -712,7 +733,7 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
 
 // fill raw data to a certain apv, online cm not availabe
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-        const APVDataType &flags, EventData &event)
+        const APVDataType &flags, EventData &event, bool do_zeroSup)
 {
     GEMAPV *apv = GetAPV(addr);
 
@@ -723,11 +744,18 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
         if(PedestalMode)
             apv->FillPedHist();
         else {
-            apv->ZeroSuppression();
+			if(do_zeroSup)
+				apv->ZeroSuppression();
+
 #ifdef MULTI_THREAD
             __gem_locker.lock();
 #endif
-            apv->CollectZeroSupHits(event.get_gem_data());
+
+			if(do_zeroSup)
+				apv->CollectZeroSupHits(event.get_gem_data());
+			else
+				apv->CollectRawHits(event.get_gem_data());
+
 #ifdef MULTI_THREAD
             __gem_locker.unlock();
 #endif

@@ -26,6 +26,9 @@ int main(int argc, char* argv[])
     arg_parser.AddArgs<std::string>({"--output_root_path"}, "output_root_path", "output data file in root format", "");
     arg_parser.AddArg<int>("-n", "nev", "number of events to process (< 0 means all)", -1);
     arg_parser.AddArg<int>("-s", "start_event", "start analysis from event number (default to 0)", 0);
+	arg_parser.AddArg<bool>("-c", "c_evio_to_root", "convert evio to root files (no zero sup)", false);
+	arg_parser.AddArg<bool>("-t", "replay_hit", "replay hit root tree (with zero sup)", false);
+	arg_parser.AddArg<bool>("-z", "replay_cluster", "replay cluster root tree (with clustering)", true);
     arg_parser.AddArgs<std::string>({"--pedestal"}, "pedestal_file", "pedestal file", 
             "database/gem_ped_55.dat");
     arg_parser.AddArgs<std::string>({"--common_mode"}, "common_mode_file", "common mode file",
@@ -51,10 +54,22 @@ int main(int argc, char* argv[])
     gem_data_handler -> SetGEMSystem(gem_system);
     gem_data_handler -> SetEvioFileReader(evio_reader);
     gem_data_handler -> RegisterRawDecoders();
+
+    // -: replay
     // for hit replay
-    //gem_data_handler -> TurnOffClustering();
+	if(args["replay_hit"].Bool() || args["c_evio_to_root"].Bool())
+	{
+		gem_data_handler -> TurnOffClustering();
+
+		// turn off zero suppression if just want to do a evio to root convert
+		// this will turn off zero suppression
+		if(args["c_evio_to_root"].Bool())
+			gem_data_handler -> TurnOnbEvio2RootFiles();
+	}
     // for cluster replay
-    gem_data_handler -> TurnOnClustering();
+	if(args["replay_cluster"].Bool()) {
+		gem_data_handler -> TurnOnClustering();
+	}
     if(args["output_root_path"].String().size() > 0)
         gem_data_handler -> SetOutputPath(args["output_root_path"].String().c_str());
     gem_data_handler -> SetupReplay(args["raw_data"].String(), 0, -1, args["pedestal_file"].String(), args["common_mode_file"].String());
@@ -105,17 +120,19 @@ int main(int argc, char* argv[])
         // raw cluster/hit process
         gem_data_handler -> ProcessEvent(pBuf, fBufLen, event_counter);
 
-        // tracking process
-        tracking_data_handler -> ClearPrevEvent();
-        tracking_data_handler -> PackageEventData();
-        new_tracking -> FindTracks();
+		// tracking only works on clustering mode
+		if(args["replay_cluster"].Bool()) {
+			// tracking process
+			tracking_data_handler -> ClearPrevEvent();
+			tracking_data_handler -> PackageEventData();
+			new_tracking -> FindTracks();
 
-        fill_tracking_result(tracking_data_handler, new_tracking, gem_data_handler -> GetClusterTree());
+			fill_tracking_result(tracking_data_handler, new_tracking, gem_data_handler -> GetClusterTree());
+		}
+		gem_data_handler -> EndofThisEvent(event_counter);
 
-        gem_data_handler -> EndofThisEvent(event_counter);
-
-        // fill data quality check histos
-        quality_check_histos::fill_gem_histos();
+		// fill data quality check histos
+		quality_check_histos::fill_gem_histos();
 
         event_counter++;
         if(max_event > 0 && event_counter > max_event)

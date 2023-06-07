@@ -545,8 +545,12 @@ void GEMDataHandler::FillHistograms([[maybe_unused]]const EventData &data)
 
 void GEMDataHandler::FeedDataSRS(const GEMRawData &gemData)
 {
-    if(gem_sys)
-        gem_sys -> FillRawDataSRS(gemData, *new_event);
+    if(gem_sys) {
+		if(!bEvio2RootFiles)
+			gem_sys -> FillRawDataSRS(gemData, *new_event);
+		else
+			gem_sys -> FillRawDataSRS(gemData, *new_event, false);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -555,8 +559,12 @@ void GEMDataHandler::FeedDataSRS(const GEMRawData &gemData)
 void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw,
         const APVDataType &flags, const std::vector<int> &online_common_mode)
 {
-    if(gem_sys)
-        gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event);
+    if(gem_sys) {
+		if(!bEvio2RootFiles)
+			gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event);
+		else
+			gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event, false);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -565,8 +573,12 @@ void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> 
 void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw,
         const APVDataType &flags)
 {
-    if(gem_sys)
-        gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event);
+    if(gem_sys) {
+		if(!bEvio2RootFiles)
+			gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event);
+		else
+			gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event, false);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

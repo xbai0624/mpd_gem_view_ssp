@@ -82,6 +82,7 @@ public:
     float dynamic_ts_common_mode_danning(float *buf, const uint32_t &size);
     void CollectZeroSupHits(std::vector<GEM_Strip_Data> &hits);
     void CollectZeroSupHits();
+    void CollectRawHits(std::vector<GEM_Strip_Data> &hits);
     void ResetHitPos();
     void PrintOutPedestal(std::ofstream &out);
     void PrintOutCommonModeRange(std::ofstream &out);

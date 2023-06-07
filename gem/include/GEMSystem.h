@@ -120,16 +120,16 @@ public:
     int GetStripCrossTalkFlag(const GEM_Strip_Data &p, const GEM_Strip_Data &c, const GEM_Strip_Data &n);
     void RebuildDetectorMap();
     void RebuildDAQMap();
-    void FillRawDataSRS(const GEMRawData &raw, EventData &event);
+    void FillRawDataSRS(const GEMRawData &raw, EventData &event, bool do_zeroSup = true);
     // srs online cm not availabe
     void FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw,
-            const APVDataType &flags, EventData &event);
+            const APVDataType &flags, EventData &event, bool do_zeroSup = true);
     // online cm availabe
     void FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-            const APVDataType &flags, const std::vector<int> &online_cm, EventData &event);
+            const APVDataType &flags, const std::vector<int> &online_cm, EventData &event, bool do_zeroSup = true);
     // online cm not available
     void FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
-            const APVDataType &flags, EventData &event);
+            const APVDataType &flags, EventData &event, bool do_zeroSup = true);
     void FillZeroSupData(const std::vector<GEMZeroSupData> &data_pack, EventData &event);
     void FillZeroSupData(const GEMZeroSupData &data);
     bool Register(GEMDetector *det);

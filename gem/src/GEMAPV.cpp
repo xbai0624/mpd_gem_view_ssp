@@ -884,6 +884,23 @@ void GEMAPV::CollectZeroSupHits()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// collect raw hit in raw data space, need a container input
+// no zero suppression, for converting evio files to ROOT files
+
+void GEMAPV::CollectRawHits(std::vector<GEM_Strip_Data> &hits)
+{
+    for(uint32_t i = 0; i < APV_STRIP_SIZE; ++i)
+    {
+        GEM_Strip_Data hit(crate_id, mpd_id, adc_ch, i);
+        for(uint32_t j = 0; j < time_samples; ++j)
+        {
+            hit.values.emplace_back(raw_data[DATA_INDEX(i, j)]);
+        }
+        hits.emplace_back(hit);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // a helper to find highest 20 adc strips
 // binary insert to a sorted vector and keep that vector to a fixed length
 // sorting costs too much running time

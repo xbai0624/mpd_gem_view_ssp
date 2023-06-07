@@ -91,6 +91,8 @@ public:
     void SetOnlineMode(bool m){onlineMode = m; pedestalMode = !m; onlineMode = !m;}
     void TurnOffClustering(){bReplayCluster = false;}
     void TurnOnClustering(){bReplayCluster = true;}
+	void TurnOnbEvio2RootFiles(){bEvio2RootFiles = true;}
+	void TurnOffbEvio2RootFiles(){bEvio2RootFiles = false;}
     void EnableOutputRootTree() {root_tree_enabled = true;}
     void DisableOutputRootTree(){root_tree_enabled = false;}
     void SetMaxPedestalEvents(const int &s);
@@ -147,6 +149,9 @@ private:
 
     // trigger time
     std::pair<uint32_t, uint32_t> triggerTime;
+
+	// purely convert evio files to root files
+	bool bEvio2RootFiles = false;
 };
 
 #endif
