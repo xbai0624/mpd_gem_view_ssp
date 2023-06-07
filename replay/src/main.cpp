@@ -55,7 +55,18 @@ int main(int argc, char* argv[])
     gem_data_handler -> SetEvioFileReader(evio_reader);
     gem_data_handler -> RegisterRawDecoders();
 
-    // -: replay
+	// -: configure replay
+	unsigned short mode = (((unsigned short)args["replay_cluster"].Bool() & 0x1 ) << 2) |
+		(((unsigned short)args["c_evio_to_root"].Bool() & 0x1) << 1) |
+		((unsigned short)args["replay_hit"].Bool() & 0x1);
+	if((mode != 4) && (mode != 2) && (mode != 1)) {
+		std::cout<<"ERROR:: only one mode is allowed. Please set paramter correctly"<<std::endl;
+		std::cout<<"        choose one of the following three modes (1 = turn on; 0 = turn off)"<<std::endl;
+		std::cout<<"        replay hit mode: [-t 1]; replay cluster mode: [-z 1]; pure evio to file conversion mode: [-c 1]"
+		         <<std::endl;
+		exit(0);
+	}
+
     // for hit replay
 	if(args["replay_hit"].Bool() || args["c_evio_to_root"].Bool())
 	{
