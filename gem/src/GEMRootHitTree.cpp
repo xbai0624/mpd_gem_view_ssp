@@ -27,6 +27,11 @@ GEMRootHitTree::GEMRootHitTree(const char* path)
     pTree->Branch("adc4",adc4,"adc4[nch]/I");
     pTree->Branch("adc5",adc5,"adc5[nch]/I");
 
+    pTree->Branch("adc6",adc3,"adc6[nch]/I");
+    pTree->Branch("adc7",adc4,"adc7[nch]/I");
+    pTree->Branch("adc8",adc5,"adc8[nch]/I");
+
+
     pTree->Branch("triggerTimeL", &triggerTimeL, "triggerTimeL/I");
     pTree->Branch("triggerTimeH", &triggerTimeH, "triggerTimeH/I");
 }
@@ -85,6 +90,9 @@ void GEMRootHitTree::Fill(GEMSystem *gem_sys, const EventData &ev)
         adc3[i] = static_cast<int>(strip_data[i].values[3]);
         adc4[i] = static_cast<int>(strip_data[i].values[4]);
         adc5[i] = static_cast<int>(strip_data[i].values[5]);
+        adc6[i] = static_cast<int>(strip_data[i].values[6]);
+        adc7[i] = static_cast<int>(strip_data[i].values[7]);
+        adc8[i] = static_cast<int>(strip_data[i].values[8]);
 
         GEMChannelAddress addr = strip_data[i].addr;
 

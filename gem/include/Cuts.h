@@ -83,6 +83,9 @@ class Cuts
         // cuts on tracking
         bool track_chi2(const std::vector<StripCluster> &);
 
+	// check if a layer participate in tracking
+	bool is_tracking_layer(const int &layer) const;
+
     public:
         struct block_t {
             std::string module_name;
@@ -91,11 +94,13 @@ class Cuts
             std::vector<double> dimension;
             std::vector<double> offset;
             std::vector<double> tilt_angle;
+	    bool is_tracker;
 
             block_t() : module_name(""), layer_id(0)
             {
                 position.clear(); dimension.clear();
                 offset.clear(); tilt_angle.clear();
+		is_tracker = true;
             }
         };
         const std::unordered_map<std::string, block_t> & __get_block_data() const {return m_block;}
@@ -111,6 +116,7 @@ class Cuts
 
         // block entries : within '{' and '}'
         std::unordered_map<std::string, block_t> m_block;
+	std::unordered_map<int, bool> m_tracking_layer_switch;
 };
 
 #endif

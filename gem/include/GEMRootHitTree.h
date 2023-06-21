@@ -42,6 +42,9 @@ private:
     int adc3[MAXHITS];
     int adc4[MAXHITS];
     int adc5[MAXHITS];
+    int adc6[MAXHITS];
+    int adc7[MAXHITS];
+    int adc8[MAXHITS];
 
     int triggerTimeL;
     int triggerTimeH;

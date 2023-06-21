@@ -410,6 +410,20 @@ bool Cuts::track_chi2([[maybe_unused]]const std::vector<StripCluster> &vc)
     return true;
 }
 
+bool Cuts::is_tracking_layer(const int &layer) const
+{
+	// if a layer not found, default it to participate tracking
+	if(m_tracking_layer_switch.find(layer) == m_tracking_layer_switch.end())
+	{
+		std::cout<<"Cuts::Warning: layer "<<layer<<" tracking config not found. Default to true."
+			<<std::endl;
+		return true;
+	}
+	if(!m_tracking_layer_switch.at(layer))
+		return false;
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                 helpers                                    //
 ////////////////////////////////////////////////////////////////////////////////
@@ -567,11 +581,29 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
     block_data.offset = tmp.at("offset").arr<double>();
     block_data.tilt_angle.clear();
     block_data.tilt_angle = tmp.at("tilt angle").arr<double>();
+    block_data.is_tracker = static_cast<bool>(tmp.at("participate tracking").val<int>());
 
     __parse_key_value(block[0], key, value);
     block_data.module_name = key;
 
     m_block[key] = block_data;
+
+    // tracking layer config
+    if(m_tracking_layer_switch.find(block_data.layer_id) != m_tracking_layer_switch.end())
+    {
+	    if(m_tracking_layer_switch.at(block_data.layer_id) != block_data.is_tracker)
+	    {
+		    std::cout<<"Cut::Error: conflicting tracking config found for layer: "
+			    <<block_data.layer_id<<std::endl;
+		    std::cout<<"            please check your config/gem_tracking.conf file."
+			    <<std::endl;
+		    exit(0);
+	    }
+    }
+    else
+    {
+	    m_tracking_layer_switch[block_data.layer_id] = block_data.is_tracker;
+    }
 }
 
 void Cuts::__convert_map()
