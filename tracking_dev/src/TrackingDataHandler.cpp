@@ -7,7 +7,7 @@ namespace tracking_dev
 {
     TrackingDataHandler::TrackingDataHandler()
     {
-        Init();
+        //Init();
     }
 
     TrackingDataHandler::~TrackingDataHandler()
@@ -21,15 +21,21 @@ namespace tracking_dev
             exit(1);
         }
 
-        if(gem_sys == nullptr) {
+        if(gem_sys == nullptr)
+	{
             gem_sys = new GEMSystem();
             gem_sys -> Configure("config/gem.conf");
-        }
+        } else {
+	    std::cout<<"INFO::: gem_sys is external in TrackingDataHandler Init()"<<std::endl;
+	}
 
-        if(data_handler == nullptr) {
+        if(data_handler == nullptr)
+	{
             data_handler = new GEMDataHandler();
             data_handler -> SetGEMSystem(gem_sys);
-        }
+        } else {
+	    std::cout<<"INFO::: gem_data_handler is external in TrackingDataHandler Init()"<<std::endl;
+	}
 
         pedestal_file = txt_parser.Value<std::string>("GEM Pedestal");
         common_mode_file = txt_parser.Value<std::string>("GEM Common Mode");
@@ -54,7 +60,8 @@ namespace tracking_dev
         unsigned int nDET = detector_list.size();
         for(unsigned int i=0; i<nDET; i++)
         {
-            fDet[i] -> Reset();
+	    if(fDet[i]!=nullptr)
+                fDet[i] -> Reset();
         }
     }
 
@@ -139,9 +146,14 @@ namespace tracking_dev
     {
         const std::vector<GEMHit> & detector_2d_hits = gem_det -> GetHits();
         int layer = gem_det -> GetLayerID();
-        double z_det = det -> GetZPosition();
 
+	// if this gem is not part of the tracking system, then skip its data
+	if(!gem_cuts -> is_tracking_layer(layer))
+	    return;
+
+        double z_det = det -> GetZPosition();
         det -> Reset();
+
         for(auto &i: detector_2d_hits) {
             point_t p(i.x, i.y, z_det, i.x_charge, i.y_charge, i.x_peak, i.y_peak, 
                     i.x_max_timebin, i.y_max_timebin, i.x_size, i.y_size);

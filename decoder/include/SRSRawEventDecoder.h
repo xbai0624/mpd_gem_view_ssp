@@ -7,6 +7,9 @@
 #include "MPDDataStruct.h"
 #include "AbstractRawDecoder.h"
 
+//#define APV_HEADER 1400 // for setup #2
+#define APV_HEADER 1700  // for setup #1
+
 class SRSRawEventDecoder : public AbstractRawDecoder
 {
 public:
@@ -25,7 +28,7 @@ public:
     void DecodeFEC(unsigned int *, int &);
     void decode_impl(unsigned int *buf, int &n, std::vector<int> &apv);
     std::vector<int> cleanup_srs_apv_header_words(const std::vector<int>&,
-            const int &header=1500, const int &time_sample=6);
+            const int &time_sample=6);
     void FillAPVRaw(std::vector<int> &, unsigned int);
 
     //std::unordered_map<int, std::unordered_map<int, std::vector<unsigned int>>> &GetDecoded();

@@ -184,11 +184,11 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
 // clean up srs apv header words, make data compatible with mpd setup
 
 std::vector<int> SRSRawEventDecoder::cleanup_srs_apv_header_words(const std::vector<int> &apv,
-        const int &Header, const int &TimeSample)
+        const int &TimeSample)
 {
     std::vector<int> res;
 
-    //int Header = config_setup::apv_header_level;
+    //int APV_HEADER = config_setup::apv_header_level;
     //int TimeSample = config_setup::time_sample;
 
     size_t idata=0; int nTS=0;
@@ -196,11 +196,11 @@ std::vector<int> SRSRawEventDecoder::cleanup_srs_apv_header_words(const std::vec
     while(idata < apv.size() && nTS < TimeSample)
     {
         // look for apv header - 3 consecutive words < header
-        if(apv[idata] < Header) {
+        if(apv[idata] < APV_HEADER) {
             idata++;
-            if(apv[idata] < Header) {
+            if(apv[idata] < APV_HEADER) {
                 idata++;
-                if(apv[idata] < Header)
+                if(apv[idata] < APV_HEADER)
                 {
                     if(idata + 138 < apv.size()) {
                         idata += 10; // 8 address + 1 error bit
@@ -257,13 +257,12 @@ void SRSRawEventDecoder::CheckInactiveChannel(int offset, unsigned int *apv_even
     // check first 100 words, to make sure no data lost in case using the wrong mapping
     // by checking if this channel has APV header
 
-    unsigned int header = 1500;
     for(int i=offset; i<100; ++i) {
-        if(apv_event[i] < header) {
+        if(apv_event[i] < APV_HEADER) {
             i++;
-            if(apv_event[i] < header) {
+            if(apv_event[i] < APV_HEADER) {
                 i++;
-                if(apv_event[i] < header) {
+                if(apv_event[i] < APV_HEADER) {
                     i++;
                     cout<<"## SRS Decoder Warning: ## Found meaningful data in in active channels..."
                         <<endl;

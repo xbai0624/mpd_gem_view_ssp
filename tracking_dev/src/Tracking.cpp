@@ -44,7 +44,7 @@ void Tracking::CompleteSetup()
     k_max_yz = (tracking_cuts -> __get("track y-z slope range")).arr<double>()[1];
 
     initLayerGroups();
-    // PrintLayerGroups();
+    //PrintLayerGroups();
    
     std::cout<<"INFO:: Tracking setup completed."<<std::endl;
 }
@@ -268,7 +268,7 @@ void Tracking::scanCandidate_gridway(const int &start_layer, const int &start_la
         ((int)detector.at(end_layer) -> Get2DHitCounts());
     for(auto &i: middle_layers)
         possible_track_combinations *= (hit_index_by_layer.at(i).size());
-    // std::cout<<"possible track cominations: = "<<possible_track_combinations<<std::endl;
+
     if(possible_track_combinations > abort_quantity)
         return;
 
@@ -599,7 +599,7 @@ void Tracking::PrintLayerGroups()
     std::cout<<"minimum hits on track: "<<minimum_hits_on_track<<std::endl;
     std::cout<<"layer combinations: "<<std::endl;
     for(auto &i: group_nlayer) {
-        std::cout<<"layer required: "<<i.first<<std::endl;
+        std::cout<<"layer required: "<<i.first<<" : "<<i.second.size()<<std::endl;
         for(auto &j: i.second)
             Print(j);
     }

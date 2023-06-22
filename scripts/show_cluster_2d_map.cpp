@@ -3,7 +3,7 @@
 
 //#define SBS_UV_CHAMBER
 
-#define TOTAL_LAYERS 4
+#define TOTAL_LAYERS 7
 #define N_CHAMBERS_PER_LAYER 1
 
 #define N_CANVAS_PER_LAYER 9

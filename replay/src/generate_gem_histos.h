@@ -29,9 +29,10 @@ namespace quality_check_histos
     // 
     void pass_handles(GEMSystem *sys, tracking_dev::TrackingDataHandler *handle);
     void set_output_name(std::string name);
-    void fill_gem_histos();
-    void raw_histos();
+    void fill_gem_histos(int event_number);
+    void raw_histos(int event_number);
     void tracking_histos();
+    void generate_tracking_based_2d_efficiency_plots();
     void save_histos();
 
     // helpers
@@ -82,9 +83,9 @@ namespace quality_check_histos
     // entrance point
     ///////////////////////////////////////////////////////////////////////////
 
-    void fill_gem_histos()
+    void fill_gem_histos(int event_number)
     {
-        raw_histos();
+        raw_histos(event_number);
         tracking_histos();
     }
 
@@ -94,16 +95,22 @@ namespace quality_check_histos
     ///////////////////////////////////////////////////////////////////////////
 
     // data quality check ROOT histograms before tracking
-    void raw_histos()
+    void raw_histos(int event_number)
     {
         // get all detectors
+	if(!gem_sys) {
+		std::cout<<"Null gem_sys"<<std::endl;
+	}
         std::vector<GEMDetector*> detectors = gem_sys -> GetDetectorList();
+
+	// event number
+	histM.histo_1d<float>("h_event_number") -> Fill((float)event_number);
 
         // loop through all detectors
         for(auto &det: detectors)
         {
             int layer = det -> GetLayerID();
-            if(layer <0 || layer > 4) std::cout<<"Invalid layer = "<<layer<<std::endl;
+            if(layer <0 || layer > 7) std::cout<<"Invalid layer = "<<layer<<std::endl;
             GEMPlane *pln_x = det -> GetPlane(GEMPlane::Plane_X);
             GEMPlane *pln_y = det -> GetPlane(GEMPlane::Plane_Y);
 
@@ -140,6 +147,12 @@ namespace quality_check_histos
             // make a copy
             std::vector<StripCluster> x_clusters = x_strip_cluster_;
             std::vector<StripCluster> y_clusters = y_strip_cluster_;
+
+	    // cluster multiplicity
+	    if(x_strip_cluster_.size() > 0)
+	    histM.histo_1d<float>(Form("h_raw_x_cluster_multiplicity_layer%d", layer)) -> Fill(x_strip_cluster_.size());
+	    if(y_strip_cluster_.size() > 0)
+	    histM.histo_1d<float>(Form("h_raw_y_cluster_multiplicity_layer%d", layer)) -> Fill(y_strip_cluster_.size());
 
             // match x-y clusters according to their ADC values (tracking has its own histograms for this, which is more correct)
             std::sort(x_clusters.begin(), x_clusters.end(), [&](const StripCluster &c1, const StripCluster &c2) {
@@ -181,7 +194,7 @@ namespace quality_check_histos
 
         if(!found_track) {
             histM.histo_1d<float>("h_ntracks_found") -> Fill(0);
-            histM.histo_1d<float>("h_nhits_on_best_track") -> Fill(0);
+            //histM.histo_1d<float>("h_nhits_on_best_track") -> Fill(0);
             return;
         }
 
@@ -239,6 +252,8 @@ namespace quality_check_histos
                 histM.histo_1d<float>(Form("h_yresid_gem%d_inclusive", i)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
 
                 histM.histo_2d<float>(Form("h_didhit_xy_gem%d", i)) -> Fill(real_hits[hitid].x, real_hits[hitid].y);
+		histM.histo_1d<float>(Form("h_didhit_x_gem%d", i)) -> Fill(real_hits[hitid].x);
+		histM.histo_1d<float>(Form("h_didhit_y_gem%d", i)) -> Fill(real_hits[hitid].y);
             }
 
             for(auto &h: fitted_hits) {
@@ -278,7 +293,10 @@ namespace quality_check_histos
                 histM.histo_1d<float>(Form("h_yresid_gem%d_exclusive", _layer)) -> Fill(y_exclusive_d);
             }
         }
+    }
 
+    void generate_tracking_based_2d_efficiency_plots()
+    {
         // generate gem tracking based efficiency plots
         for(int i=0; i<NDetector_Implemented; i++)
         {

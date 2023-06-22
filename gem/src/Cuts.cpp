@@ -29,9 +29,14 @@ void Cuts::SetFile(const char* _path)
     path = _path;
 }
 
-void Cuts::Init(const char* path)
+void Cuts::Init()
 {
-    SetFile(path);
+    txt_parser.Configure("config/gem.conf");
+    std::string path = txt_parser.Value<std::string>("GEM Tracking Config");
+
+    std::cout<<"loading tracking config from : "<<path<<std::endl;
+ 
+    SetFile(path.c_str());
     LoadFile();
 
     __convert_map();

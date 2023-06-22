@@ -125,7 +125,7 @@ void Viewer::OpenFile()
             this,
             "Open Document",
             //QDir::currentPath(),
-            "/home/xinzhan/evio_data/fermilab_test/",
+            "/home/daq/coda/data/",
             "All files (*.*) ;; evio files (*.evio)");
 
     evio_file = filename.toStdString();
@@ -165,10 +165,10 @@ void Viewer::GenerateToyTrackEvent()
     dir = dir.unit();
 
     // 0, 2, -1, 3
-    static double x_correct[4] = {0, 0, 0, 0};
-    static double y_correct[4] = {0, 0, 0, 0};
-    //static double x_correct[4] = {-0.1, 1.3, -2.3, 1.1};
-    //static double y_correct[4] = {-0.1, 1.3, -2.3, 1.1};
+    //static double x_correct[4] = {0, 0, 0, 0};
+    //static double y_correct[4] = {0, 0, 0, 0};
+    static double x_correct[4] = {-0.1, 1.3, -2.3, 1.1};
+    static double y_correct[4] = {-0.1, 1.3, -2.3, 1.1};
 
     for(int i=0; i<NDetector_Implemented; i++)
     {
@@ -356,6 +356,7 @@ void Viewer::Replay50K()
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::duration<float> fsec;
     auto t0 = Time::now();
+    auto t1 = t0;
 
     int event_counter = 0;
 
@@ -363,10 +364,15 @@ void Viewer::Replay50K()
     tracking_data_handler -> SetReplayMode(true);
 #endif
 
-    while(event_counter++ < 1000000)
+    while(event_counter++ < 50000)
     {
-        if(event_counter % 1000 == 0)
-            std::cout<<"\r"<<event_counter<<std::flush;
+	if(event_counter % 1000 == 0) {
+            t1 = Time::now();
+	    fsec fs_ = t1 - t0;
+
+	    std::cout<<"\r"<<event_counter<<" time used: "<<fs_.count() <<" s"<<std::flush;
+	    t0 = t1;
+	}
 
 #ifdef USE_SIM_DATA
         ClearPrevEvent();
@@ -383,7 +389,7 @@ void Viewer::Replay50K()
     }
 
     std::cout<<std::endl<<"50K finished. Total time used: ";
-    auto t1 = Time::now();
+    t1 = Time::now();
     fsec fs = t1 - t0;
     std::cout << fs.count() << " s\n";
 

@@ -6,20 +6,21 @@
 #include <vector>
 
 #include "ValueType.h"
+#include "ConfigObject.h"
 
 struct StripHit;
 struct StripCluster;
 
-class Cuts
+class Cuts : public ConfigObject
 {
     public:
-        Cuts(){Init("config/gem_tracking.conf");}
+        Cuts(){Init();}
         ~Cuts();
 
         // members
         void SetFile(const char* path);
         void LoadFile();
-        void Init(const char* path);
+        void Init();
         void Print();
 
     private:
@@ -109,6 +110,8 @@ class Cuts
         std::string path;
 
         std::string tokens = " ,;:@()\'\"\r";
+
+	ConfigObject txt_parser;
 
         // normal entries
         std::unordered_map<std::string, std::vector<std::string>> m_cache;
