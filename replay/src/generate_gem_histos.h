@@ -264,6 +264,7 @@ namespace quality_check_histos
         // get exclusive residue
         const std::vector<tracking_dev::point_t> &hits_on_best_track = tracking -> GetVHitsOnBestTrack();
         size_t n_total_hits_on_best_track = hits_on_best_track.size();
+        // exclusive fitting must has minimum 4 (3 without current layer)
         if( ((int)n_total_hits_on_best_track - 1 ) >= 3) 
         {
             for(size_t _ihit = 0; _ihit<hits_on_best_track.size(); _ihit++)
@@ -291,6 +292,16 @@ namespace quality_check_histos
                 double y_exclusive_d = _p.y - hits_on_best_track[_ihit].y;
                 histM.histo_1d<float>(Form("h_xresid_gem%d_exclusive", _layer)) -> Fill(x_exclusive_d);
                 histM.histo_1d<float>(Form("h_yresid_gem%d_exclusive", _layer)) -> Fill(y_exclusive_d);
+
+                // get residue vs x/y position 2d plots
+                histM.histo_2d<float>(Form("h_xresid_x_did_hit_gem%d_exclusive", _layer)) -> Fill(hits_on_best_track[_ihit].x, x_exclusive_d);
+                histM.histo_2d<float>(Form("h_xresid_y_did_hit_gem%d_exclusive", _layer)) -> Fill(hits_on_best_track[_ihit].y, x_exclusive_d);
+                histM.histo_2d<float>(Form("h_xresid_x_should_hit_gem%d_exclusive", _layer)) -> Fill(_p.x, x_exclusive_d);
+                histM.histo_2d<float>(Form("h_xresid_y_should_hit_gem%d_exclusive", _layer)) -> Fill(_p.y, x_exclusive_d);
+                histM.histo_2d<float>(Form("h_yresid_x_did_hit_gem%d_exclusive", _layer)) -> Fill(hits_on_best_track[_ihit].x, y_exclusive_d);
+                histM.histo_2d<float>(Form("h_yresid_y_did_hit_gem%d_exclusive", _layer)) -> Fill(hits_on_best_track[_ihit].y, y_exclusive_d);
+                histM.histo_2d<float>(Form("h_yresid_x_should_hit_gem%d_exclusive", _layer)) -> Fill(_p.x, y_exclusive_d);
+                histM.histo_2d<float>(Form("h_yresid_y_should_hit_gem%d_exclusive", _layer)) -> Fill(_p.y, y_exclusive_d);
             }
         }
     }
