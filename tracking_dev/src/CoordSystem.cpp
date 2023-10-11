@@ -56,16 +56,26 @@ namespace tracking_dev {
 
     void CoordSystem::Rotate(point_t & p, const point_t &rot)
     {
-        // Rxyz = RxRyRz
-        double cx = std::cos(rot.x), sx = std::sin(rot.x);
-        double cy = std::cos(rot.y), sy = std::sin(rot.y);
-        double cz = std::cos(rot.z), sz = std::sin(rot.z);
+        // refer to: https://en.wikipedia.org/wiki/Rotation_matrix
+        // R = RzRyRx
+        double c_gamma = std::cos(rot.x), s_gamma = std::sin(rot.x);
+        double c_beta = std::cos(rot.y), s_beta = std::sin(rot.y);
+        double c_alpha = std::cos(rot.z), s_alpha = std::sin(rot.z);
 
-        double x = cy*cz*p.x - cy*sz*p.y + sy*p.z;
-        double y = (cx*sz + sx*sy*cz)*p.x + (cx*cz - sx*sy*sz)*p.y - sx*cy*p.z;
-        double z = (sx*sz - cx*sy*cz)*p.x + (sx*cz + cx*sy*sz)*p.y + cx*cy*p.z;
+        double local_z = 0.; // rotation is in gem local coordinates
+        double x = (c_beta*c_gamma) * p.x +
+                   (s_alpha*s_beta*c_gamma - c_alpha*s_gamma) * p.y +
+                   (c_alpha*s_beta*c_gamma + s_alpha*s_gamma) * local_z;
 
-        p.x = x; p.y = y; p.z = z;
+        double y = (c_beta*s_gamma) * p.x +
+                   (s_alpha*s_beta*s_gamma + c_alpha*c_gamma) * p.y +
+                   (c_alpha*s_beta*s_gamma - s_alpha*c_gamma) * local_z;
+
+        double z = (-s_beta) * p.x +
+                   (c_beta*s_gamma) * p.y +
+                   (c_beta*c_gamma) * local_z;
+
+        p.x = x; p.y = y; p.z = z + p.z;
     }
 
     void CoordSystem::Translate(point_t &p, const point_t &t)
