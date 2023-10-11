@@ -112,7 +112,7 @@ public:
     const std::unordered_map<APVAddress, std::vector<int>> &
         GetAPV() const;
 
-    const std::unordered_map<APVAddress, uint32_t> &
+    const std::unordered_map<APVAddress, APVDataType> &
         GetAPVDataFlags() const;
 
     const std::unordered_map<APVAddress, std::vector<int>> &
@@ -141,8 +141,8 @@ private:
 
     // apv data flags
     // flags for common mode online done, zero suppression online done
-    uint32_t flags = 0;
-    std::unordered_map<APVAddress, uint32_t> mAPVDataFlags;
+    APVDataType flags;
+    std::unordered_map<APVAddress, APVDataType> mAPVDataFlags;
     std::unordered_map<MPDAddress, uint32_t> mMPDTiming;
 
     // online-calculated common mode

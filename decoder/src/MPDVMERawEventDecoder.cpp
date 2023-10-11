@@ -146,7 +146,7 @@ const std::unordered_map<APVAddress, std::vector<int>> & MPDVMERawEventDecoder::
 ////////////////////////////////////////////////////////////////
 // get decoded apv data flags
 
-const std::unordered_map<APVAddress, uint32_t> & MPDVMERawEventDecoder::GetAPVDataFlags() 
+const std::unordered_map<APVAddress, APVDataType> & MPDVMERawEventDecoder::GetAPVDataFlags() 
     const
 {
     return mAPVDataFlags;
