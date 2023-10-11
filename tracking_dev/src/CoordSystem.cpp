@@ -51,6 +51,9 @@ namespace tracking_dev {
                     i.second.position.at(2)
                     );
             position_gem[layer] = pos;
+
+            // is in tracker system or not
+            tracker_config_gem[layer] = i.second.is_tracker;
         }
     }
 

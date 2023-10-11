@@ -25,6 +25,7 @@ namespace tracking_dev
         point_t GetLayerTiltAngle(int i){return angle_gem.at(i);}
         point_t GetLayerPosition(int i){return position_gem.at(i);}
         point_t GetLayerDimension(int i){return dimension_gem.at(i);}
+        bool IsInTrackerSystem(int i){return tracker_config_gem.at(i);}
         Cuts* GetCutsHandle(){return gem_cuts;}
 
     private:
@@ -34,6 +35,7 @@ namespace tracking_dev
         std::unordered_map<int, point_t> angle_gem;
         std::unordered_map<int, point_t> position_gem;
         std::unordered_map<int, point_t> dimension_gem;
+        std::unordered_map<int, bool> tracker_config_gem;
     };
 };
 

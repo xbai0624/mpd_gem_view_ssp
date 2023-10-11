@@ -1,8 +1,6 @@
 viewer
 Makefile
 
-Rootfiles/
-
 gem/obj/
 gem/moc/
 gem/lib/

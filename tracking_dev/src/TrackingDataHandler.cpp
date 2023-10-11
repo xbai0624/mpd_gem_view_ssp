@@ -22,20 +22,20 @@ namespace tracking_dev
         }
 
         if(gem_sys == nullptr)
-	{
+        {
             gem_sys = new GEMSystem();
             gem_sys -> Configure("config/gem.conf");
         } else {
-	    std::cout<<"INFO::: gem_sys is external in TrackingDataHandler Init()"<<std::endl;
-	}
+            std::cout<<"INFO::: gem_sys is external in TrackingDataHandler Init()"<<std::endl;
+        }
 
         if(data_handler == nullptr)
-	{
+        {
             data_handler = new GEMDataHandler();
             data_handler -> SetGEMSystem(gem_sys);
         } else {
-	    std::cout<<"INFO::: gem_data_handler is external in TrackingDataHandler Init()"<<std::endl;
-	}
+            std::cout<<"INFO::: gem_data_handler is external in TrackingDataHandler Init()"<<std::endl;
+        }
 
         pedestal_file = txt_parser.Value<std::string>("GEM Pedestal");
         common_mode_file = txt_parser.Value<std::string>("GEM Common Mode");
@@ -60,7 +60,7 @@ namespace tracking_dev
         unsigned int nDET = detector_list.size();
         for(unsigned int i=0; i<nDET; i++)
         {
-	    if(fDet[i]!=nullptr)
+            if(fDet[i]!=nullptr)
                 fDet[i] -> Reset();
         }
     }
@@ -89,8 +89,11 @@ namespace tracking_dev
             fDet[i] -> SetGridShift(s);
 
             fDet[i] -> SetDimension(dimension);
+            fDet[i] -> SetLayerID(i);
 
-            tracking -> AddDetector(i, fDet[i]);
+            bool is_tracker = coord_system -> IsInTrackerSystem(i);
+            if(is_tracker)
+                tracking -> AddDetector(i, fDet[i]);
         }
 
         tracking -> CompleteSetup();
@@ -147,9 +150,12 @@ namespace tracking_dev
         const std::vector<GEMHit> & detector_2d_hits = gem_det -> GetHits();
         int layer = gem_det -> GetLayerID();
 
-	// if this gem is not part of the tracking system, then skip its data
-	if(!gem_cuts -> is_tracking_layer(layer))
-	    return;
+        // if this gem is not part of the tracking system, then skip its data
+        // xinzhan: instead of skip its data, if this gem is not part of the tracking system
+        //          then it won't be passed to Tracking handle, so it is fine to add back the
+        //          data in here (we need its data for tracker based residue distribution study)
+        //if(!gem_cuts -> is_tracking_layer(layer))
+        //    return;
 
         double z_det = det -> GetZPosition();
         det -> Reset();

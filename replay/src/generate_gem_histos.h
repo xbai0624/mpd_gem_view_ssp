@@ -98,13 +98,13 @@ namespace quality_check_histos
     void raw_histos(int event_number)
     {
         // get all detectors
-	if(!gem_sys) {
-		std::cout<<"Null gem_sys"<<std::endl;
-	}
+        if(!gem_sys) {
+            std::cout<<"Null gem_sys"<<std::endl;
+        }
         std::vector<GEMDetector*> detectors = gem_sys -> GetDetectorList();
 
-	// event number
-	histM.histo_1d<float>("h_event_number") -> Fill((float)event_number);
+        // event number
+        histM.histo_1d<float>("h_event_number") -> Fill((float)event_number);
 
         // loop through all detectors
         for(auto &det: detectors)
@@ -148,11 +148,11 @@ namespace quality_check_histos
             std::vector<StripCluster> x_clusters = x_strip_cluster_;
             std::vector<StripCluster> y_clusters = y_strip_cluster_;
 
-	    // cluster multiplicity
-	    if(x_strip_cluster_.size() > 0)
-	    histM.histo_1d<float>(Form("h_raw_x_cluster_multiplicity_layer%d", layer)) -> Fill(x_strip_cluster_.size());
-	    if(y_strip_cluster_.size() > 0)
-	    histM.histo_1d<float>(Form("h_raw_y_cluster_multiplicity_layer%d", layer)) -> Fill(y_strip_cluster_.size());
+            // cluster multiplicity
+            if(x_strip_cluster_.size() > 0)
+                histM.histo_1d<float>(Form("h_raw_x_cluster_multiplicity_layer%d", layer)) -> Fill(x_strip_cluster_.size());
+            if(y_strip_cluster_.size() > 0)
+                histM.histo_1d<float>(Form("h_raw_y_cluster_multiplicity_layer%d", layer)) -> Fill(y_strip_cluster_.size());
 
             // match x-y clusters according to their ADC values (tracking has its own histograms for this, which is more correct)
             std::sort(x_clusters.begin(), x_clusters.end(), [&](const StripCluster &c1, const StripCluster &c2) {
@@ -211,6 +211,7 @@ namespace quality_check_histos
         tracking_dev::point_t pt(xt, yt, 0);
         tracking_dev::point_t dir(xp, yp, 1.);
 
+        // part 1)
         // get inclusive residue
         const std::vector<int> & layer_index = tracking -> GetBestTrackLayerIndex();
         const std::vector<int> & hit_index = tracking -> GetBestTrackHitIndex();
@@ -252,8 +253,8 @@ namespace quality_check_histos
                 histM.histo_1d<float>(Form("h_yresid_gem%d_inclusive", i)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
 
                 histM.histo_2d<float>(Form("h_didhit_xy_gem%d", i)) -> Fill(real_hits[hitid].x, real_hits[hitid].y);
-		histM.histo_1d<float>(Form("h_didhit_x_gem%d", i)) -> Fill(real_hits[hitid].x);
-		histM.histo_1d<float>(Form("h_didhit_y_gem%d", i)) -> Fill(real_hits[hitid].y);
+                histM.histo_1d<float>(Form("h_didhit_x_gem%d", i)) -> Fill(real_hits[hitid].x);
+                histM.histo_1d<float>(Form("h_didhit_y_gem%d", i)) -> Fill(real_hits[hitid].y);
             }
 
             for(auto &h: fitted_hits) {
@@ -261,7 +262,8 @@ namespace quality_check_histos
             }
         }
 
-        // get exclusive residue
+        // part 2)
+        // get exclusive residue plots
         const std::vector<tracking_dev::point_t> &hits_on_best_track = tracking -> GetVHitsOnBestTrack();
         size_t n_total_hits_on_best_track = hits_on_best_track.size();
         // exclusive fitting must has minimum 4 (3 without current layer)
@@ -302,6 +304,54 @@ namespace quality_check_histos
                 histM.histo_2d<float>(Form("h_yresid_y_did_hit_gem%d_exclusive", _layer)) -> Fill(hits_on_best_track[_ihit].y, y_exclusive_d);
                 histM.histo_2d<float>(Form("h_yresid_x_should_hit_gem%d_exclusive", _layer)) -> Fill(_p.x, y_exclusive_d);
                 histM.histo_2d<float>(Form("h_yresid_y_should_hit_gem%d_exclusive", _layer)) -> Fill(_p.y, y_exclusive_d);
+            }
+        }
+
+        // part 3)
+        // get tracker-only based residue plots (in case you have non-tracker and tracker chambers)
+        // ---- tracks are fitted using trackers only
+        // ---- use the best track, project to non-tracker chambers, and find the residues,
+        // ---- we will use the closest detected 2D hits on non-tracker chambers
+        // ---- we will search the entire chamber for the closest hit
+        //
+        // if you don't separate chambers into trackers and non-trackers,
+        // then these plots will be equivalent to inclusive residue plots
+        if(found_track) {
+            for(auto &det: fDet) {
+                // look for the closest 2d hit
+                size_t total_2d_hits = det -> Get2DHitCounts();
+
+                // since each 2D hit might have different z position due to rotation
+                // so we have to do the projection point by point
+                double r = 99999999;
+                double xresidue = r, yresidue = r, x_did_hit = r, y_did_hit = r;
+                for(size_t i=0; i<total_2d_hits; i++) {
+                    tracking_dev::point_t p_i  = det -> Get2DHit(i);
+                    tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, p_i.z);
+
+                    tracking_dev::point_t p_diff = p_i - p;
+                    double distance = p_diff.mod();
+
+                    if(distance < r) {
+                        r = distance;
+                        xresidue = p_diff.x;
+                        yresidue = p_diff.y;
+                        x_did_hit = p_i.x;
+                        y_did_hit = p_i.y;
+                    }
+                }
+
+                int _layer = det -> GetLayerID();
+                if( r < 99999999 )
+                {
+                    histM.histo_1d<float>(Form("h_xresidue_gem%d_tracker_exclusive", _layer)) -> Fill(xresidue);
+                    histM.histo_1d<float>(Form("h_yresidue_gem%d_tracker_exclusive", _layer)) -> Fill(yresidue);
+ 
+                    histM.histo_2d<float>(Form("h_xresidue_x_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(x_did_hit, xresidue);
+                    histM.histo_2d<float>(Form("h_xresidue_y_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(y_did_hit, xresidue);
+                    histM.histo_2d<float>(Form("h_yresidue_x_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(x_did_hit, yresidue);
+                    histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(y_did_hit, yresidue);
+                }
             }
         }
     }
@@ -366,7 +416,6 @@ namespace quality_check_histos
         }
         return res;
     };
-
 }
 
 #endif
