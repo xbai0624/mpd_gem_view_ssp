@@ -141,7 +141,7 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
         if(m_layer_didhits_tracker_based.find(i.first) != m_layer_didhits_tracker_based.end())
             eff = m_layer_didhits_tracker_based[i.first]/i.second;
         string tracker_based_eff = Form("layer %d, tracker based efficiency = %.2f", i.first, eff);
-        latex.DrawLatex(0.1, 0.85 - .05*_c, tracking_eff.c_str());
+        latex.DrawLatex(0.1, 0.85 - .05*_c, tracker_based_eff.c_str());
         _c++;
     }
 
