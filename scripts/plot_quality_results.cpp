@@ -24,6 +24,10 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     map<int, int> m_layer_x_nhits, m_layer_y_nhits;
     int total_tracks = 0;
     map<int, int> m_layer_didhits;
+
+    map<int, int> m_layer_didhits_tracker_based;
+    map<int, int> m_layer_shouldhits_tracker_based;
+
     while( (key = (TKey*)keyList()) )
     {
         TClass *cl = gROOT -> GetClass(key -> GetClassName());
@@ -41,40 +45,56 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
         h -> Draw("colz");
 
         // calculate multiplicity based gem efficiency
-	string h_name = h->GetName();
-	if(h_name == "h_event_number") {
-	    total_triggers = h -> GetEntries();
-	}
-	else if(h_name.find("cluster_multiplicity") != string::npos)
-	{
-	    // h_raw_x_cluster_multiplicity_layer${NGEM}
-	    if(h_name.find("x") != string::npos) {
-		char s_layer = h_name.back();
-		int layer = s_layer - '0';
+        string h_name = h->GetName();
+        if(h_name == "h_event_number") {
+            total_triggers = h -> GetEntries();
+        }
+        else if(h_name.find("cluster_multiplicity") != string::npos)
+        {
+            // h_raw_x_cluster_multiplicity_layer${NGEM}
+            if(h_name.find("x") != string::npos) {
+                char s_layer = h_name.back();
+                int layer = s_layer - '0';
 
-		m_layer_x_nhits[layer] = h -> GetEntries();
-	    }
-	    else if(h_name.find("y") != string::npos) {
-		char s_layer = h_name.back();
-		int layer = s_layer - '0';
+                m_layer_x_nhits[layer] = h -> GetEntries();
+            }
+            else if(h_name.find("y") != string::npos) {
+                char s_layer = h_name.back();
+                int layer = s_layer - '0';
 
-		m_layer_y_nhits[layer] = h -> GetEntries();
-	    }
-	}
+                m_layer_y_nhits[layer] = h -> GetEntries();
+            }
+        }
 
-	// calculate tracking based gem efficiency
-	else if(h_name.find("h_didhit_xy")!=string::npos)
-	{
-	    // h_didhit_xy_gem0
-	    char s_layer = h_name.back();
-	    int layer = s_layer - '0';
-	    m_layer_didhits[layer] = h -> GetEntries();
-	}
-	else if(h_name.find("h_shouldhit_xy")!=string::npos)
-	{
-	    total_tracks = h -> GetEntries();
-	}
+        // calculate tracking based gem efficiency
+        else if(h_name.find("h_didhit_xy")!=string::npos)
+        {
+            // h_didhit_xy_gem0
+            char s_layer = h_name.back();
+            int layer = s_layer - '0';
+            m_layer_didhits[layer] = h -> GetEntries();
+        }
+        else if(h_name.find("h_shouldhit_xy")!=string::npos)
+        {
+            total_tracks = h -> GetEntries();
+        }
 
+        // calculate tracker-chamber-based gem efficiency
+        else if(h_name.find("h_xshould_hit_tracker_based") != string::npos)
+        {
+            // h_shouldhit_tracker_based_gem0
+            char s_layer = h_name.back();
+            int layer = s_layer - '0';
+            m_layer_shouldhits_tracker_based[layer] = h -> GetEntries();
+        }
+        else if(h_name.find("h_xdid_hit_tracker_based") != string::npos)
+        {
+            // h_didhit_tracker_based_gem0
+            char s_layer = h_name.back();
+            int layer = s_layer - '0';
+            m_layer_didhits_tracker_based[layer] = h -> GetEntries();
+        }
+ 
         counter++;
     }
     cout<<"total histograms: "<<counter<<endl;
@@ -86,16 +106,16 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     int _c = 1;
     latex.DrawLatex(0.05, 0.9, "cluster-multiplicity-based detector efficiency:");
     for(auto &i: m_layer_x_nhits) {
-	string x_str_eff = Form("x axis effciency:(counts=%d/triggers=%d): layer = %d, eff = %.2f",
-	    i.second, total_triggers, i.first, (float)i.second / (float)total_triggers );
-	latex.DrawLatex(0.1, 0.85 - .05*_c, x_str_eff.c_str());
-	_c++;
+        string x_str_eff = Form("x axis effciency:(counts=%d/triggers=%d): layer = %d, eff = %.2f",
+                i.second, total_triggers, i.first, (float)i.second / (float)total_triggers );
+        latex.DrawLatex(0.1, 0.85 - .05*_c, x_str_eff.c_str());
+        _c++;
     }
     for(auto &i: m_layer_y_nhits) {
-	string y_str_eff = Form("y axis effciency:(counts=%d/triggers=%d): layer = %d, eff = %.2f",
-	    i.second, total_triggers, i.first, (float)i.second / (float)total_triggers );
-	latex.DrawLatex(0.1, 0.75 - .05*_c, y_str_eff.c_str());
-	_c++;
+        string y_str_eff = Form("y axis effciency:(counts=%d/triggers=%d): layer = %d, eff = %.2f",
+                i.second, total_triggers, i.first, (float)i.second / (float)total_triggers );
+        latex.DrawLatex(0.1, 0.75 - .05*_c, y_str_eff.c_str());
+        _c++;
     }
 
     // calculate tracking based efficiency
@@ -104,12 +124,26 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     latex.DrawLatex(0.05, 0.9, "tracking-based detector efficiency:");
     for(auto &i: m_layer_didhits)
     {
-	string tracking_eff = Form("Layer %d Efficiency (detected_2d_hits=%d/total_tracks=%d) : %.2f", i.first, i.second, total_tracks, (float)i.second/(float)total_tracks);
-	latex.DrawLatex(0.1, 0.85 - .05*_c, tracking_eff.c_str());
-	_c++;
+        string tracking_eff = Form("Layer %d Efficiency (detected_2d_hits=%d/total_tracks=%d) : %.2f", i.first, i.second, total_tracks, (float)i.second/(float)total_tracks);
+        latex.DrawLatex(0.1, 0.85 - .05*_c, tracking_eff.c_str());
+        _c++;
     }
     string tracking_eff = Form("Overall system tracking efficiency (total_tracks=%d/total_triggers=%d): %.2f", total_tracks, total_triggers, (float)total_tracks/(float)total_triggers);
     latex.DrawLatex(0.1, 0.65-0.05*_c, tracking_eff.c_str());
+
+    // calculate tracker-chamber-based efficiency
+    TCanvas *c_tracker_based_eff = new TCanvas("c_tracker_based_eff", "efficiency tracker based", 1200, 1000);
+    latex.DrawLatex(0.05, 0.9, "tracker-chamber-based detector efficiency:");
+    _c = 1;
+    for(auto &i: m_layer_shouldhits_tracker_based)
+    {
+        double eff = 0;
+        if(m_layer_didhits_tracker_based.find(i.first) != m_layer_didhits_tracker_based.end())
+            eff = m_layer_didhits_tracker_based[i.first]/i.second;
+        string tracker_based_eff = Form("layer %d, tracker based efficiency = %.2f", i.first, eff);
+        latex.DrawLatex(0.1, 0.85 - .05*_c, tracking_eff.c_str());
+        _c++;
+    }
 
     // save to pdf
     string ofile;
@@ -129,6 +163,8 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     }
     // tracking based efficiency
     c_tracking_eff -> Print(ofile.c_str());
+    // tracker-chamber-based efficiency
+    c_tracker_based_eff -> Print(ofile.c_str());
 
     vCanvas[0] -> Print(ofile.c_str());
 

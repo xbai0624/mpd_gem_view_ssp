@@ -325,11 +325,12 @@ namespace quality_check_histos
                 // so we have to do the projection point by point
                 double r = 99999999;
                 double xresidue = r, yresidue = r, x_did_hit = r, y_did_hit = r;
+
                 for(size_t i=0; i<total_2d_hits; i++) {
                     tracking_dev::point_t p_i  = det -> Get2DHit(i);
                     tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, p_i.z);
-
                     tracking_dev::point_t p_diff = p_i - p;
+
                     double distance = p_diff.mod();
 
                     if(distance < r) {
@@ -342,15 +343,26 @@ namespace quality_check_histos
                 }
 
                 int _layer = det -> GetLayerID();
+
+                // 1d should hit -tracker based histograms
+                double z_gem = det -> GetOrigin().z;
+                tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, z_gem);
+                histM.histo_1d<float>(Form("h_xshould_hit_gem%d_tracker_based", _layer)) -> Fill(p.x);
+                histM.histo_1d<float>(Form("h_yshould_hit_gem%d_tracker_based", _layer)) -> Fill(p.y);
+
                 if( r < 99999999 )
                 {
                     histM.histo_1d<float>(Form("h_xresidue_gem%d_tracker_exclusive", _layer)) -> Fill(xresidue);
                     histM.histo_1d<float>(Form("h_yresidue_gem%d_tracker_exclusive", _layer)) -> Fill(yresidue);
- 
+
                     histM.histo_2d<float>(Form("h_xresidue_x_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(x_did_hit, xresidue);
                     histM.histo_2d<float>(Form("h_xresidue_y_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(y_did_hit, xresidue);
                     histM.histo_2d<float>(Form("h_yresidue_x_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(x_did_hit, yresidue);
                     histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(y_did_hit, yresidue);
+
+                    // 1d did hit -tracker based histograms
+                    histM.histo_1d<float>(Form("h_xdid_hit_gem%d_tracker_based", _layer)) -> Fill(x_did_hit);
+                    histM.histo_1d<float>(Form("h_ydid_hit_gem%d_tracker_based", _layer)) -> Fill(y_did_hit);
                 }
             }
         }
