@@ -347,8 +347,8 @@ namespace quality_check_histos
                 // 1d should hit -tracker based histograms
                 double z_gem = det -> GetOrigin().z;
                 tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, z_gem);
-                histM.histo_1d<float>(Form("h_xshould_hit_gem%d_tracker_based", _layer)) -> Fill(p.x);
-                histM.histo_1d<float>(Form("h_yshould_hit_gem%d_tracker_based", _layer)) -> Fill(p.y);
+                histM.histo_1d<float>(Form("h_xshould_hit_tracker_based_gem%d", _layer)) -> Fill(p.x);
+                histM.histo_1d<float>(Form("h_yshould_hit_tracker_based_gem%d", _layer)) -> Fill(p.y);
 
                 if( r < 99999999 )
                 {
@@ -361,8 +361,8 @@ namespace quality_check_histos
                     histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _layer)) -> Fill(y_did_hit, yresidue);
 
                     // 1d did hit -tracker based histograms
-                    histM.histo_1d<float>(Form("h_xdid_hit_gem%d_tracker_based", _layer)) -> Fill(x_did_hit);
-                    histM.histo_1d<float>(Form("h_ydid_hit_gem%d_tracker_based", _layer)) -> Fill(y_did_hit);
+                    histM.histo_1d<float>(Form("h_xdid_hit_tracker_based_gem%d", _layer)) -> Fill(x_did_hit);
+                    histM.histo_1d<float>(Form("h_ydid_hit_tracker_based_gem%d", _layer)) -> Fill(y_did_hit);
                 }
             }
         }
