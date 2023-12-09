@@ -57,6 +57,7 @@ public:
     const std::vector<int> & GetAllHitModule() const {return v_hit_module;}
 
     TrackingUtility* GetTrackingUtility() {return tracking_utility;}
+    Cuts* GetTrackingCuts(){return tracking_cuts;}
 
 private:
     void initHitStatus();

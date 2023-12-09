@@ -178,6 +178,13 @@ prjected target range = 9999, 9999, 9999
 # None
 
 ###############################################################################
+#        cluster search radius relative to track projected point              #
+#        this is for tracker-only based efficiency and resolution study       #
+###############################################################################
+# units in mm
+effective search radius = 10
+
+###############################################################################
 #                       DAQ cuts -- not used for now                          #
 ###############################################################################
 default apv zero suppression threshold = 5
