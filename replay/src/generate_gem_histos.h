@@ -10,9 +10,11 @@
 #include "tracking_struct.h"
 #include "Tracking.h"
 #include <vector>
+#include <utility>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TMath.h>
 
 namespace quality_check_histos
 {
@@ -39,6 +41,7 @@ namespace quality_check_histos
     // helpers
     float get_strip_mean_time(const StripHit &h);
     float get_seed_strip_mean_time(const StripCluster &c);
+    std::pair<double, double> convert_uv_to_xy_moller(const double &u, const double &v);
 };
 
 #endif
@@ -162,11 +165,18 @@ namespace quality_check_histos
                     return c1.peak_charge > c2.peak_charge;
                     });
             size_t c_s = x_clusters.size() < y_clusters.size() ? x_clusters.size() : y_clusters.size();
+
             for(size_t i=0; i<c_s; i++) {
                 histM.histo_2d<float>(Form("h_raw_charge_correlation_layer%d", layer)) -> Fill(x_clusters[i].peak_charge, y_clusters[i].peak_charge);
                 histM.histo_2d<float>(Form("h_raw_size_correlation_layer%d", layer)) -> Fill(x_clusters[i].hits.size(), y_clusters[i].hits.size());
-                histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(x_clusters[i].position, y_clusters[i].position);
                 histM.histo_2d<float>(Form("h_raw_seed_strip_mean_time_corr_layer%d", layer)) -> Fill(get_seed_strip_mean_time(x_clusters[i]), get_seed_strip_mean_time(y_clusters[i]));
+
+                if(det->GetType() == "MOLLERGEM") {
+                    auto p2d = convert_uv_to_xy_moller(x_clusters[i].position, y_clusters[i].position);
+                    histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(p2d.first, p2d.second);
+                }
+                else
+                    histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(x_clusters[i].position, y_clusters[i].position);
             }
             // x side clusters
             for(auto &i: x_clusters) {
@@ -436,6 +446,20 @@ namespace quality_check_histos
         }
         return res;
     };
+
+    std::pair<double, double> convert_uv_to_xy_moller(const double &_u, const double &_v)
+    {
+        // moller strip angle is 26.5 degree
+        double angle = 26.5 * 3.1415926 / 180.;
+        double u = _u, v = _v;
+
+        u += 20;
+        v -= 406 * TMath::Sin(angle / 2.);
+        double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
+        double x = 0.5 * ( u + v);
+
+        return std::make_pair(x, y);
+    }
 }
 
 #endif
