@@ -170,14 +170,14 @@ void GEMDetector::SetGEMLayer(GEMDetectorLayer *l)
 ////////////////////////////////////////////////////////////////////////////////
 // add plane to the detector
 
-bool GEMDetector::AddPlane(const int &type,
+bool GEMDetector::AddPlane(const int &plane_type,
                            const std::string &name,
                            const double &size,
                            const int &conn,
                            const int &ori,
                            const int &dir)
 {
-    GEMPlane *new_plane = new GEMPlane(name, type, size, conn, ori, dir);
+    GEMPlane *new_plane = new GEMPlane(name, plane_type, size, conn, ori, dir);
 
     // successfully added plane in
     if(AddPlane(new_plane))
@@ -214,7 +214,7 @@ bool GEMDetector::AddPlane(GEMPlane *plane)
         // Do not use this error message, because this AddPlane() operation will be called
         //      for each APV, we are now using a different mapping file mechanism
         //std::cerr << " GEM Detector Error: "
-        //          << "Trying to add multiple planes with the same type " << idx
+        //          << "Trying to add multiple planes with the same plane type " << idx
         //          << "to detector " << det_name << ". Action aborted."
         //          << std::endl;
         return false;
@@ -228,12 +228,12 @@ bool GEMDetector::AddPlane(GEMPlane *plane)
 ////////////////////////////////////////////////////////////////////////////////
 // remove plane
 
-void GEMDetector::RemovePlane(const int &type)
+void GEMDetector::RemovePlane(const int &plane_type)
 {
-    if((uint32_t)type >= planes.size())
+    if((uint32_t)plane_type >= planes.size())
         return;
 
-    auto &plane = planes[type];
+    auto &plane = planes[plane_type];
 
     if(plane) {
         plane->UnsetDetector(true);
@@ -244,12 +244,12 @@ void GEMDetector::RemovePlane(const int &type)
 ////////////////////////////////////////////////////////////////////////////////
 // remove plane
 
-void GEMDetector::DisconnectPlane(const int &type, bool force_disconn)
+void GEMDetector::DisconnectPlane(const int &plane_type, bool force_disconn)
 {
-    if((uint32_t)type >= planes.size())
+    if((uint32_t)plane_type >= planes.size())
         return;
 
-    auto &plane = planes[type];
+    auto &plane = planes[plane_type];
 
     if(!plane)
         return;
@@ -336,10 +336,10 @@ void GEMDetector::Reset()
 ////////////////////////////////////////////////////////////////////////////////
 // get plane
 
-GEMPlane *GEMDetector::GetPlane(const std::string &type)
+GEMPlane *GEMDetector::GetPlane(const std::string &plane_type)
 const
 {
-    uint32_t idx = (uint32_t) GEMPlane::str2Type(type.c_str());
+    uint32_t idx = (uint32_t) GEMPlane::str2Type(plane_type.c_str());
 
     if(idx >= planes.size())
         return nullptr;
@@ -370,23 +370,23 @@ const
 ////////////////////////////////////////////////////////////////////////////////
 // get plane by type
 
-GEMPlane *GEMDetector::GetPlane(const int &type)
+GEMPlane *GEMDetector::GetPlane(const int &plane_type)
 const
 {
-    return planes[type];
+    return planes[plane_type];
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // get apv lists from a plane
 
-std::vector<GEMAPV*> GEMDetector::GetAPVList(const int &type)
+std::vector<GEMAPV*> GEMDetector::GetAPVList(const int &plane_type)
 const
 {
-    if(planes[type] == nullptr)
+    if(planes[plane_type] == nullptr)
         return std::vector<GEMAPV*>();
 
-    return planes[type]->GetAPVList();
+    return planes[plane_type]->GetAPVList();
 }
 
 

@@ -1177,9 +1177,9 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
 
     std::string det_name = layer -> GetGEMChamberType() + std::to_string(apv_entry.detector_id);
     std::string plane_name = apv_entry.plane_name;
-    int type = apv_entry.dimension; // x axis or y axis type = Plane::X or Plane::Y
-    int connector = layer -> GetNumberOfAPVsOnChamberPlane(type);
-    float pitch = layer -> GetChamberPlanePitch(type);
+    int axis = apv_entry.dimension; // x axis or y axis type = Plane::X or Plane::Y
+    int connector = layer -> GetNumberOfAPVsOnChamberPlane(axis);
+    float pitch = layer -> GetChamberPlanePitch(axis);
     float size = (double)connector * APV_STRIP_SIZE * pitch;
 
     // orient for GEM Plane is reserved for now (not used)
@@ -1189,9 +1189,9 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
     // direct means whether you want to flip direction: x = -x;
     // direct can only be 1 or -1
     // If you install GEM Layers back to back, then one layer can be set to -1
-    int direct = layer -> GetFlipByPlaneType(type);
+    int direct = layer -> GetFlipByPlaneType(axis);
 
-    if(type < 0) // did not find proper type
+    if(axis < 0) // did not find proper axis
     {
         std::cout<<"Error: Cannot find Plane Type, X palne or Y plane?"<<std::endl;
         return;
@@ -1206,7 +1206,7 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
         return;
     }
 
-    GEMPlane *new_plane = new GEMPlane(plane_name, type, size, connector, orient, direct);
+    GEMPlane *new_plane = new GEMPlane(plane_name, axis, size, connector, orient, direct);
 
     // failed to add plane, or plane has already been added
     if(!det->AddPlane(new_plane)) {

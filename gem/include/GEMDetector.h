@@ -49,10 +49,10 @@ public:
     void SetLayerPositionIndex(int i){layer_position_index = i;}
     void UnsetSystem(bool false_unset = false);
     bool AddPlane(GEMPlane *plane);
-    bool AddPlane(const int &type, const std::string &name, const double &size,
+    bool AddPlane(const int &plane_axis, const std::string &name, const double &size,
                   const int &conn, const int &ori, const int &dir);
-    void RemovePlane(const int &type);
-    void DisconnectPlane(const int &type, bool false_disconn = false);
+    void RemovePlane(const int &plane_axis);
+    void DisconnectPlane(const int &plane_axis, bool false_disconn = false);
     void ConnectPlanes();
     void Reconstruct(GEMCluster *c);
     void CollectHits();
@@ -65,10 +65,10 @@ public:
     double GetResolution() const {return res;}
     const std::string &GetType() const {return type;}
     const std::string &GetReadoutBoard() const {return readout_board;}
-    GEMPlane *GetPlane(const int &type) const;
-    GEMPlane *GetPlane(const std::string &type) const;
+    GEMPlane *GetPlane(const int &plane_axis) const;
+    GEMPlane *GetPlane(const std::string &plane_axis) const;
     std::vector<GEMPlane*> GetPlaneList() const;
-    std::vector<GEMAPV*> GetAPVList(const int &type) const;
+    std::vector<GEMAPV*> GetAPVList(const int &plane_axis) const;
     std::vector<GEMHit> &GetHits() {return gem_hits;}
     const std::vector<GEMHit> &GetHits() const {return gem_hits;}
     int GetDetID() const {return det_id;}

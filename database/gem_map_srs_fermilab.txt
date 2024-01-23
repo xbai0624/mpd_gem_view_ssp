@@ -38,6 +38,7 @@ Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  2,   2,   0.4,    0.4, 1, 1
 Layer,  1,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  2,   2,   0.4,    0.4, 1, 1
 Layer,  2,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  2,   2,   0.4,    0.4, 1, 1
 Layer,  3,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  2,   2,   0.4,    0.4, 1, 1
+#Layer,  3,  1,  CARTESIAN,  0,   0,   MOLLERGEM,  2,   2,   0.4,    0.4, 1, 1
 
 
 ###############################################################

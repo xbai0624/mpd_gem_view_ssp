@@ -1268,6 +1268,8 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
 {
     StripNb result;
 
+    result.raw = ch;
+
     // convert apv internal strip channel number to sorted strip number on GEM det
     const std::string& detector_type = plane -> GetDetector() -> GetType();
     //int strip = apv_strip_mapping::mapped_strip[ch];
@@ -1275,10 +1277,33 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
 
     result.local = strip;
 
+    if(detector_type == "MOLLERGEM") {
+        // for moller gem, the first 7 unconverted raw apv channel is not connected
+        // discard them
+        if(ch < 7) {
+            result.plane = -999999;
+            return result;
+        }
+
+        // squeeze out the space taken by the first 7 channels
+        // count how many unconnected channels are in front of the 
+        // current channel after conversion, and squeeze out the space they took
+        int count = 0;
+        for(int i=0; i<7; i++) {
+            if (strip > apv_strip_mapping::mapped_strip_arr.at(detector_type)[i])
+                count++;
+        }
+        strip -= count;
+    }
+
     // calculate plane strip mapping
     // reverse strip number by orient
-    if(orient == 1)
-        strip = 127 - strip;
+    if(orient == 1) {
+        if(detector_type == "MOLLERGEM")
+            strip = 120 - strip;
+        else
+            strip = 127 - strip;
+    }
 
     // SBS GEM Coord system (standing at the front side, looking to the front side
     //        ----> Y axis
@@ -1292,11 +1317,15 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
     // one X plane covers 1/4 of the total layer length
     int N_APVS_PER_PLANE_X = GetPlane() -> GetCapacity(); // nb of apvs on one plane
 
+    int effect_apv_strip_count = APV_STRIP_SIZE;
+    if(detector_type == "MOLLERGEM")
+        effect_apv_strip_count -= 7;
+
     if(plane->GetType() == 0)
         strip = ((detector_position * N_APVS_PER_PLANE_X) + plane_index) 
-            * APV_STRIP_SIZE + strip;
+            * effect_apv_strip_count + strip;
     else
-        strip = plane_index * APV_STRIP_SIZE + strip;
+        strip = plane_index * effect_apv_strip_count + strip;
 
     result.plane = strip;
 
@@ -1575,6 +1604,13 @@ void GEMAPV::getMiddleAverage(float &average, const float *buf)
     int count = 0;
 
     std::vector<float> arr(buf, buf+APV_STRIP_SIZE);
+
+    // for Moller gem chamber, remove the first 7 (unconverted yet) channels 
+    // from common mode calculation
+    std::string chamber_type = GetPlane() -> GetDetector() -> GetType();
+    if(chamber_type == "MOLLERGEM")
+        arr.assign(buf+7, buf+APV_STRIP_SIZE);
+
     std::sort(arr.begin(), arr.end());
 
     for(uint32_t i = 40; i < APV_STRIP_SIZE-40; ++i)

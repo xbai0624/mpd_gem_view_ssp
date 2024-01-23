@@ -31,8 +31,9 @@ public:
 
     struct StripNb
     {
-        unsigned char local;
-        int plane;
+        unsigned char raw;   // before any conversion
+        unsigned char local; // after all conversions -- local to single APV
+        int plane;           // strip index entire plane-wise
     };
 
 public:

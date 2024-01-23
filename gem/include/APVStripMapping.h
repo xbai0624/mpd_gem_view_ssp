@@ -153,6 +153,7 @@ const std::unordered_map<std::string, const int* const> mapped_strip_arr = {
     {"UVAXYGEM", _mapped_strip_uva_xy},
     {"UVAUVGEM", _mapped_strip_uva_uv},
     {"INFNXYGEM", _mapped_strip_infn_xy},
+    {"MOLLERGEM", _mapped_strip_infn_xy}, // for SRS system, moller gem should use INFN XY mapping
     {"INTERNAL", _mapped_strip_apv_internal}
 };
 
