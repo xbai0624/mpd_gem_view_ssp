@@ -28,7 +28,7 @@ public:
     void DecodeFEC(unsigned int *, int &);
     void decode_impl(unsigned int *buf, int &n, std::vector<int> &apv);
     std::vector<int> cleanup_srs_apv_header_words(const std::vector<int>&,
-            const int &time_sample=6);
+            size_t &time_sample);
     void FillAPVRaw(std::vector<int> &, unsigned int);
 
     //std::unordered_map<int, std::unordered_map<int, std::vector<unsigned int>>> &GetDecoded();
@@ -54,6 +54,7 @@ private:
     int nFECID = -1;
     int nADCCh = -1;
     int APVIndex = -1;
+    size_t nTimeSample = 6;
 
     //std::unordered_map<int, std::unordered_map<int, std::vector<unsigned int>>> mAPVRawSingleEvent;
     std::unordered_map<APVAddress, std::vector<int>> mAPVRawSingleEvent;

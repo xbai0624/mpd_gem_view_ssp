@@ -124,8 +124,8 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
                 if(mAPVRawSingleEvent.find(addr) == mAPVRawSingleEvent.end())
                 {
                     //mAPVRawSingleEvent[addr] = apv;
-                    auto tmp = cleanup_srs_apv_header_words(apv);
-                    if(tmp.size() == 774)
+                    auto tmp = cleanup_srs_apv_header_words(apv, nTimeSample);
+                    if(tmp.size() == (size_t)129 * nTimeSample)
                         mAPVRawSingleEvent[addr] = tmp;
                     flags.SetAPVAddress(addr);
                     mAPVDataFlags[addr] = flags;
@@ -157,8 +157,8 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
                     if(mAPVRawSingleEvent.find(addr) == mAPVRawSingleEvent.end())
                     {
                         //mAPVRawSingleEvent[addr] = apv;
-                        auto tmp = cleanup_srs_apv_header_words(apv);
-                        if(tmp.size() == 774)
+                        auto tmp = cleanup_srs_apv_header_words(apv, nTimeSample);
+                        if(tmp.size() == (size_t)129*nTimeSample)
                             mAPVRawSingleEvent[addr] = tmp;
                         flags.SetAPVAddress(addr);
                         mAPVDataFlags[addr] = flags;
@@ -184,7 +184,7 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
 // clean up srs apv header words, make data compatible with mpd setup
 
 std::vector<int> SRSRawEventDecoder::cleanup_srs_apv_header_words(const std::vector<int> &apv,
-        const int &TimeSample)
+        size_t &TimeSample)
 {
     std::vector<int> res;
 
@@ -193,7 +193,7 @@ std::vector<int> SRSRawEventDecoder::cleanup_srs_apv_header_words(const std::vec
 
     size_t idata=0; int nTS=0;
     bool start_data_flag = false;
-    while(idata < apv.size() && nTS < TimeSample)
+    while(idata < apv.size() )
     {
         // look for apv header - 3 consecutive words < header
         if(apv[idata] < APV_HEADER) {
@@ -202,7 +202,7 @@ std::vector<int> SRSRawEventDecoder::cleanup_srs_apv_header_words(const std::vec
                 idata++;
                 if(apv[idata] < APV_HEADER)
                 {
-                    if(idata + 138 < apv.size()) {
+                    if(idata + 138 <= apv.size()) {
                         idata += 10; // 8 address + 1 error bit
                         start_data_flag = true;
                         nTS++;
@@ -224,6 +224,9 @@ std::vector<int> SRSRawEventDecoder::cleanup_srs_apv_header_words(const std::vec
         }
         idata++;
     }
+
+    // save the parsed time sample # information
+    TimeSample = nTS;
 
     return res;
 }
