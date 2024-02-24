@@ -86,3 +86,6 @@ gem/.qmake.stash
 gui/.qmake.stash
 
 .DS_Store
+
+database/CommonModeRange_*.txt
+database/gem_ped*.dat

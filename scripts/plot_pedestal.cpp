@@ -20,7 +20,7 @@ TH1F* plot_apv(const vector<float> &v, int crate, int mpd, int adc, const char* 
 }
 
 // plot pedestal
-void plot_pedestal(const char* path = "../database/gem_ped.dat", string content = "offset")
+void plot_pedestal(const char* path = "../database/gem_ped.dat")
 {
     fstream f(path, fstream::in);
     vector<TH1F*> res;
@@ -65,30 +65,45 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat", string content 
     froot->Close();
 
     // plot histos
-    const int nMPD = 20;
-    TCanvas *c[nMPD];
+    int nMPD = res.size() / 2 / 16 + 1;
+    TCanvas *c_offset[nMPD];
+    TCanvas *c_noise[nMPD];
     for(int k = 0;k<nMPD;k++) {
-        c[k] = new TCanvas(Form("c%d", k), Form("c%d", k), 1000, 800);
-        c[k] -> Divide(4, 4);
+        c_offset[k] = new TCanvas(Form("c_offset_%d", k), Form("c_offset_%d", k), 1000, 800);
+        c_offset[k] -> Divide(4, 4);
+        c_noise[k] = new TCanvas(Form("c_noise_%d", k), Form("c_noise_%d", k), 1000, 800);
+        c_noise[k] -> Divide(4, 4);
     }
     TFile *f_pedestal = new TFile("tmp_plots/pedestal.root");
     TIter keyList(f_pedestal->GetListOfKeys());
     TKey *key;
-    int nAPV = 0;
+    int n_offset = 0, n_noise = 0;
     while( (key = (TKey*)keyList()) ){
         TClass *cl = gROOT -> GetClass(key->GetClassName());
         if(!cl->InheritsFrom("TH1")) continue;
 
         TH1F* h = (TH1F*)key->ReadObj();
-        string title = h->GetTitle();
-        if(title.find(content) == string::npos) continue;
         if(h->GetBinContent(10) == 5000 || h->GetBinContent(10) == 0) continue;
 
-        int nCanvas = nAPV / 16;
-        int nPad = nAPV % 16 + 1;
-        c[nCanvas] -> cd(nPad);
-        h->Draw();
-        nAPV ++;
+        string title = h->GetTitle();
+	if(title.find("offset") != string::npos)
+	{
+	    int nCanvas = n_offset / 16;
+	    int nPad = n_offset % 16 + 1;
+	    c_offset[nCanvas] -> cd(nPad);
+	    h->Draw();
+
+	    n_offset ++;
+	}
+	else if(title.find("noise") != string::npos)
+	{
+	    int nCanvas = n_noise / 16;
+	    int nPad = n_noise % 16 + 1;
+	    c_noise[nCanvas] -> cd(nPad);
+	    h->Draw();
+
+	    n_noise ++;
+	}
     }
 }
 
