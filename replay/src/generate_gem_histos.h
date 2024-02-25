@@ -42,6 +42,7 @@ namespace quality_check_histos
     float get_strip_mean_time(const StripHit &h);
     float get_seed_strip_mean_time(const StripCluster &c);
     std::pair<double, double> convert_uv_to_xy_moller(const double &u, const double &v);
+    std::pair<double, double> convert_xw_to_xy_sbs(const double &x, const double &w);
 };
 
 #endif
@@ -175,8 +176,14 @@ namespace quality_check_histos
                     auto p2d = convert_uv_to_xy_moller(x_clusters[i].position, y_clusters[i].position);
                     histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(p2d.first, p2d.second);
                 }
-                else
+		else if( (det -> GetType() == "INFNXWGEM") || (det -> GetType() == "UVAXWGEM") )
+		{
+                    auto p2d = convert_xw_to_xy_sbs(x_clusters[i].position, y_clusters[i].position);
+                    histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(p2d.first, p2d.second);
+		}
+                else {
                     histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(x_clusters[i].position, y_clusters[i].position);
+		}
             }
             // x side clusters
             for(auto &i: x_clusters) {
@@ -457,6 +464,17 @@ namespace quality_check_histos
         v -= 406 * TMath::Sin(angle / 2.);
         double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
         double x = 0.5 * ( u + v);
+
+        return std::make_pair(x, y);
+    }
+
+    std::pair<double, double> convert_xw_to_xy_sbs(const double &_x, const double &_w)
+    {
+        // SBS W strip angle is 45 degree
+        //double angle = 45 * 3.1415926 / 180.;
+        double x = _x, w = _w;
+
+	double y = w / TMath::Sqrt(2);
 
         return std::make_pair(x, y);
     }

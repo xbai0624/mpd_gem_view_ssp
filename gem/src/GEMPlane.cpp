@@ -308,6 +308,27 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
         }
     };
 
+    // xw gem chambers
+    auto sbs_xw = [&]() {
+	// for sbs xw gem chamber, x is the shorter strips, they are parallel to the short
+	// edge of the detector frame
+	// w strips has 45 degree angle
+
+	// positon: is in XW coordinates, not XY orthogonal coordinates
+	//          need to convert to XY during matching
+	//          DO NOT convert in here
+	if(type == Plane_X)
+        {
+            position = -0.5*(size * layer_det_capacity - STRIP_PITCH) + STRIP_PITCH*plane_strip;
+            const double& x_offset = detector -> GetLayer() -> GetXOffset();
+            position += x_offset;
+        } else {
+            position = -0.5*(size - STRIP_PITCH) + STRIP_PITCH*plane_strip;
+            const double& y_offset = detector -> GetLayer() -> GetYOffset();
+            position += y_offset;
+        }
+    };
+
     // moller gem chambers
     auto moller_uv = [&]() {
         // for moller uv gem chamber, u side and v side both have 5 apvs,
@@ -331,7 +352,9 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
     // re-organize using maps, this is to cut off the time spent on string comparison
     const std::unordered_map<std::string, std::function<void()>> get_position = {
         {"UVAXYGEM", xy},
+        {"UVAXWGEM", sbs_xw},
         {"INFNXYGEM", xy},
+        {"INFNXWGEM", sbs_xw},
         {"UVAUVGEM", sbs_uv},
         {"MOLLERGEM", moller_uv},
     };

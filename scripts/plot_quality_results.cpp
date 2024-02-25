@@ -15,6 +15,7 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
         if(!cl->InheritsFrom("TH1")) continue;
         nHistos++;
     }
+    cout<<"total histograms (1D + 2D) in file: "<<nHistos<<endl;
 
     // draw histograms, 4 hists per canvas
     vector<TCanvas*> vCanvas;

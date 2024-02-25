@@ -34,7 +34,7 @@
 # Layer configurations
 # Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch
 
-Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXWGEM,  8,   8,   0.4,    0.4, 1, 1
+Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXWGEM,  8,   7,   0.4,    0.4, 1, 1
 
 ###############################################################
 # This section is for SSP
@@ -42,22 +42,23 @@ Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXWGEM,  8,   8,   0.4,    0.4, 1, 1
 #Items, crate_id,    Layer,  fec_id,   GEMID,  dimension,  ADCId,  I2C,    Pos,    Invert, other,  backplane,  GEMPOS
 #============================= Crate_2 Layer_4 GEM_0 ===================================
 
+# X-dimension
+APV,    2,      0,      0,     13,     0,      8,      7,     0,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      9,      6,     1,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      10,     5,     2,      1,      normal, 0,      0,
+#APV,    2,      0,      0,     13,     0,      11,     4,     3,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      12,     3,     4,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      13,     2,     5,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      14,     1,     6,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      15,     0,     7,      1,      normal, 0,      0,
+
 # W-dimension
 ##
-APV,    2,      0,      0,     13,     0,      0,     15,     0,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     0,      2,     13,     1,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     0,      3,     12,     2,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     0,      4,     11,     3,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     0,      5,     10,     4,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     0,      6,      9,     5,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     0,      7,      8,     6,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      0,     15,     0,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      2,     13,     1,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      3,     12,     2,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      4,     11,     3,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      5,     10,     4,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      6,      9,     5,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      7,      8,     6,      0,      normal, 0,      0,
 
-# X-dimension
-APV,    2,      0,      0,     13,     1,      8,      7,     0,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      9,      6,     1,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      10,     5,     2,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      11,     4,     3,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      12,     3,     4,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      13,     2,     5,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      14,     1,     6,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      15,     0,     7,      1,      normal, 0,      0,
