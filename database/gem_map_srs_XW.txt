@@ -34,7 +34,7 @@
 # Layer configurations
 # Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch
 
-Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  8,   8,   0.4,    0.4, 1, 1
+Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXWGEM,  8,   8,   0.4,    0.4, 1, 1
 
 ###############################################################
 # This section is for SSP

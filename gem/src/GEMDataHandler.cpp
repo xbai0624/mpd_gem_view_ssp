@@ -170,9 +170,9 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
         for(size_t i=start; i<end; ++i)
         {
             if(gem_sys -> GetAPV(apvs[i]) == nullptr) {
-                std::cout<<"Warning:: apv: "<<apvs[i]<<" not initialized."<<std::endl
-                    <<"          make sure the correct mapping file was loaded."<<std::endl
-                    <<"          skipped the current APV data."<<std::endl;
+                //std::cout<<"Warning:: apv: "<<apvs[i]<<" not initialized."<<std::endl
+                //    <<"          make sure the correct mapping file was loaded."<<std::endl
+                //    <<"          skipped the current APV data."<<std::endl;
                 continue;
             }
             if(decoded_data.find(apvs[i]) != decoded_data.end()) {
@@ -198,9 +198,9 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
     for(auto &i: decoded_data)
     {
         if(gem_sys->GetAPV(i.first) == nullptr) {
-            std::cout<<__PRETTY_FUNCTION__<<" Warning:: apv: "<<i.first<<" not initialized."<<std::endl
-                <<"          make sure the correct mapping file was loaded."<<std::endl
-                <<"          skipped the current APV data."<<std::endl;
+            //std::cout<<__PRETTY_FUNCTION__<<" Warning:: apv: "<<i.first<<" not initialized."<<std::endl
+            //    <<"          make sure the correct mapping file was loaded."<<std::endl
+            //    <<"          skipped the current APV data."<<std::endl;
             continue;
         }
 

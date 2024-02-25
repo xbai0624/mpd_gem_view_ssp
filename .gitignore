@@ -61,6 +61,8 @@ replay/obj/
 replay/lib/
 
 temp_test/
+tmp_test/
+test/
 
 alignment/moc/
 alignment/obj/

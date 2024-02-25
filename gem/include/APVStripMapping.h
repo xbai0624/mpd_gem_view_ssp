@@ -129,6 +129,64 @@ const int _mapped_strip_uva_uv[128] = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// UVa XW GEM Detector
+// a strip mapping, combines three stages conversion
+// 1) apv internal tree structure mapping:
+//    strip = 32*(ch%4) + 8*(ch/4) - 31*(ch/16);
+// 2) apv chip to on-board panasonic connector mapping:
+//    strip = ch + 1 + ch%4 - 5 * ( (ch/4) % 2 );
+// 3) panasonic connector to detector strip mapping for XW
+//    if(ch & 1)
+//        strip = 32 - (ch + 1) / 2;
+//    else
+//        strip = 32 + ch / 2;
+//    strip &= 0x7f;
+const int _mapped_strip_uva_xw[128] = {
+    31,     15,    127,    111,     27,     11,    123,    107,     23,      7,
+   119,    103,     19,      3,    115,     99,     30,     14,    126,    110,
+    26,     10,    122,    106,     22,      6,    118,    102,     18,      2,
+   114,     98,     29,     13,    125,    109,     25,      9,    121,    105,
+    21,      5,    117,    101,     17,      1,    113,     97,     28,     12,
+   124,    108,     24,      8,    120,    104,     20,      4,    116,    100,
+    16,      0,    112,     96,     32,     48,     64,     80,     36,     52,
+    68,     84,     40,     56,     72,     88,     44,     60,     76,     92,
+    33,     49,     65,     81,     37,     53,     69,     85,     41,     57,
+    73,     89,     45,     61,     77,     93,     34,     50,     66,     82,
+    38,     54,     70,     86,     42,     58,     74,     90,     46,     62,
+    78,     94,     35,     51,     67,     83,     39,     55,     71,     87,
+    43,     59,     75,     91,     47,     63,     79,     95
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// INFN XW GEM Detector
+// a strip mapping, combines three stages conversion
+// 1) apv internal tree structure mapping:
+//    strip = 32*(ch%4) + 8*(ch/4) - 31*(ch/16);
+// 2) apv chip to on-board panasonic connector mapping:
+//    strip = ch;
+// 3) panasonic connector to detector strip mapping for XW
+//    if(ch & 1)
+//        strip = 32 - (ch + 1) / 2;
+//    else
+//        strip = 32 + ch / 2;
+//    strip &= 0x7f;
+const int _mapped_strip_infn_xw[128] = {
+    32,     48,     64,     80,     36,     52,     68,     84,     40,     56,
+    72,     88,     44,     60,     76,     92,     31,     15,    127,    111,
+    27,     11,    123,    107,     23,      7,    119,    103,     19,      3,
+   115,     99,     33,     49,     65,     81,     37,     53,     69,     85,
+    41,     57,     73,     89,     45,     61,     77,     93,     30,     14,
+   126,    110,     26,     10,    122,    106,     22,      6,    118,    102,
+    18,      2,    114,     98,     34,     50,     66,     82,     38,     54,
+    70,     86,     42,     58,     74,     90,     46,     62,     78,     94,
+    29,     13,    125,    109,     25,      9,    121,    105,     21,      5,
+   117,    101,     17,      1,    113,     97,     35,     51,     67,     83,
+    39,     55,     71,     87,     43,     59,     75,     91,     47,     63,
+    79,     95,     28,     12,    124,    108,     24,      8,    120,    104,
+    20,      4,    116,    100,     16,      0,    112,     96
+};
+
+////////////////////////////////////////////////////////////////////////////////
 // a hypothetical detector, no conversion, use apv interanl index
 
 const int _mapped_strip_apv_internal[128] = {
@@ -152,7 +210,9 @@ const int _mapped_strip_apv_internal[128] = {
 const std::unordered_map<std::string, const int* const> mapped_strip_arr = {
     {"UVAXYGEM", _mapped_strip_uva_xy},
     {"UVAUVGEM", _mapped_strip_uva_uv},
+    {"UVAXWGEM", _mapped_strip_uva_xw},
     {"INFNXYGEM", _mapped_strip_infn_xy},
+    {"INFNXWGEM", _mapped_strip_infn_xw},
     {"MOLLERGEM", _mapped_strip_infn_xy}, // for SRS system, moller gem should use INFN XY mapping
     {"INTERNAL", _mapped_strip_apv_internal}
 };
