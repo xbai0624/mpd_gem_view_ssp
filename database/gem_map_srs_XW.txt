@@ -22,17 +22,17 @@
 # readout           : readout type (Cartesian/UV)
 # XOffset           : x offset
 # YOffset           : y offset
-# GEMType           : gem chamber type (UVAXYGEM/INFNXYGEM/UVUVGEM/INTERNAL)
+# GEMType           : gem chamber type (1. UVAXYGEM 2. INFNXYGEM 3. UVUVGEM 4. INTERNAL 5. UVAXWGEM 6. INFNXWGEM 7. HALLDGEM)
 # nb_of_apvs_on_chamber_x_plane: how many APVs on gem chamber x plane
 # nb_of_apvs_on_chamber_y_plane: how many APVs on gem chamber y plane
 # x_pitch           : distance between readout strips on chamber x plane (0.4 mm)
 # y_pitch           : distance between readout strips on chamber y plane (0.4 mm)
-# x_flip            : flip x direction
-# y_flip            : flip y direction
+# x_flip            : flip x plane direction (this is a helper parameter, 1 means no flip, -1 means flip)
+# y_flip            : flip y plane direction (this is a helper parameter, 1 means no flip, -1 means flip)
 
 
 # Layer configurations
-# Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch
+# Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch, x_flip, y_flip
 
 Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXWGEM,  8,   7,   0.4,    0.4, 1, 1
 
