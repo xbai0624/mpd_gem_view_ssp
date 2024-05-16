@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <algorithm>
 #include "MPDDataStruct.h"
 #include "GEMSystem.h"
 #include "GEMMPD.h"
@@ -1280,7 +1281,8 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
     if(detector_type == "MOLLERGEM") {
         // for moller gem, the first 7 unconverted raw apv channel is not connected
         // discard them
-        if(ch < 7) {
+        if(std::find(std::begin(g_skip_channel), std::end(g_skip_channel), ch) != std::end(g_skip_channel))
+        {
             result.plane = -999999;
             return result;
         }
@@ -1289,7 +1291,7 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
         // count how many unconnected channels are in front of the 
         // current channel after conversion, and squeeze out the space they took
         int count = 0;
-        for(int i=0; i<7; i++) {
+        for(auto &i: g_skip_channel) {
             if (strip > apv_strip_mapping::mapped_strip_arr.at(detector_type)[i])
                 count++;
         }
@@ -1608,8 +1610,11 @@ void GEMAPV::getMiddleAverage(float &average, const float *buf)
     // for Moller gem chamber, remove the first 7 (unconverted yet) channels 
     // from common mode calculation
     std::string chamber_type = GetPlane() -> GetDetector() -> GetType();
-    if(chamber_type == "MOLLERGEM")
-        arr.assign(buf+7, buf+APV_STRIP_SIZE);
+    if(chamber_type == "MOLLERGEM") {
+        auto start = arr.begin() + g_skip_channel[0];
+        auto end = start + 7;
+        arr.erase(start, end);
+    }
 
     std::sort(arr.begin(), arr.end());
 
