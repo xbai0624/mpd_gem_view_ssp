@@ -92,14 +92,17 @@ void GEMRootClusterTree::Write()
 
 // a helper to get chamber based strip index, to be removed
 
-static int getChamberBasedStripNo(int strip, int type, int N_APVS_PER_PLANE, int detLayerPositionIndex)
+static int getChamberBasedStripNo(int strip, int type, int N_APVS_PER_PLANE, int detLayerPositionIndex, std::string detector_type)
 {
     // no conversion for Y plane
     if(type == 1)
         return strip;
 
     // conversion for X plane
-    int c_strip = strip - N_APVS_PER_PLANE * 128 * detLayerPositionIndex;
+    int apv_strip_size = 128;
+    if(detector_type == "MOLLERGEM")
+        apv_strip_size = 121;
+    int c_strip = strip - N_APVS_PER_PLANE * apv_strip_size * detLayerPositionIndex;
     if(strip < 0)
     {
         std::cout<<"Error: strip conversion failed, returned without conversion."
@@ -133,6 +136,9 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
     std::vector<GEMDetector*> detectors = gem_sys -> GetDetectorList();
     for(auto &i: detectors) 
     {
+        // get detector type
+        std::string detector_type = i->GetType();
+
         std::vector<GEMPlane*> planes = i->GetPlaneList();
 
         for(auto &pln: planes)
@@ -159,7 +165,7 @@ void GEMRootClusterTree::Fill(GEMSystem *gem_sys, const uint32_t &evt_num)
 
                     // chamber based strip no
                     int s = getChamberBasedStripNo(hits[nS].strip, Axis.back(),
-                            napvs_per_plane, Module.back());
+                            napvs_per_plane, Module.back(), detector_type);
                     StripNo.push_back(s);
 
                     StripADC.push_back(hits[nS].charge);
