@@ -1283,7 +1283,7 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
         // discard them
         if(std::find(std::begin(g_skip_channel), std::end(g_skip_channel), ch) != std::end(g_skip_channel))
         {
-            result.plane = -999999;
+            result.plane = 999999;
             return result;
         }
 
