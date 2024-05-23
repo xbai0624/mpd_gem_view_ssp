@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
 	    "database/CommonModeRange_55.txt");
     arg_parser.AddArgs<std::string>({"--tracking"}, "tracking_switch", " switch on/off tracking",
 	    "off");
+    arg_parser.AddArgs<std::string>({"--tracking_config"}, "tracking_config_file", "Tracking config file", "config/gem_tracking.conf");
 
     auto args = arg_parser.ParseArgs(argc, argv);
 
