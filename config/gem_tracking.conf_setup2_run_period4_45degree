@@ -9,9 +9,9 @@
 # length unit in mm; angle unit in radian
 gem0 = {
     layer id = 0; # this one is the key
-    position = 0, 0, 0;   # (x_coord, y_coord, z_coord): global coordinate
+    position = 0, 0, 0;   # (x_coord,-12.52  y_coord, z_coord): global coordinate
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
-    offset = -0.1095, 10.144, 0;     # x_offset, y_offset, z_offset
+    offset = 1.092437, 10.44072, 0;     # x_offset, y_offset, z_offset
     tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
@@ -20,43 +20,43 @@ gem1 = {
     layer id = 1;
     position = 0, 0, 100.0;
     dimension = 51.2, 51.2, 0.1;
-    offset = 0.2555, 10.154, 0;
+    offset = 1.371378, 10.34262, 0;
     tilt angle = 0, 0, 0;
     participate tracking = 1;
 }
 
 gem2 = {
     layer id = 2;
-    position = 0.0, 0.0, 420;
+    position = 0.0, 0.0, 340;
     dimension = 102.4, 102.4, 0.1;
-    offset = 17.643, -0.6923, 0;
-    tilt angle = 0, 0, 0;
-    participate tracking = 1;
+    offset = 12.884, 0.3849, 0;
+    tilt angle = 0, 0.785398, 0;
+    participate tracking = 0;
 }
 
 gem3 = {
     layer id = 3;
-    position = 0.0, 0.0, 620;
+    position = 0.0, 0.0, 540;
     dimension = 102.4, 102.4, 0.1;
-    offset = 20.899, -1.016, 0;
-    tilt angle = 0, 0, 0;
-    participate tracking = 1;
+    offset = 14.90797, 0.1726, 0;
+    tilt angle = 0, 0.785398, 0;
+    participate tracking = 0;
 }
 
 gem4 = {
     layer id = 4;
-    position = 0, 0, 1140;
+    position = 0, 0, 1020;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.812, 13.59, 0;
+    offset = 2.291571, 13.31649, 0; #for 100 um centered on 0, (x,y,z) = (3.047485, 13.95983, 0)
     tilt angle = 0, 0, 0;
     participate tracking = 1;
 }
 
 gem5 = {
     layer id = 5;
-    position = 0, 0, 1240;
+    position = 0, 0, 1120;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.25, 14.9, 0;
+    offset = 1.691571, 14.69649, 0; #for 100 um centered on 0, (x,y,z) = (2.45435555, 15.45916, 0)
     tilt angle = 0, 0, 0;
     participate tracking = 1;
 }
@@ -158,6 +158,7 @@ save max track quantity = 10
 # and output whatever the best track chi2 it finds
 track max chi2 = 1e5
 
+effective search radius = 142
 ###############################################################################
 #                                optics cut                                   #
 ###############################################################################
@@ -176,13 +177,6 @@ prjected target range = 9999, 9999, 9999
 
 # calorimeter energy and position cut
 # None
-
-###############################################################################
-#        cluster search radius relative to track projected point              #
-#        this is for tracker-only based efficiency and resolution study       #
-###############################################################################
-# units in mm
-effective search radius = 10
 
 ###############################################################################
 #                       DAQ cuts -- not used for now                          #

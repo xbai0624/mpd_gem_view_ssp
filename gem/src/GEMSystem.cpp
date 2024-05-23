@@ -1206,6 +1206,9 @@ void GEMSystem::buildPlane(std::list<ConfigValue> &pln_args)
         return;
     }
 
+    if(det -> GetType() == "MOLLERGEM")
+	size = (double)connector * (APV_STRIP_SIZE - 7) * pitch;
+
     GEMPlane *new_plane = new GEMPlane(plane_name, axis, size, connector, orient, direct);
 
     // failed to add plane, or plane has already been added

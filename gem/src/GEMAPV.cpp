@@ -1276,14 +1276,13 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
     //int strip = apv_strip_mapping::mapped_strip[ch];
     int strip = apv_strip_mapping::mapped_strip_arr.at(detector_type)[ch];
 
-    result.local = strip;
-
     if(detector_type == "MOLLERGEM") {
         // for moller gem, the first 7 unconverted raw apv channel is not connected
         // discard them
         if(std::find(std::begin(g_skip_channel), std::end(g_skip_channel), ch) != std::end(g_skip_channel))
         {
-            result.plane = -999999;
+	    result.local = 999999;
+            result.plane = 999999;
             return result;
         }
 
@@ -1297,6 +1296,8 @@ GEMAPV::StripNb GEMAPV::MapStripMPD(int ch)
         }
         strip -= count;
     }
+
+    result.local = strip;
 
     // calculate plane strip mapping
     // reverse strip number by orient

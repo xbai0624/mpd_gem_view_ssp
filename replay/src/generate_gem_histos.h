@@ -135,6 +135,7 @@ namespace quality_check_histos
             for(auto &i: x_strip_hits) {
                 histM.histo_1d<float>(Form("h_raw_xstrip_maxtimebin_layer%d", layer)) -> Fill(i.max_timebin);
                 histM.histo_1d<float>(Form("h_raw_xstrip_adc_layer%d", layer)) -> Fill(i.charge);
+		histM.histo_1d<float>(Form("h_raw_x_strip_hit_layer%d", layer)) -> Fill(i.strip);
                 histM.histo_1d<float>(Form("h_raw_strip_mean_time_x_layer%d", layer)) -> Fill(get_strip_mean_time(i));
                 histM.histo_2d<float>(Form("h_raw_x_strip_adc_index_layer%d", layer)) -> Fill(i.strip, i.charge);
             }
@@ -143,6 +144,7 @@ namespace quality_check_histos
             for(auto &i: y_strip_hits) {
                 histM.histo_1d<float>(Form("h_raw_ystrip_maxtimebin_layer%d", layer)) -> Fill(i.max_timebin);
                 histM.histo_1d<float>(Form("h_raw_ystrip_adc_layer%d", layer)) -> Fill(i.charge);
+		histM.histo_1d<float>(Form("h_raw_y_strip_hit_layer%d", layer)) -> Fill(i.strip);
                 histM.histo_1d<float>(Form("h_raw_strip_mean_time_y_layer%d", layer)) -> Fill(get_strip_mean_time(i));
                 histM.histo_2d<float>(Form("h_raw_y_strip_adc_index_layer%d", layer)) -> Fill(i.strip, i.charge);
             }
@@ -462,7 +464,7 @@ namespace quality_check_histos
 
         u += 20;
         v -= 406 * TMath::Sin(angle / 2.);
-        double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
+        double y = -1 * (-0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406));
         double x = 0.5 * ( u + v);
 
         return std::make_pair(x, y);

@@ -1,0 +1,186 @@
+
+###############################################################################
+#                      deliminitors: " ,;:@\'\"\r"                            #
+###############################################################################
+
+###############################################################################
+#                                detector setup                               #
+###############################################################################
+# length unit in mm; angle unit in radian
+gem0 = {
+    layer id = 0; # this one is the key
+    position = 0, 0, 0;   # (x_coord, y_coord, z_coord): global coordinate
+    dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
+    offset = 0.4728, 10.148, 0;     # x_offset, y_offset, z_offset
+    tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
+    participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
+}
+
+gem1 = {
+    layer id = 1;
+    position = 0, 0, 100.0;
+    dimension = 51.2, 51.2, 0.1;
+    offset = 0.8677, 10.164, 0;
+    tilt angle = 0, 0, 0;
+    participate tracking = 1;
+}
+
+gem2 = {
+    layer id = 2;
+    position = 0.0, 0.0, 420;
+    dimension = 102.4, 102.4, 0.1;
+    offset = 8.1, 0.169, 0;
+    tilt angle = 0, 0, 0;
+    participate tracking = 1;
+}
+
+gem3 = {
+    layer id = 3;
+    position = 0.0, 0.0, 620;
+    dimension = 102.4, 102.4, 0.1;
+    offset = 7.902, 0.333, 0;
+    tilt angle = 0, 0, 0;
+    participate tracking = 1;
+}
+
+gem4 = {
+    layer id = 4;
+    position = 0, 0, 1140;
+    dimension = 51.2, 51.2, 0.1;
+    offset = 2.318, 13.71, 0;
+    tilt angle = 0, 0, 0;
+    participate tracking = 1;
+}
+
+gem5 = {
+    layer id = 5;
+    position = 0, 0, 1240;
+    dimension = 51.2, 51.2, 0.1;
+    offset = 1.831, 15.13, 0;
+    tilt angle = 0, 0, 0;
+    participate tracking = 1;
+}
+
+
+###############################################################################
+#                             grid size setup                                 #
+###############################################################################
+# grid setup
+grid width = 17.2, 17.2 # units in mm (x bin width, y bin width)
+grid shift = 0.4 # units in mm
+
+#grid width = 10, 10 # units in mm (x bin width, y bin width)
+#grid shift = 3.8 # units in mm
+
+#grid width = 40, 40 # units in mm (x bin width, y bin width)
+#grid shift = 8.8 # units in mm
+
+#grid width = 52, 52 # units in mm (x bin width, y bin width)
+#grid shift = 0.8 # units in mm
+
+#grid width = 102.4, 102.4
+#grid shift = 0
+
+###############################################################################
+#                        cuts applied to all strips                           #
+###############################################################################
+
+# allowed time bin with max ADC
+max time bin = 1, 2, 3, 4, 5, 6, 7
+
+# strip mean time (ADC-weighted average of time samples) range [ns]:
+strip mean time range = -99999, 99999 #25, 150 # set a large range to disable it, eg: -9999 to 9999
+
+# reject strips peaking in first time bin
+reject max first bin = true
+
+# reject strips peaking in last time bin
+reject max last bin = true
+
+
+###############################################################################
+#                cuts applied to cluster seed strips                          #
+#            seed strip means the max strip in a cluster                      #
+###############################################################################
+
+# minimum ADC requirement for strip max time sample
+seed strip min peak ADC = 100 #120 #80 #120 # 200
+
+# minimum ADC sum for strips
+seed strip min sum ADC = 150 #200 #160 #200 #300
+
+
+###############################################################################
+#  cluster seed strip and constituent strip timing correlation cut            #
+###############################################################################
+
+# strip mean time agreement between seed strip and constituent strips (+/- 21ns)
+strip mean time agreement = 50
+
+# time sample correlation coefficient between seedn strip and constituent strips
+# cut value in percentage: 70%
+time sample correlation coefficient = 0.7
+
+
+###############################################################################
+#                        cuts applied to all clusters                         #
+###############################################################################
+
+# minimum and maximum cluster size
+min cluster size = 2
+max cluster size = 20
+
+###############################################################################
+#                    cuts applied when matching clusters                      #
+###############################################################################
+
+# adc assymmetry in percentage: 50%
+2d cluster adc assymetry = 0.5
+
+###############################################################################
+#                           track finding cuts                                # 
+###############################################################################
+
+# minimum number of hits required for tracking
+minimum hits on track = 4
+
+# give up tracking for this event when number of track candidates larger than
+# this value, suggested value is smaller than 10^5, if too many tracks, 
+# then this event is not usable anyway
+abort tracking quantity = 100
+
+# max number of tracks to be saved in a event (lowest chi2 tracks will be saved)
+save max track quantity = 10
+
+# reduced chi2 cut for tracks (chi2 over ndf) with larger number of layers
+# if larger number of layers didn't find any tracks within this chi2 range
+# then the program will go to the lowest number of layers (minimum hits on track)
+# and output whatever the best track chi2 it finds
+track max chi2 = 1e5
+
+###############################################################################
+#                                optics cut                                   #
+###############################################################################
+# track slope
+track x-z slope range = -9999, 9999 # units in radian
+track y-z slope range = -9999, 9999 # use a large value to disable it
+#track x-z slope range = -0.015, 0.015 # units in radian
+#track y-z slope range = -0.015, 0.015 # This value is from Ye Tian's simulation
+
+# target position -- not used for now
+target position = 0., 0., -9999. # units in mm
+
+# track projected target position should within this range around target position
+# not used for now
+prjected target range = 9999, 9999, 9999
+
+# calorimeter energy and position cut
+# None
+
+###############################################################################
+#                       DAQ cuts -- not used for now                          #
+###############################################################################
+default apv zero suppression threshold = 5
+
+# first 3 is apv address, 4th one is threshold
+apv zero suppression threshold = 3, 1, 0, 4
