@@ -1,18 +1,18 @@
-cluster_0_fermilab_beamtest_6.evio.0.root
+cluster_0_fermilab_beamtest_367..root
 endlist
-prefix run4680
+prefix thinGap_run367
 nlayers 4
 nmodules 4
-mod_layer 0 1 2 3
-fixmod 1  0 0 0
+mod_layer 0 1 5 6
+fixmod    1 0 0 0 
 refmod -1
 
-mod_x0                0        0.109197        1.123543        1.097157
-mod_y0                0      0.01243176       0.4609479       0.7186511
-mod_z0                0        102.9685        1766.989        1917.728
-mod_ax                0     -0.01586151      0.00693118       0.1166451
-mod_ay                0    -0.007422924      0.02897476      0.03747653
-mod_az                0   -0.0002209141     -0.01499241     -0.01617675
+mod_x0                0        	0       	0        	0
+mod_y0                0      	0       	0       	0
+mod_z0                0        	100        	1020        	1120
+mod_ax                0     	0      		0       	0
+mod_ay                0    	0      		0      		0
+mod_az                0   	0     		0     		0
 
 #mod_x0                0       0.1148026         1.12955        1.117008
 #mod_y0                0      -0.1263147       -2.208961       -2.142795
@@ -35,5 +35,5 @@ sigma 0.8
 NMAX 30000000
 endconfig
 #bb.gem.track.chi2ndf<100&&bb.gem.track.ntrack==1&&bb.gem.track.nhits>=4
-fChi2Track<300&&fNhitsOnTrack>=4
+fChi2Track<300&&fNhitsOnTrack>=3
 endcut
