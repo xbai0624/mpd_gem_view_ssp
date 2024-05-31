@@ -88,8 +88,9 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat", const std::stri
 
     // save histos
     TFile *froot = new TFile("tmp_plots/pedestal.root", "recreate");
-    for(auto &i: res)
-        i->Write();
+    for (size_t i = 0; i < res.size(); ++i) {
+    res[i]->Write();
+    }
     froot->Close();
 
     // plot histos
@@ -145,5 +146,23 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat", const std::stri
 	    n_noise_phys ++;
 	}
     }
+    
+    c_offset[0]->Print("tmp_plots/pedestal.pdf("); // Open the PDF file with the first canvas
+    
+    for (int k = 0; k < nMPD; k++) {
+      if (k > 0) c_offset[k]->Print("tmp_plots/pedestal.pdf");
+      
+      c_noise[k]->Print("tmp_plots/pedestal.pdf");
+      
+      if (k == nMPD - 1) {
+        c_noise_phys[k]->Print("tmp_plots/pedestal.pdf)");
+	
+      } else {
+        c_noise_phys[k]->Print("tmp_plots/pedestal.pdf");
+	
+      }
+      
+    }
+    
 }
 
