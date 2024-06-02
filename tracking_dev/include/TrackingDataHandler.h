@@ -44,7 +44,6 @@ namespace tracking_dev {
         GEMSystem * GetGEMSystem(){return gem_sys;}
         CoordSystem *GetCoordSystem(){return coord_system;}
         Tracking *GetTrackingHandle(){return tracking;}
-	Cuts *GetGemCuts(){return gem_cuts;}
 
     private:
         GEMDataHandler *data_handler = nullptr;
