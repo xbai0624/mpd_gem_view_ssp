@@ -11,7 +11,9 @@ INSTALLS += target
 #TARGET.files = $$TARGET
 #INSTALLS += TARGET
 
-CONFIG += c++14 release
+CONFIG += c++17 release
+QMAKE_CXXFLAGS -= -std=gnu++1y
+QMAKE_CXXFLAGS += -std=c++17
 
 # self headers
 INCLUDEPATH += . ./include ./evio-5.2

@@ -5,7 +5,9 @@
 TEMPLATE = app
 TARGET = ../bin/replay
 
-CONFIG += c++14 warn_on release
+CONFIG += c++17 warn_on release
+QMAKE_CXXFLAGS -= -std=gnu++1y
+QMAKE_CXXFLAGS += -std=c++17
 
 ######################################################################
 # self headers

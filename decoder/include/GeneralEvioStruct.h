@@ -5,6 +5,7 @@
 // A file defines the coda event struct in raw data files (evio)
 
 #include <unordered_map>
+#include <cstdint>
 
 ////////////////////////////////////////////////////////////////
 // event bank header
