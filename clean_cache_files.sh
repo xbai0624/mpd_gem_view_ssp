@@ -10,6 +10,8 @@ do
     rm -rf $i/.qmake.stash
     echo "rm -rf $i/Makefile"
     rm -rf $i/Makefile
+    echo "rm -rf $i/obj"
+    rm -rf $i/obj/*.o
 done
 
 echo "rm -rf Makefile"

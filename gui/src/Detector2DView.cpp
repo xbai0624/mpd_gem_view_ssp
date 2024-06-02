@@ -1,5 +1,5 @@
 #include "Detector2DView.h"
-#include "ColorSpectrum.h"
+#include "ColorBar.h"
 #include "APVStripMapping.h"
 
 #include <QHBoxLayout>
@@ -17,6 +17,9 @@ Detector2DView::Detector2DView(QWidget* parent) : QWidget(parent),
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout -> addWidget(view);
+
+    color_bar = new ColorBar();
+    layout -> addWidget(color_bar);
 }
 
 void Detector2DView::InitView()
@@ -51,7 +54,8 @@ void Detector2DView::ReDistributePaintingArea()
     int sceneRectHeight = height() - 20 > 0 ? height() - 20 : 50;
 
     // need to give space to color bar
-    sceneRectWidth -= 100;
+    sceneRectWidth -= 110;
+    sceneRectHeight -= 50;
 
     QRectF f(0, 0, sceneRectWidth, sceneRectHeight);
     scene -> setSceneRect(f);
@@ -77,28 +81,6 @@ void Detector2DView::ReDistributePaintingArea()
         }
         layer_index++;
     }
-
-    // for color bar
-    if(color_spectrum == nullptr)
-    {
-        color_spectrum = new ColorSpectrum();
-        color_label = new QLabel();
-        QPixmap _color_bar = color_spectrum -> rainbowVertical(0.05*sceneRectWidth, 1.3*sceneRectHeight);
-        color_label->setPixmap(_color_bar);
-        color_bar_proxy_widget = scene -> addWidget(color_label);
-        low_adc_text = new QGraphicsTextItem();
-        high_adc_text = new QGraphicsTextItem();
-        scene -> addItem(low_adc_text);
-        scene -> addItem(high_adc_text);
-    }
-    color_bar_proxy_widget -> setRotation(180);
-    color_bar_proxy_widget -> setPos(sceneRectWidth + 30,
-            sceneRectHeight - (sceneRectHeight - color_label->height())/2);
-
-    low_adc_text->setPos(sceneRectWidth, (sceneRectHeight + color_label->height())/2);
-    low_adc_text->setPlainText("0 ADC");
-    high_adc_text->setPos(sceneRectWidth, (sceneRectHeight - color_label->height())/2 - 20);
-    high_adc_text->setPlainText("800 ADC");
 }
 
 void Detector2DView::resizeEvent([[maybe_unused]] QResizeEvent *event)

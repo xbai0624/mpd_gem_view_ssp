@@ -1,5 +1,5 @@
 #include "Detector2DItem.h"
-#include "ColorSpectrum.h"
+#include "ColorBar.h"
 #include <iostream>
 #include <cmath>
 
@@ -11,7 +11,7 @@ Detector2DItem::Detector2DItem()
     // default bounding rect
     _boundingRect.setRect(0, 0, 50, 50);
 
-    color_spectrum = new ColorSpectrum();
+    color_bar = new ColorBar();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -243,12 +243,12 @@ QVector<std::pair<QLineF, QColor>> Detector2DItem::PrepareStrips()
                 l = line_uv(strip_index, is_x_strip, angle);
 
             // color bar
-            float adc = 0;
+            double adc = 0;
             if(strip.second >= 800.)
-                adc = 1.0;
+                adc = 800.;
             else
-                adc = (float)strip.second / 800.;
-            QColor color = color_spectrum->toColor(adc);
+                adc = (double)strip.second;
+            QColor color = color_bar->toColor(adc);
 
             res.push_back(std::pair<QLineF, QColor>(l, color));
 

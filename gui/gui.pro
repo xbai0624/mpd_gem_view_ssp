@@ -77,7 +77,7 @@ HEADERS += include/QRootCanvas.h \
            include/Detector2DView.h \
            include/HistoWidget.h \
            include/InfoCenter.h \
-           include/ColorSpectrum.h \
+           include/ColorBar.h \
            include/OnlineAnalysisInterface.h \
 
 SOURCES += src/main.cpp \
@@ -93,5 +93,4 @@ SOURCES += src/main.cpp \
            src/Detector2DView.cpp \
            src/HistoWidget.cpp \
            src/InfoCenter.cpp \
-           src/ColorSpectrum.cpp \
            src/OnlineAnalysisInterface.cpp \

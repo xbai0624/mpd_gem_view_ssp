@@ -13,7 +13,7 @@
 #include <vector>
 #include <string>
 
-class ColorSpectrum;
+class ColorBar;
 
 class Detector2DItem : public QGraphicsItem
 {
@@ -95,7 +95,7 @@ private:
     float area_x1, area_x2, area_y1, area_y2;
 
     // convert value to rgb color
-    ColorSpectrum *color_spectrum;
+    ColorBar *color_bar;
 
     // for debug color spectrum only
     int x_strip_max_adc, x_strip_max_adc_index;

@@ -73,7 +73,7 @@ namespace std {
 ////////////////////////////////////////////////////////////////////////////////
 // forward declaration
 
-class ColorSpectrum;
+class ColorBar;
 class QLabel;
 class QGraphicsProxyWidget;
 class QGraphicsTextItem;
@@ -103,11 +103,8 @@ private:
     // detectors
     std::unordered_map<Detector2DAddress, Detector2DItem*> det;
 
-    // for color bar
-    ColorSpectrum *color_spectrum = nullptr;
-    QLabel *color_label = nullptr;
-    QGraphicsProxyWidget *color_bar_proxy_widget = nullptr;
-    QGraphicsTextItem *low_adc_text=nullptr, *high_adc_text=nullptr;
+    // color bar
+    ColorBar *color_bar;
 };
 
 #endif
