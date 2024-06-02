@@ -7,7 +7,7 @@ RUN=$1
 echo "analyzing run" $RUN
 
 # replay run
-./bin/replay -c 0 -t 0 -z 1 -n 50000 --tracking on --pedestal database/gem_ped_564.dat --common_mode database/CommonModeRange_564.txt /home/daq/coda/data/fermilab_beamtest_$RUN.evio.0
+./bin/replay -c 0 -t 0 -z 1 -n -1 --tracking on --tracking_config /home/daq/data_viewer/mpd_gem_view_ssp/config/gem_tracking.conf_setup2_run_period1_45degree --pedestal database/gem_ped_348.dat --common_mode database/CommonModeRange_348.txt /home/daq/coda/data/fermilab_beamtest_$RUN.evio.0
 #./bin/replay -c 0 -t 0 -z 1 -n 50000 --tracking on --pedestal database/gem_ped_564.dat --common_mode database/CommonModeRange_564.txt /home/xinzhan/evio_data/fermilab_test/fermilab_beamtest_$RUN.evio.0
 
 
