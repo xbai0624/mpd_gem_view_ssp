@@ -11,6 +11,7 @@
 #include "GEMCluster.h"
 #include "ConfigObject.h"
 #include <mutex>
+#include "FileNameManager.h"
 
 struct APVDataType;
 

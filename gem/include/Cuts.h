@@ -7,7 +7,7 @@
 
 #include "ValueType.h"
 #include "ConfigObject.h"
-#include "TrackConfigManager.h"
+#include "FileNameManager.h"
 
 struct StripHit;
 struct StripCluster;
@@ -16,10 +16,21 @@ class Cuts : public ConfigObject
 {
 public:
     Cuts(){
-	std::string default_manual_path = TrackConfigManager::getInstance().getTrackConfig(); 
-	Init(default_manual_path);
-    }
+    	try {
 
+	    Init(FileNameManager::getInstance().getFileName("tracking_config_file")); 
+
+	} catch (const std::runtime_error& e) {
+
+	    // Handle exception if file name is not found
+	    
+	    std::cerr << e.what() << std::endl; 
+
+	    // Call Init with default parameter
+
+	    Init(); 
+	}
+    }
     ~Cuts();
 
     // members

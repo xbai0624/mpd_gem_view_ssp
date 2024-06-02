@@ -2,6 +2,9 @@
 
 source ./setup_env.sh
 
+THIS_DIR=$(dirname "$0") 
+THIS_DIR=$(cd "$THIS_DIR" && pwd)
+
 RUN=$1
 PEDESTAL=$2
 SPLITS=${3:-1}
@@ -13,7 +16,7 @@ do
 	echo "analyzing run:" $RUN 
         echo "split #:" $splitNum 
 
-	./bin/replay -c 0 -t 0 -z 1 -n -1 --tracking on --pedestal database/gem_ped_$PEDESTAL.dat --common_mode database/CommonModeRange_$PEDESTAL.txt /home/daq/coda/data/fermilab_beamtest_$RUN.evio.$splitNum 
+	./bin/replay -c 0 -t 0 -z 1 -n -1 --tracking on --pedestal database/gem_ped_$PEDESTAL.dat --common_mode database/CommonModeRange_$PEDESTAL.txt --gem_map $THIS_DIR/database/gem_map_srs_fermilab_setup2_run_period1.txt --tracking_config $THIS_DIR/config/gem_tracking.conf_setup2_run_period1_45degree /home/daq/coda/data/fermilab_beamtest_$RUN.evio.$splitNum 
 
 	# rename runs
         mv "Rootfiles/cluster_0_fermilab_beamtest_$RUN..root_data_quality_check.root" "Rootfiles/cluster_0_fermilab_beamtest_$RUN_$splitNum..root_data_quality_check.root"

@@ -208,15 +208,31 @@ void GEMSystem::Configure(const std::string &path)
     gem_recon.Configure(Value<std::string>("GEM Cluster Configuration"));
 
     // read gem map, build DAQ system and detectors
-    try {
-        ReadMapFile(Value<std::string>("GEM Map"));
+    if (FileNameManager::getInstance().getFileName("gem_map_file").size() > 0) {
 
-        // this has been moved to GEMDataHandler::Replay() function, it is more reasonable to do it there
-        //if(!PedestalMode)
-        //    ReadPedestalFile(Value<std::string>("GEM Pedestal"), Value<std::string>("GEM Common Mode"));
-    } catch(GEMException &e) {
-        std::cerr << e.FailureType() << ": "
-                  << e.FailureDesc() << std::endl;
+        try {  
+		ReadMapFile(FileNameManager::getInstance().getFileName("gem_map_file"));
+
+	} catch(GEMException &e) {
+
+		std::cerr << e.FailureType() << ": "
+			  << e.FailureDesc() << std::endl; 
+	}
+
+    } else {
+
+    	try {
+        	ReadMapFile(Value<std::string>("GEM Map"));
+
+        	// this has been moved to GEMDataHandler::Replay() function, it is more reasonable to do it there
+        	//if(!PedestalMode)
+        	//    ReadPedestalFile(Value<std::string>("GEM Pedestal"), Value<std::string>("GEM Common Mode"));
+		
+    	} catch(GEMException &e) {
+
+        	std::cerr << e.FailureType() << ": "
+                  	  << e.FailureDesc() << std::endl;
+    	}
     }
 
     // set resolution for each detector, defalt 0.1

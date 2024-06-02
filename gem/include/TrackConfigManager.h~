@@ -1,9 +1,0 @@
-#ifndef TRACK_CONFIG_MANAGER_H
-#define TRACK_CONFIG_MANAGER_H
-
-#include <string> 
-
-class TrackConfigManager { 
-public:
-	static TrackConfigManager instance; 
-
