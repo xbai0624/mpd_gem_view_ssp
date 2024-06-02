@@ -7,6 +7,7 @@
 
 #include "ValueType.h"
 #include "ConfigObject.h"
+#include "TrackConfigManager.h"
 
 struct StripHit;
 struct StripCluster;
@@ -14,13 +15,17 @@ struct StripCluster;
 class Cuts : public ConfigObject
 {
 public:
-    Cuts(){Init();}
+    Cuts(){
+	std::string default_manual_path = TrackConfigManager::getInstance().getTrackConfig(); 
+	Init(default_manual_path);
+    }
+
     ~Cuts();
 
     // members
     void SetFile(const char* path);
     void LoadFile();
-    void Init();
+    void Init(const std::string& manual_path = "");
     void Print();
 
 private:

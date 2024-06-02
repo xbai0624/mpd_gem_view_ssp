@@ -9,6 +9,7 @@
 #include "Tracking.h"
 #include "TrackingUtility.h"
 #include "AbstractDetector.h"
+#include "TrackConfigManager.h"
 
 #define GENERATE_GEM_HISTOS_CXX
 #include "generate_gem_histos.h"
@@ -35,6 +36,7 @@ int main(int argc, char* argv[])
 	    "database/CommonModeRange_55.txt");
     arg_parser.AddArgs<std::string>({"--tracking"}, "tracking_switch", " switch on/off tracking",
 	    "off");
+    arg_parser.AddArgs<std::string>({"--tracking_config"}, "tracking_config_file", "Tracking config file", "");
 
     auto args = arg_parser.ParseArgs(argc, argv);
 
@@ -42,6 +44,9 @@ int main(int argc, char* argv[])
     for(auto &it : args) {
 	std::cout << it.first << ": " << it.second.String() << std::endl;
     }
+    
+    // Set tracking configuration file 
+    TrackConfigManager::getInstance().setTrackConfig(args["tracking_config_file"].String());
 
     // -: evio file reader
     EvioFileReader *evio_reader = new EvioFileReader();
