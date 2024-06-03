@@ -135,6 +135,10 @@ GEMAPV::GEMAPV(const GEMAPV &that)
     online_common_mode.clear();
     for(auto &i: that.online_common_mode)
         online_common_mode.push_back(i);
+    // copy unused channels
+    unused_channels.clear();
+    for(auto &i: that.unused_channels)
+        unused_channels.push_back(i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -179,6 +183,10 @@ GEMAPV::GEMAPV(GEMAPV &&that)
     online_common_mode.clear();
     for(auto &i: that.online_common_mode)
         online_common_mode.push_back(i);
+    // unused channels
+    unused_channels.clear();
+    for(auto &i: that.unused_channels)
+        unused_channels.push_back(i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -256,6 +264,10 @@ GEMAPV &GEMAPV::operator= (GEMAPV &&rhs)
     online_common_mode.clear();
     for(auto &i: rhs.online_common_mode)
         online_common_mode.push_back(i);
+    // unused channels
+    unused_channels.clear();
+    for(auto &i: rhs.unused_channels)
+        unused_channels.push_back(i);
 
     return *this;
 }
@@ -750,7 +762,7 @@ void GEMAPV::FitPedestal()
         double mean = 0, sigma = 5000;
         fit_vector(noise_vec[i], mean, sigma);
         double p0 = mean, p1 = sigma;
-        
+
         UpdatePedestal((float)p0, (float)p1, i);
     }
     return;
@@ -761,7 +773,7 @@ void GEMAPV::FitPedestal()
         if( (offset_hist[i] == nullptr) ||
                 (noise_hist[i] == nullptr) ||
                 (offset_hist[i]->Integral() < 100)// ||
-                //(noise_hist[i]->Integral() < 1000) 
+                                                  //(noise_hist[i]->Integral() < 1000) 
           )
         {
             continue;
@@ -832,11 +844,11 @@ void GEMAPV::ZeroSuppression()
 #ifdef INVERSE_POLARITY_VALID
         if(abs(average) > pedestal[i].noise * zerosup_thres)
 #else
-        if(average > pedestal[i].noise * zerosup_thres)
+            if(average > pedestal[i].noise * zerosup_thres)
 #endif
-            hit_pos[i] = true;
-        else
-            hit_pos[i] = false;
+                hit_pos[i] = true;
+            else
+                hit_pos[i] = false;
     }
 }
 
@@ -997,7 +1009,7 @@ void GEMAPV::CommonModeCorrection_MPD(float *buf, const uint32_t &size, [[maybe_
     }
     else {
         std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
-                 <<std::endl;
+            <<std::endl;
     }
 #elif defined(DANNING_ALGORITHM)
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
@@ -1062,7 +1074,7 @@ void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_
     }
     else {
         std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
-                 <<std::endl;
+            <<std::endl;
     }
 #elif defined(DANNING_ALGORITHM)
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))

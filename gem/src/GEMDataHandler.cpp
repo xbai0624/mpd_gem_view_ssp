@@ -375,7 +375,7 @@ void GEMDataHandler::Replay(const std::string &r_path, int split_start, int spli
 ////////////////////////////////////////////////////////////////////////////////
 // setup replay output file names
 
-void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, int split_end,
+void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, [[maybe_unused]]int split_end,
         const std::string &_pedestal_input, const std::string &_common_mode_input,
         const std::string &_pedestal_output, const std::string &_commonMode_output)
 {

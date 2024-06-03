@@ -34,6 +34,7 @@
 # apv "other" field
 #   a - APV (a-A means APV-A); p - pixel (p5-5 means pixel size 5mm x 5mm); 
 #   d - dead channels (d0-47 means strip#0 - strip#47 is not used, d3 means strip#3 is not used, all in panasonic pin order)
+#   example: other = "a-D;p4-4;d0-1;d3" - DO NOT USE ANY space in it, only use ";-" as delimiters
 
 ###############################################################
 # Layer configurations

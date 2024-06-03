@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <fstream>
+#include <algorithm>
 #include "GEMDetector.h"
 #include "GEMMPD.h"
 #include "GEMCluster.h"
@@ -71,6 +72,11 @@ public:
         // x plane 12 apvs, y plane 10 apvs
         int Connector_Count[2] = {12, 10};
 
+        // these items should be in place
+        std::string apv_name;
+        std::vector<int> unused_channels;
+        std::pair<int, int> pad_size;
+
         APV_Entry(std::list<ConfigValue> entry)
         {
             // order must be correct
@@ -83,14 +89,85 @@ public:
             plane_name = Plane_Direction[dimension];
             plane_size = Plane_D[dimension];
             total_connectors = Connector_Count[dimension];
+
+            _parse_discriptor();
+        }
+
+        void _parse_discriptor() {
+            // a-D;p4-4;d0-1;d3
+            // a-F;p2-2
+           
+            // remove leading and trailing space
+            size_t start = discriptor.find_first_not_of(' ');
+            size_t end = discriptor.find_last_not_of(' ');
+            discriptor = discriptor.substr(start, (end-start+1));
+
+            // split
+            std::vector<std::string> _fields;
+            start = 0;
+            for(size_t i=0; i<discriptor.size(); i++)
+            {
+                if(discriptor[i] == ';') {
+                    if(start <= i)
+                        _fields.push_back(discriptor.substr(start, (i-start)));
+                    start = i+1;
+                }
+            }
+            if(start < discriptor.size())
+                _fields.push_back(discriptor.substr(start, (discriptor.size() - start)));
+
+            // parse pair in format: x4-6; where 'x' means any character
+            auto parse_pair = [&](const std::string &i) -> std::pair<int, int>
+            {
+                std::pair<int, int> res;
+                size_t _pos = i.find('-');
+                try {
+                    // parsing p5-5
+                    int w = std::stoi(i.substr(1, _pos-1));
+                    int h = std::stoi(i.substr(_pos+1, i.size() - _pos -1 ));
+                    res.first = w, res.second = h;
+                } catch(...) {
+                    std::cout<<"-WARNING-: failed to convert string to int for: "
+                        <<i<<std::endl;
+                }
+                return res;
+            };
+
+            // fill in the fields
+            for(auto &i: _fields)
+            {
+                if(i.find('a') != std::string::npos)
+                    apv_name = i;
+                else if(i.find('p') != std::string::npos) {
+                    pad_size = parse_pair(i);
+                }
+                else if(i.find('d') != std::string::npos) {
+                    if(i.find('-') == std::string::npos) {
+                        try {
+                            int ch = std::stoi(i.substr(1, i.size() - 1));
+                            unused_channels.push_back(ch);
+                        } catch(...) {
+                            std::cout<<"-WARNING-: failed to convert string to int for unused channel: "
+                                <<i<<std::endl;
+                        }
+                    }
+                    else {
+                        auto r = parse_pair(i);
+                        for(int ch=r.first; ch<=r.second; ch++)
+                            unused_channels.push_back(ch);
+                    }
+                    // sort the vector for fast search
+                    std::sort(unused_channels.begin(), unused_channels.end());
+                }
+            }
         }
     };
 
 public:
     // constructor
     GEMSystem(const std::string &config_file = "",
-                  int daq_cap = MAX_MPD_ID,
-                  int det_cap = MAX_DET_ID);
+            int daq_cap = MAX_MPD_ID,
+            int det_cap = MAX_DET_ID);
 
     // copy/move constructors
     GEMSystem(const GEMSystem &that);

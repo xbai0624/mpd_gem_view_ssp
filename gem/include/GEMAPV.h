@@ -117,6 +117,8 @@ public:
     float GetIntegratedCharge(const uint32_t &ch) const;
     const std::vector<int> & GetOfflineCommonMode() const {return offline_common_mode;}
     const std::vector<int> & GetOnlineCommonMode() const {return online_common_mode;}
+    const std::vector<int> & GetUnusedChannels() const {return unused_channels;}
+    std::string GetAPVName() const {return apv_name;}
 
     // set parameters
     void SetMPD(GEMMPD *f, int adc_ch, bool force_set = false);
@@ -129,6 +131,9 @@ public:
     void SetZeroSupThresLevel(const float &t) {zerosup_thres = t;}
     void SetCrossTalkThresLevel(const float &t) {crosstalk_thres = t;}
     void SetAddress(const APVAddress &apv_addr);
+    void AddUnusedChannel(const int &i) {unused_channels.push_back(i);}
+    void SetUnusedChannels(const std::vector<int> &v) {unused_channels = v;}
+    void SetAPVName(const std::string &n) {apv_name = n;}
 
 private:
     void initialize();
@@ -147,6 +152,9 @@ private:
 
     int orient;
     int detector_position; // detector position in GEM layer [0 - 3]
+
+    // add an apv name
+    std::string apv_name = "";
 
     uint32_t time_samples;
     float common_thres;
@@ -179,6 +187,9 @@ private:
     std::vector<int> offline_common_mode;
     // common mode calculated online
     std::vector<int> online_common_mode;
+
+    // a list for APV unused channels
+    std::vector<int> unused_channels;
 };
 
 #endif

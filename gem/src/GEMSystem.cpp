@@ -1280,6 +1280,8 @@ void GEMSystem::buildAPV(std::list<ConfigValue> &apv_args)
     bool pedestal_run = (Value<std::string>("VTP Pedestal Subtraction") == "yes" );
 
     GEMAPV *new_apv = new GEMAPV(orient, det_pos, status, ts, cth, zth, ctth, pedestal_run);
+    new_apv -> SetAPVName(apv_entry.apv_name);
+    new_apv -> SetUnusedChannels(apv_entry.unused_channels);
     if(!mpd->AddAPV(new_apv, adc_ch)) { // failed to add APV to MPD
         delete new_apv;
         return;
