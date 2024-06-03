@@ -72,7 +72,7 @@ namespace pixel {
                         exit(0);
                     }
 
-                    int r = std::stoi(tmp[0]), c = std::stoi(tmp[1]);
+                    int r = std::stoi(tmp[0])-1, c = std::stoi(tmp[1])-1;
 
                     return std::pair<int,int>(r, c);
                 };
