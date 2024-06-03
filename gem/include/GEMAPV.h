@@ -132,7 +132,7 @@ public:
     void SetCrossTalkThresLevel(const float &t) {crosstalk_thres = t;}
     void SetAddress(const APVAddress &apv_addr);
     void AddUnusedChannel(const int &i) {unused_channels.push_back(i);}
-    void SetUnusedChannels(const std::vector<int> &v) {unused_channels = v;}
+    void SetUnusedChannels(const std::vector<int> &v);
     void SetAPVName(const std::string &n) {apv_name = n;}
 
 private:

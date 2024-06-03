@@ -91,7 +91,10 @@ namespace pixel {
             painter -> drawRect(i.second.x_pos, i.second.y_pos, i.second.width, i.second.height);
 
             QFont font = painter->font();
-            font.setPointSize(6);
+            if(i.second.ix >= 18)
+                font.setPointSize(6);
+            else
+                font.setPointSize(10);
             painter -> setFont(font);
             painter -> setPen(Qt::black);
             int ch = pixel::PixelMapping::Instance().GetStripNoFromCoord(i.second.ix, i.second.iy);

@@ -1115,10 +1115,22 @@ void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_
 ////////////////////////////////////////////////////////////////////////////////
 // calculate dynamic common mode sorting method
 
-float GEMAPV::dynamic_ts_common_mode_sorting(float *buf, const uint32_t &size)
+float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, [[maybe_unused]]const uint32_t &_size)
 {
     float average = 0.;
     int count = 0;
+
+    std::vector<float> buf;
+    size_t size = 0;
+
+    // remove the unused channels
+    for(size_t i=0; i<size; i++) {
+        bool found = std::binary_search(unused_channels.begin(), unused_channels.end(), i);
+        if(found) continue;
+
+        buf.push_back(_buf[i]);
+        size++;
+    }
 
 #ifdef USE_SRS
     // remove the lowest 20 strips for common mode calculation
@@ -1578,6 +1590,42 @@ bool GEMAPV::IsCrossTalkStrip(const uint32_t &ch)
     return false;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// fill in the unused APV channels, 
+// NOTE: the input vector is usually in panasonic pin, we need to convert that
+// to APV internal channel
+
+void GEMAPV::SetUnusedChannels(const std::vector<int> &v)
+{
+    unused_channels.clear();
+    const std::string & detector_type = plane -> GetDetector() -> GetType();
+
+    auto find_index = [&](int val) -> int
+    {
+        for(int i = 0; i<128; i++) {
+            if(val == apv_strip_mapping::mapped_strip_arr.at(detector_type)[i]) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    for(auto &i: v)
+    {
+        int j = find_index(i);
+
+        if(j< 0 || j >= 128) {
+            std::cout<<"-ERROR-:: strip index does not have a corresponding apv internal channel?"
+                <<std::endl;
+            exit(0);
+        }
+        AddUnusedChannel(j);
+    }
+
+    // sort for fast search
+    std::sort(unused_channels.begin(), unused_channels.end());
+}
+ 
 //============================================================================//
 // Private Member Functions                                                   //
 //============================================================================//
@@ -1625,12 +1673,21 @@ void GEMAPV::getMiddleAverage(float &average, const float *buf)
     if(chamber_type == "MOLLERGEM") {
         auto start = arr.begin() + g_skip_channel[0];
         auto end = start + 7;
+
         arr.erase(start, end);
     }
 
-    std::sort(arr.begin(), arr.end());
+    // remove unused channels
+    // note that unused_channels is already sorted in ascending order
+    for(auto it=unused_channels.rbegin(); it!=unused_channels.rend(); ++it)
+    {
+        int pos = *it;
+        if(pos < (int)arr.size())
+            arr.erase(arr.begin() + pos);
+    }
 
-    for(uint32_t i = 40; i < APV_STRIP_SIZE-40; ++i)
+    std::sort(arr.begin(), arr.end());
+    for(uint32_t i = 20; i < APV_STRIP_SIZE-20; ++i)
     {
         average += arr[i];
         count++;
