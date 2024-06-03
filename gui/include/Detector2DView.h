@@ -12,8 +12,6 @@
 #ifndef DETECTOR_2D_VIEW_H
 #define DETECTOR_2D_VIEW_H
 
-#include "Detector2DItem.h"
-
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <unordered_map>
@@ -77,6 +75,9 @@ class ColorBar;
 class QLabel;
 class QGraphicsProxyWidget;
 class QGraphicsTextItem;
+class Detector2DItem;
+
+#include "PixelPads.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // main data struct
@@ -101,7 +102,8 @@ private:
     QGraphicsScene *scene;
     QGraphicsView *view; 
     // detectors
-    std::unordered_map<Detector2DAddress, Detector2DItem*> det;
+    //std::unordered_map<Detector2DAddress, Detector2DItem*> det; // strip detectors
+    std::unordered_map<Detector2DAddress, QGraphicsItem*> det;
 
     // color bar
     ColorBar *color_bar;

@@ -1,4 +1,5 @@
 #include "Detector2DView.h"
+#include "Detector2DItem.h"
 #include "ColorBar.h"
 #include "APVStripMapping.h"
 
@@ -34,14 +35,22 @@ void Detector2DView::InitView()
 
         for(int i=0; i<ChamberPerLayer; ++i) {
             Detector2DAddress addr(l.first, i);
-            det[addr] = new Detector2DItem();
-            if(readout_type.find("UV") != std::string::npos) {
-                det[addr] -> SetStripAngle(160, 160);
-                det[addr] -> SetReadoutType(readout_type);
+
+            if(readout_type.find("PIXEL") != std::string::npos)
+            {
+                det[addr] = new pixel::PixelPads();
             }
-            det[addr] -> SetTitle("layer" + std::to_string(l.first) +
-                    " gem" + std::to_string(i));
-            det[addr] -> SetStripIndexRange(0, n_strips_x, 0, n_strips_y);
+            else {
+                det[addr] = new Detector2DItem();
+                if(readout_type.find("UV") != std::string::npos) {
+                    dynamic_cast<Detector2DItem*>(det[addr]) -> SetStripAngle(160, 160);
+                    dynamic_cast<Detector2DItem*>(det[addr]) -> SetReadoutType(readout_type);
+                }
+                dynamic_cast<Detector2DItem*>(det[addr]) -> SetTitle("layer" + std::to_string(l.first) +
+                        " gem" + std::to_string(i));
+                dynamic_cast<Detector2DItem*>(det[addr]) -> SetStripIndexRange(0, n_strips_x, 0, n_strips_y);
+            }
+
             scene -> addItem(det[addr]);
         }
     }
@@ -68,16 +77,23 @@ void Detector2DView::ReDistributePaintingArea()
     for(auto &l: layers)
     {
         int ChamberPerLayer = l.second.chambers_per_layer;
+        std::string readout_type = l.second.readout_type;
+
         for(int i=0; i<ChamberPerLayer; i++) 
         {
             Detector2DAddress addr(l.first, i);
             QRectF f(layer_index*sceneRectWidth/NLayer, i*sceneRectHeight/ChamberPerLayer, 
                     sceneRectWidth/NLayer, sceneRectHeight/ChamberPerLayer);
+
             det[addr] -> setPos(f.x(), f.y());
 
-            // maybe it's better not to change boundingRect
-            // otherwise the ratio will be changed
-            det[addr] -> SetBoundingRect(f);
+            // set the bounding rect to expand all drawable area
+            if(readout_type.find("PIXEL") != std::string::npos) {
+                dynamic_cast<pixel::PixelPads*>(det[addr]) -> SetBoundingRect(f);
+            }
+            else {
+                dynamic_cast<Detector2DItem*>(det[addr]) -> SetBoundingRect(f);
+            }
         }
         layer_index++;
     }
@@ -136,7 +152,7 @@ void Detector2DView::FillEvent(std::pair<std::vector<int>, std::vector<int>> onl
                 y_index++;
             }
 
-            det[addr] -> ReceiveContents(x_strips, y_strips);
+            dynamic_cast<Detector2DItem*>(det[addr]) -> ReceiveContents(x_strips, y_strips);
             det[addr] -> update();
         }
     }

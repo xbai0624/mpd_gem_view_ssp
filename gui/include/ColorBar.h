@@ -99,11 +99,11 @@ private:
             painter.setPen(Qt::black);
 
             if(i == 0) {
-                painter.drawLine(30, y+2, 55, y+2); // 2 pixel to accomodate for line thickness
+                painter.drawLine(30, y+2, 60, y+2); // 2 pixel to accomodate for line thickness
                 painter.drawText(60, y + metrics.ascent(), label);
             }
             else if(i == numStops - 1) {
-                painter.drawLine(30, y-2, 55, y-2);
+                painter.drawLine(30, y-2, 60, y-2);
                 painter.drawText(60, y - metrics.ascent(), label);
             }
             else {
