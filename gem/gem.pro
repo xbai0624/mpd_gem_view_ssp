@@ -80,6 +80,8 @@ HEADERS += include/GEMStruct.h \
            include/hardcode.h \
            include/Cuts.h \
            include/ValueType.h \
+           include/APVStripMapping.h \
+           include/PixelMapping.h \
 
 ######################################################################
 # source path

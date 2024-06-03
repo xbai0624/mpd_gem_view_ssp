@@ -1,5 +1,6 @@
 #include "PixelPads.h"
 #include "ColorBar.h"
+#include "PixelMapping.h"
 #include <QHBoxLayout>
 #include <QPointF>
 #include <QPen>
@@ -83,9 +84,18 @@ namespace pixel {
 
     void PixelPads::DrawPads(QPainter *painter)
     {
+        pixel::PixelMapping::Instance().Load();
+
         for(auto &i: pads) {
             painter -> setPen(i.second.color);
             painter -> drawRect(i.second.x_pos, i.second.y_pos, i.second.width, i.second.height);
+
+            QFont font = painter->font();
+            font.setPointSize(6);
+            painter -> setFont(font);
+            painter -> setPen(Qt::black);
+            int ch = pixel::PixelMapping::Instance().GetStripNoFromCoord(i.second.ix, i.second.iy);
+            painter -> drawText(i.second.x_pos, i.second.y_pos + i.second.height, QString::number(ch));
         }
     }
 }
