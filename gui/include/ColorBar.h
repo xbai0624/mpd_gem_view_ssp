@@ -47,7 +47,7 @@ public:
             }
         }
 
-        return QColor();
+        return QColor(255, 0, 0);
     }
 
 protected:
@@ -114,7 +114,7 @@ private:
     }
 
     // max adc
-    double MAXADC = 800;
+    double MAXADC = 1000;
 };
 
 #endif

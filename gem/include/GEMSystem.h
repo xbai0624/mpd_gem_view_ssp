@@ -137,7 +137,7 @@ public:
             for(auto &i: _fields)
             {
                 if(i.find('a') != std::string::npos)
-                    apv_name = i;
+                    apv_name = i.substr(1, i.size() - 1);
                 else if(i.find('p') != std::string::npos) {
                     pad_size = parse_pair(i);
                 }

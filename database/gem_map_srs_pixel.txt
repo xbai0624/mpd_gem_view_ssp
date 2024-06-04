@@ -32,7 +32,7 @@
 
 ###############################################################
 # apv "other" field
-#   a - APV (a-A means APV-A); p - pixel (p5-5 means pixel size 5mm x 5mm); 
+#   a - APV (aAPV-A means apv with name: APV-A); p - pixel (p5-5 means pixel size 5mm x 5mm); 
 #   d - dead channels (d0-47 means strip#0 - strip#47 is not used, d3 means strip#3 is not used, all in panasonic pin order)
 #   example: other = "a-D;p4-4;d0-1;d3" - DO NOT USE ANY space in it, only use ";-" as delimiters
 
@@ -40,7 +40,7 @@
 # Layer configurations
 # Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch, x_flip, y_flip
 
-Layer,  0,  1,  PIXEL,  0,   0,   INFNXYGEM,  8,   0,   0.4,    0.4, 1, 1
+Layer,  0,  1,  PIXEL,  0,   0,   INFNXYGEM,  4,   4,   0.4,    0.4, 1, 1
 
 ###############################################################
 # This section is for SSP
@@ -49,12 +49,13 @@ Layer,  0,  1,  PIXEL,  0,   0,   INFNXYGEM,  8,   0,   0.4,    0.4, 1, 1
 #============================= Crate_2 Layer_4 GEM_0 ===================================
 
 # X-dimension
-APV,    2,      0,      0,     13,     0,      0,     7,     0,      0,      a-A;p5-5;d80-127,  0,      0,
-APV,    2,      0,      0,     13,     0,      1,     6,     1,      0,      a-B;p5-5;d0-47,    0,      0,
-APV,    2,      0,      0,     13,     0,      2,     5,     2,      0,      a-C;p4-4;d125-127, 0,      0,
-APV,    2,      0,      0,     13,     0,      3,     4,     3,      0,      a-D;p4-4;d0-1;d3,  0,      0,
-APV,    2,      0,      0,     13,     0,      4,     3,     4,      0,      a-E;p2-2;d0-11,    0,      0,
-APV,    2,      0,      0,     13,     0,      5,     2,     5,      0,      a-F;p2-2,          0,      0,
-APV,    2,      0,      0,     13,     0,      6,     1,     6,      0,      a-G;p2-2,          0,      0,
-APV,    2,      0,      0,     13,     0,      7,     0,     7,      0,      a-H;p2-2,          0,      0,
+APV,    2,      0,      0,     13,     0,      0,     7,     0,      0,      aAPV-A;p5-5;d80-127,  0,      0,
+APV,    2,      0,      0,     13,     0,      1,     6,     1,      0,      aAPV-B;p5-5;d0-47,    0,      0,
+APV,    2,      0,      0,     13,     0,      2,     5,     2,      0,      aAPV-C;p4-4;d125-127, 0,      0,
+APV,    2,      0,      0,     13,     0,      3,     4,     3,      0,      aAPV-D;p4-4;d0-1;d3,  0,      0,
+
+APV,    2,      0,      0,     13,     1,      4,     3,     0,      0,      aAPV-E;p2-2;d0-11,    0,      0,
+APV,    2,      0,      0,     13,     1,      5,     2,     1,      0,      aAPV-F;p2-2,          0,      0,
+APV,    2,      0,      0,     13,     1,      6,     1,     2,      0,      aAPV-G;p2-2,          0,      0,
+APV,    2,      0,      0,     13,     1,      7,     0,     3,      0,      aAPV-H;p2-2,          0,      0,
 

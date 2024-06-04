@@ -1,6 +1,8 @@
 #ifndef PIXEL_PADS_H
 #define PIXEL_PADS_H
 
+#include "PixelMapping.h"
+
 #include <QGraphicsItem>
 #include <QColor>
 #include <vector>
@@ -21,14 +23,18 @@ namespace pixel {
         int ix, iy;
         double x_pos, y_pos;
         double width, height;
+        double event_adc;
+        double hit_accum;
         QColor color;
 
         geometry_t() :
-            ix(0), iy(0), x_pos(0), y_pos(0), width(0), height(0), color(Qt::gray)
+            ix(0), iy(0), x_pos(0), y_pos(0), width(0), height(0), event_adc(0),
+            hit_accum(0), color(Qt::gray)
         {}
 
         geometry_t(int nx, int ny, double x, double y, double dx, double dy):
-            ix(nx), iy(ny), x_pos(x), y_pos(y), width(dx), height(dy), color(Qt::gray)
+            ix(nx), iy(ny), x_pos(x), y_pos(y), width(dx), height(dy), event_adc(0),
+            hit_accum(0), color(Qt::gray)
         {}
 
         bool operator==(const geometry_t &k ) const {
@@ -53,15 +59,19 @@ namespace pixel {
         void paint(QPainter *painter,
                 const QStyleOptionGraphicsItem *option = nullptr, QWidget *widget = nullptr);
         virtual void resizeEvent();
-        void SetBoundingRect(const QRectF &f);
 
+        void SetBoundingRect(const QRectF &f);
         void SetupPads();
+        void RedistributePads();
         void DrawPads(QPainter *painter);
 
+        // receive data to plot
+        void ReceiveContents(const std::vector<std::pair<int, float>> &_x_strips,
+                    const std::vector<std::pair<int, float>> &_y_strips);
     private:
         QRectF _boundingRect;
 
-        std::map<int, geometry_t> pads;
+        std::map<int, geometry_t*> ro_pads;
 
         std::string readout_type = "PIXEL";
         // drawing range

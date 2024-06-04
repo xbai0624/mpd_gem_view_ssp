@@ -1086,7 +1086,6 @@ void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_
     exit(0);
 #endif
 
-    //std::cout<<"common mode: "<<average<<std::endl;
     if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
     {
         // common mode correction
@@ -1124,7 +1123,7 @@ float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, [[maybe_unused]]const 
     size_t size = 0;
 
     // remove the unused channels
-    for(size_t i=0; i<size; i++) {
+    for(int i=0; i<(int)_size; i++) {
         bool found = std::binary_search(unused_channels.begin(), unused_channels.end(), i);
         if(found) continue;
 

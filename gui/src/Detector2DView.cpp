@@ -130,6 +130,7 @@ void Detector2DView::FillEvent(std::pair<std::vector<int>, std::vector<int>> onl
     for(auto &l: layers)
     {
         int ChamberPerLayer = l.second.chambers_per_layer;
+        std::string readout_type = l.second.readout_type;
 
         for(int i=0; i<ChamberPerLayer; ++i)
         {
@@ -152,7 +153,10 @@ void Detector2DView::FillEvent(std::pair<std::vector<int>, std::vector<int>> onl
                 y_index++;
             }
 
-            dynamic_cast<Detector2DItem*>(det[addr]) -> ReceiveContents(x_strips, y_strips);
+            if(readout_type.find("PIXEL") != std::string::npos)
+                dynamic_cast<pixel::PixelPads*>(det[addr]) -> ReceiveContents(x_strips, y_strips);
+            else
+                dynamic_cast<Detector2DItem*>(det[addr]) -> ReceiveContents(x_strips, y_strips);
             det[addr] -> update();
         }
     }

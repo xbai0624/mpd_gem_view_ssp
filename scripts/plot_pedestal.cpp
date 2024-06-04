@@ -13,7 +13,9 @@ TH1F* plot_apv(const vector<float> &v, int crate, int mpd, int adc, const char* 
 
     for(size_t i=0;i<v.size();i++)
     {
-        h->SetBinContent(i+5, v[i]);
+        int strip = 32*(i%4) + 8*(i/4) - 31*(i/16);
+        //int strip = i;
+        h->SetBinContent(strip+5, v[strip]);
     }
 
     return h;
@@ -86,24 +88,24 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat")
         if(h->GetBinContent(10) == 5000 || h->GetBinContent(10) == 0) continue;
 
         string title = h->GetTitle();
-	if(title.find("offset") != string::npos)
-	{
-	    int nCanvas = n_offset / 16;
-	    int nPad = n_offset % 16 + 1;
-	    c_offset[nCanvas] -> cd(nPad);
-	    h->Draw();
+        if(title.find("offset") != string::npos)
+        {
+            int nCanvas = n_offset / 16;
+            int nPad = n_offset % 16 + 1;
+            c_offset[nCanvas] -> cd(nPad);
+            h->Draw();
 
-	    n_offset ++;
-	}
-	else if(title.find("noise") != string::npos)
-	{
-	    int nCanvas = n_noise / 16;
-	    int nPad = n_noise % 16 + 1;
-	    c_noise[nCanvas] -> cd(nPad);
-	    h->Draw();
+            n_offset ++;
+        }
+        else if(title.find("noise") != string::npos)
+        {
+            int nCanvas = n_noise / 16;
+            int nPad = n_noise % 16 + 1;
+            c_noise[nCanvas] -> cd(nPad);
+            h->Draw();
 
-	    n_noise ++;
-	}
+            n_noise ++;
+        }
     }
 }
 

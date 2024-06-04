@@ -632,7 +632,9 @@ void Viewer::DrawGEMOnlineHits(int num)
         std::vector<int> res(nAPV * APV_STRIP_SIZE + 10, 0); // +10 is for safety reason
         for(auto &i: hits) {
             int hit_pos = i.strip;
-            if(xPlane) { // x plane need to go to local GEM coord
+            if(xPlane) {
+                // x plane needs to go to local GEM coord
+                // y plane is already in local GEM coord, b/c for SBS arrangement, y is the shorter side
                 hit_pos -= APV_STRIP_SIZE * GEMPos * nAPV;
             }
             if(hit_pos >= nAPV * APV_STRIP_SIZE)

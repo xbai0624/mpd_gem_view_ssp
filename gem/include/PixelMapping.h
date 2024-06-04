@@ -7,9 +7,15 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 namespace pixel {
+
+    // this is a temporary solution
     const std::string apv_name[] = {"APV-A","APV-B","APV-C","APV-D","APV-E","APV-F","APV-G","APV-H"};
+    const int apv_plane[]        = {      0,      0,      0,      0,      1,      1,      1,      1};
+    const int apv_pos[]          = {      0,      1,      2,      3,      0,      1,      2,      3};
+ 
     class PixelMapping {
         public:
             PixelMapping(const PixelMapping &) = delete;
@@ -17,6 +23,7 @@ namespace pixel {
 
             static PixelMapping& Instance() {
                 static PixelMapping instance;
+                instance.Load();
                 return instance;
             }
 
@@ -128,6 +135,14 @@ namespace pixel {
 
                 int key = row * 100000 + col;
                 return pixel_to_socket_pin[key];
+            }
+
+            std::string GetAPVNameFromPlanePos(int plane, int pos)
+            {
+                int index = plane > 0 ? 4 : 0;
+                index += pos;
+
+                return apv_name[index];
             }
 
         private:
