@@ -145,6 +145,19 @@ namespace pixel {
                 return apv_name[index];
             }
 
+            std::string GetAPVNameFromCoord(int row, int col)
+            {
+                for(auto &i: socket_pin_to_pixel)
+                {
+                    std::string res = i.first;
+                    for(auto &j: i.second) {
+                        if(row == j.first && col == j.second)
+                            return res;
+                    }
+                }
+                return "";
+            }
+
         private:
             PixelMapping() {}
             std::unordered_map<std::string, std::vector<std::pair<int, int>>> socket_pin_to_pixel;

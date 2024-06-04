@@ -1,4 +1,5 @@
 #include "PixelPads.h"
+#include "PixelMapping.h"
 #include "ColorBar.h"
 #include <QHBoxLayout>
 #include <QPointF>
@@ -59,6 +60,8 @@ namespace pixel {
 
             for(int i=row_start; i<row_end; i++) {
                 for(int j=0; j<nCols; j++) {
+                    //if(pixel::PixelMapping::Instance().GetAPVNameFromCoord(i, j) != "APV-G")
+                    //    continue;
                     double row_pos = row_pos_off + (i-row_start) * width;
                     double col_pos = col_pos_off + j * width;
                     ro_pads[pad_counter++] = new geometry_t(i, j, col_pos, row_pos, width, width);
@@ -101,6 +104,9 @@ namespace pixel {
 
             for(int i=row_start; i<row_end; i++) {
                 for(int j=0; j<nCols; j++) {
+                    //if(pixel::PixelMapping::Instance().GetAPVNameFromCoord(i, j) != "APV-G")
+                    //    continue;
+ 
                     double row_pos = row_pos_off + (i-row_start) * width;
                     double col_pos = col_pos_off + j * width;
                     ro_pads[pad_counter] -> x_pos = col_pos;
