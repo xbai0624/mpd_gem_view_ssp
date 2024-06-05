@@ -8,6 +8,38 @@
 #include <QColor>
 
 namespace pixel {
+    // a temporary solution
+    static std::unordered_map<std::string, std::pair<int, int>> apv_name_iloc = {
+        {"APV-A", std::pair<int, int>(3, 13)},
+        {"APV-B", std::pair<int, int>(3, 5)},
+        {"APV-C", std::pair<int, int>(12, 17)},
+        {"APV-D", std::pair<int, int>(12, 5)},
+        {"APV-E", std::pair<int, int>(23, 2)},
+        {"APV-F", std::pair<int, int>(23, 13)},
+        {"APV-G", std::pair<int, int>(23, 26)},
+        {"APV-H", std::pair<int, int>(23, 40)},
+    };
+    static std::unordered_map<std::string, std::pair<float, float>> apv_name_floc = {
+        {"APV-A", std::pair<float, float>(0, 0)},
+        {"APV-B", std::pair<float, float>(0, 0)},
+        {"APV-C", std::pair<float, float>(0, 0)},
+        {"APV-D", std::pair<float, float>(0, 0)},
+        {"APV-E", std::pair<float, float>(0, 0)},
+        {"APV-F", std::pair<float, float>(0, 0)},
+        {"APV-G", std::pair<float, float>(0, 0)},
+        {"APV-H", std::pair<float, float>(0, 0)},
+    };
+    static std::unordered_map<std::string, std::string> apv_name_sloc = {
+        {"APV-A", "adc_ch6"},
+        {"APV-B", "adc_ch1"},
+        {"APV-C", "adc_ch7"},
+        {"APV-D", "adc_ch0"},
+        {"APV-E", "adc_ch3"},
+        {"APV-F", "adc_ch2"},
+        {"APV-G", "adc_ch5"},
+        {"APV-H", "adc_ch4"},
+    };
+
     PixelPads::PixelPads()
     {
         _boundingRect.setRect(0, 0, 600, 600);
@@ -47,6 +79,20 @@ namespace pixel {
 
     void PixelPads::SetupPads()
     {
+        QColor _color[8] = { QColor(0, 0, 205), QColor(0, 0, 0), QColor(148, 0, 211),
+            QColor(139, 69, 19), QColor(205, 133, 63), QColor(119, 136, 153),
+            QColor(0, 255, 0), QColor(128, 0, 128)};
+        std::unordered_map<std::string, QColor> name_to_color = {
+            {"APV-A", _color[0]},
+            {"APV-B", _color[1]},
+            {"APV-C", _color[2]},
+            {"APV-D", _color[3]},
+            {"APV-E", _color[4]},
+            {"APV-F", _color[5]},
+            {"APV-G", _color[6]},
+            {"APV-H", _color[7]},
+        };
+
         double _w = _boundingRect.width();
         double _h = _boundingRect.height();
 
@@ -60,11 +106,13 @@ namespace pixel {
 
             for(int i=row_start; i<row_end; i++) {
                 for(int j=0; j<nCols; j++) {
-                    //if(pixel::PixelMapping::Instance().GetAPVNameFromCoord(i, j) != "APV-G")
-                    //    continue;
+                    std::string apv_name = pixel::PixelMapping::Instance().GetAPVNameFromCoord(i, j);
+                    QColor c = name_to_color[apv_name];
                     double row_pos = row_pos_off + (i-row_start) * width;
                     double col_pos = col_pos_off + j * width;
-                    ro_pads[pad_counter++] = new geometry_t(i, j, col_pos, row_pos, width, width);
+                    ro_pads[pad_counter] = new geometry_t(i, j, col_pos, row_pos, width, width);
+                    ro_pads[pad_counter] -> color = c;
+                    pad_counter++;
                 }
             }
         };
@@ -104,14 +152,16 @@ namespace pixel {
 
             for(int i=row_start; i<row_end; i++) {
                 for(int j=0; j<nCols; j++) {
-                    //if(pixel::PixelMapping::Instance().GetAPVNameFromCoord(i, j) != "APV-G")
-                    //    continue;
- 
+                    std::string name = pixel::PixelMapping::Instance().GetAPVNameFromCoord(i, j);
+
                     double row_pos = row_pos_off + (i-row_start) * width;
                     double col_pos = col_pos_off + j * width;
                     ro_pads[pad_counter] -> x_pos = col_pos;
                     ro_pads[pad_counter] -> y_pos = row_pos;
                     pad_counter++;
+
+                    if(i == apv_name_iloc[name].first && j == apv_name_iloc[name].second)
+                        apv_name_floc[name].first = col_pos, apv_name_floc[name].second = row_pos;
                 }
             }
         };
@@ -142,11 +192,12 @@ namespace pixel {
         {
             painter -> save();
 
-            i.second -> color = Qt::gray;
-            if(i.second -> event_adc > 10) {
-                i.second -> color = color_bar->toColor(i.second -> event_adc);
-                painter -> setPen(i.second -> color);
-                painter -> setBrush(i.second -> color);
+            //i.second -> color = Qt::gray;
+            if(i.second -> event_adc > 1) {
+                //i.second -> color = color_bar->toColor(i.second -> event_adc);
+                QColor color = color_bar->toColor(i.second -> event_adc);
+                painter -> setPen(color);
+                painter -> setBrush(color);
                 painter -> drawRect(i.second -> x_pos, i.second -> y_pos, i.second -> width, i.second -> height);
             } else {
                 painter -> setPen(i.second -> color);
@@ -168,6 +219,18 @@ namespace pixel {
             painter -> drawText(i.second.x_pos, i.second.y_pos + i.second.height, QString::number(ch));
             */
         }
+
+        // draw apv channel name on the canvas
+        painter -> save();
+        //QFont font = painter -> font();
+        //font.setPixelSize(12);
+        painter -> setPen(Qt::black);
+        painter -> setFont(QFont("times", 22));
+        for(auto &i: apv_name_iloc) {
+            painter -> drawText(apv_name_floc[i.first].first, apv_name_floc[i.first].second, QString(apv_name_sloc[i.first].c_str()));
+        }
+        painter -> restore();
+
     }
 
     void PixelPads::ReceiveContents(const std::vector<std::pair<int, float>> &_x_strips,
@@ -175,7 +238,7 @@ namespace pixel {
     {
         // reset event
         for(auto &i: ro_pads) {
-            i.second -> color = Qt::gray;
+            //i.second -> color = Qt::gray;
             i.second -> event_adc = 0;
         }
 

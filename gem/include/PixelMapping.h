@@ -15,6 +15,7 @@ namespace pixel {
     const std::string apv_name[] = {"APV-A","APV-B","APV-C","APV-D","APV-E","APV-F","APV-G","APV-H"};
     const int apv_plane[]        = {      0,      0,      0,      0,      1,      1,      1,      1};
     const int apv_pos[]          = {      0,      1,      2,      3,      0,      1,      2,      3};
+    const int apv_ch[]           = {      6,      1,      7,      0,      3,      2,      5,      4};
  
     class PixelMapping {
         public:
@@ -156,6 +157,14 @@ namespace pixel {
                     }
                 }
                 return "";
+            }
+
+            int GetAPVChFromName(const std::string name)
+            {
+                int k = 0;
+                for(int i=0; i<8; i++)
+                    if(apv_name[i] == name) k = i;
+                return apv_ch[k];
             }
 
         private:
