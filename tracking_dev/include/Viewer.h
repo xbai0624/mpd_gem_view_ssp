@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "histos.hpp"
+#include "tracking_struct.h"
 
 class QVBoxLayout;
 class QHBoxLayout;
@@ -37,6 +38,7 @@ public:
         void GenerateToyTrackEvent();
         void AddToyEventBackground();
         void ClearPrevEvent();
+        void GetOneFermiTrack(int i);
 
         void ProcessTrackingResult();
         bool ProcessRawGEMResult();
@@ -51,6 +53,7 @@ public slots:
 public:
         // a helper
         void ShowGridHitStat();
+        void LoadFermiData();
 
 private:
         AbstractDetector *fDet[1000]; // max 1000 detector
@@ -83,6 +86,8 @@ private:
 
         //double fXOffset[4] = {0, 2., -1., 3.};
         //double fYOffset[4] = {0, 2., -1., 3.};
+
+        std::vector<std::vector<point_t>> total_tracks;
 };
 
 };

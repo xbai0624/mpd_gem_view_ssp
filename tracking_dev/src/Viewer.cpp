@@ -20,7 +20,7 @@
 
 namespace tracking_dev {
 
-//#define USE_SIM_DATA
+#define USE_SIM_DATA
 
 Viewer::Viewer(QWidget *parent) : QWidget(parent)
 {
@@ -50,10 +50,13 @@ void Viewer::InitToyDetectorSetup()
 {
     tracking = new Tracking();
 
+    double z_origin[NDET_SIM] = {0, 100, 1020, 1120};
+
     for(int i=0; i<NDET_SIM; i++)
     {
-        point_t dimension(60, 60, 0.1);
-        point_t origin(0, 0, (double)i*30);
+        point_t dimension(100, 100, 0.1);
+        //point_t origin(0, 0, (double)i*30);
+        point_t origin(0, 0, z_origin[i]);
 
         fDet[i] = new AbstractDetector();
         fDet[i] -> SetOrigin(origin);
@@ -63,6 +66,8 @@ void Viewer::InitToyDetectorSetup()
     }
 
     tracking -> CompleteSetup();
+
+    LoadFermiData();
 }
 
 void Viewer::InitGui()
@@ -100,7 +105,8 @@ void Viewer::InitGui()
     btn_50K = new QPushButton("Replay 50K", this);
     btn_open_file = new QPushButton("Open File", this);
     label_counter = new QLabel("Event Number: 0", this);
-    label_file = new QLineEdit("../data/hallc_fadc_ssp_4818.evio.1", this);
+    //label_file = new QLineEdit("../data/hallc_fadc_ssp_4818.evio.1", this);
+    label_file = new QLineEdit("../data/fermilab_run_1018.evio.1", this);
 
     global_layout = new QVBoxLayout(this);
     global_layout -> addWidget(fDet2DView);
@@ -117,6 +123,32 @@ void Viewer::InitGui()
     connect(label_file, SIGNAL(textChanged(const QString &)), this, SLOT(ProcessNewFile(const QString &)));
     connect(btn_next, SIGNAL(valueChanged(int)), this, SLOT(DrawEvent(int)));
     connect(btn_50K, SIGNAL(clicked()), this, SLOT(Replay50K()));
+}
+
+void Viewer::LoadFermiData()
+{
+    std::cout<<"Loading Fermilab data."<<std::endl;
+    const char* path = "./tracking_dev/fermi_tracks.txt";
+
+    std::fstream f(path, std::fstream::in);
+    std::string line;
+
+    double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4; 
+    while(f >> x1 >> y1 >> z1 >> x2 >> y2 >> z2 >> x3 >> y3 >> z3 >> x4 >> y4 >> z4)
+    {
+        point_t p1(x1, y1, z1);
+        point_t p2(x2, y2, z2);
+        point_t p3(x3, y3, z3);
+        point_t p4(x4, y4, z4);
+
+        std::vector<point_t> track;
+        track.push_back(p1);
+        track.push_back(p2);
+        track.push_back(p3);
+        track.push_back(p4);
+
+        total_tracks.push_back(track);
+    }
 }
 
 void Viewer::OpenFile()
@@ -191,6 +223,20 @@ void Viewer::GenerateToyTrackEvent()
     }
 }
 
+void Viewer::GetOneFermiTrack(int i)
+{
+    if(i >= (int) total_tracks.size()) {
+        std::cout<<"finished all fermi tracks..."<<std::endl;
+        return;
+    }
+
+    auto & track = total_tracks[i];
+    for(int j=0; j<NDetector_Implemented; j++)
+    {
+        fDet[j] -> AddHit(track[j]);
+    }
+}
+
 void Viewer::AddToyEventBackground()
 {
     for(int i=0; i<NDetector_Implemented; i++)
@@ -202,7 +248,7 @@ void Viewer::AddToyEventBackground()
             // smear by resoution
             xrand = gen -> Gaus(xrand, 1.0) + fXOffset[i];
             yrand = gen -> Gaus(yrand, 1.0) + fYOffset[i];
-            
+
             point_t temp = fDet[i] -> GetOrigin();
 
             temp.x = xrand, temp.y = yrand;
@@ -225,11 +271,12 @@ void Viewer::DrawEvent(int event_number)
         fDet2DView -> Refresh();
         return;
     }
- 
+
 #ifdef USE_SIM_DATA
     ClearPrevEvent();
-    GenerateToyTrackEvent();
-    AddToyEventBackground();
+    //GenerateToyTrackEvent();
+    //AddToyEventBackground();
+    GetOneFermiTrack(event_number);
     //ShowGridHitStat();
 #else
     tracking_data_handler -> SetOnlineMode(true);
@@ -269,7 +316,7 @@ void Viewer::ProcessTrackingResult()
 
     hist_m.histo_1d<float>("h_ntracks_found") -> Fill(1);
     hist_m.histo_1d<float>("h_nhits_on_best_track") -> Fill(tracking -> GetNHitsonBestTrack());
- 
+
     // fill best track to histograms
     hist_m.histo_1d<float>("h_xtrack") -> Fill(xt);
     hist_m.histo_1d<float>("h_ytrack") -> Fill(yt);
@@ -366,13 +413,13 @@ void Viewer::Replay50K()
 
     while(event_counter++ < 50000)
     {
-	if(event_counter % 1000 == 0) {
+        if(event_counter % 1000 == 0) {
             t1 = Time::now();
-	    fsec fs_ = t1 - t0;
+            fsec fs_ = t1 - t0;
 
-	    std::cout<<"\r"<<event_counter<<" time used: "<<fs_.count() <<" s"<<std::flush;
-	    t0 = t1;
-	}
+            std::cout<<"\r"<<event_counter<<" time used: "<<fs_.count() <<" s"<<std::flush;
+            t0 = t1;
+        }
 
 #ifdef USE_SIM_DATA
         ClearPrevEvent();
