@@ -22,12 +22,16 @@ public:
     if (it != fileNames.end()) { 
 	return it->second; 
     } else {
-	throw std::runtime_error("File name for kay " + key + " not found");
+	throw std::runtime_error("File name for key " + key + " not found");
     }
   }
 
 private:
-  FileNameManager() {}
+  FileNameManager() {
+      // Set default values here
+      fileNames["tracking_config_file"] = ""; 
+      fileNames["gem_map_file"] = ""; 
+      }
   FileNameManager(const FileNameManager&) = delete;
   FileNameManager& operator=(const FileNameManager&) = delete;
 

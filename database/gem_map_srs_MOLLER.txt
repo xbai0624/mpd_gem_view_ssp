@@ -35,9 +35,6 @@
 # Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, xpitch, ypitch, xflip, yflip
 
 Layer,  0,  1, UV,  0,   0,   MOLLERGEM,  5,   5,   0.82,    0.82,  1, 1
-#Layer,  0,  1, UV,  0,   0,   INFNXYGEM,  5,   5,   0.4,    0.4, 1, 1
-
-
 
 ###############################################################
 #Items, crate_id,    Layer,  fec_id,   GEMID,  dimension,  ADCId,  I2C,    Pos,    Invert, other,  backplane,  GEMPOS

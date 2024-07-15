@@ -11,7 +11,7 @@ gem0 = {
     layer id = 0; # this one is the key
     position = 0, 0, 0;   # (x_coord,-12.52  y_coord, z_coord): global coordinate
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
-    offset = 1.110212, 10.44072, 0;     # x_offset, y_offset, z_offset
+    offset = 0, 0, 0;     # x_offset, y_offset, z_offset
     tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
@@ -20,7 +20,7 @@ gem1 = {
     layer id = 1;
     position = 0, 0, 100.0;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.336958, 10.34262, 0;
+    offset = 0, 0, 0;
     tilt angle = 0, 0, 0;
     participate tracking = 1;
 }
@@ -47,8 +47,8 @@ gem4 = {
     layer id = 4;
     position = 0, 0, 740;
     dimension = 102.4, 102.4, 0.1;
-    offset = 9.16483, 1.895636, 0;
-    tilt angle = 0, 0.20944, 0;
+    offset = 0, 0, 0;
+    tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -56,7 +56,7 @@ gem5 = {
     layer id = 5;
     position = 0, 0, 1020;
     dimension = 51.2, 51.2, 0.1;
-    offset = 2.277771, 13.31649, 0; #for 100 um centered on 0, (x,y,z) = (3.047485, 13.95983, 0)
+    offset = 0, 0, 0; 
     tilt angle = 0, 0, 0;
     participate tracking = 1;
 }
@@ -65,7 +65,7 @@ gem6 = {
     layer id = 6;
     position = 0, 0, 1120;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.709691, 14.69649, 0; #for 100 um centered on 0, (x,y,z) = (2.45435555, 15.45916, 0)
+    offset = 0, 0, 0; 
     tilt angle = 0, 0, 0;
     participate tracking = 1;
 }
@@ -75,8 +75,8 @@ gem6 = {
 #                             grid size setup                                 #
 ###############################################################################
 # grid setup
-grid width = 17.2, 17.2 # units in mm (x bin width, y bin width)
-grid shift = 0.4 # units in mm
+#grid width = 17.2, 17.2 # units in mm (x bin width, y bin width)
+#grid shift = 0.4 # units in mm
 
 #grid width = 10, 10 # units in mm (x bin width, y bin width)
 #grid shift = 3.8 # units in mm
@@ -87,8 +87,8 @@ grid shift = 0.4 # units in mm
 #grid width = 52, 52 # units in mm (x bin width, y bin width)
 #grid shift = 0.8 # units in mm
 
-#grid width = 102.4, 102.4
-#grid shift = 0
+grid width = 102.4, 102.4
+grid shift = 0
 
 ###############################################################################
 #                        cuts applied to all strips                           #
@@ -167,6 +167,7 @@ save max track quantity = 10
 # and output whatever the best track chi2 it finds
 track max chi2 = 1e5
 
+effective search radius = 142
 ###############################################################################
 #                                optics cut                                   #
 ###############################################################################

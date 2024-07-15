@@ -10,7 +10,7 @@ GEMReplay::GEMReplay()
         std::cout<<__func__<<" failed loading config file."<<std::endl;
         exit(1);
     }
-
+    
     apv_strip_mapping::Mapping::Instance() -> LoadMap(txt_parser.Value<std::string>("GEM Map").c_str());
 
     data_handler = new GEMDataHandler();

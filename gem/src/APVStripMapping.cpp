@@ -82,7 +82,13 @@ Mapping::Mapping()
         exit(1);
     }
 
+    // Minh : For default, grab map file from gem.conf
     std::string mapping_file = txt_parser.Value<std::string>("GEM Map");
+
+    // Minh : If FileNameManager finds string value path for key "gem_map_file", then use that instead
+    if (FileNameManager::getInstance().getFileName("gem_map_file").size() > 0) {
+	mapping_file = FileNameManager::getInstance().getFileName("gem_map_file"); 
+    }
     LoadMap(mapping_file.c_str());
 }
 

@@ -242,8 +242,12 @@ void Viewer::DrawEvent(int event_number)
     ProcessTrackingResult();
 
     std::cout<<"event number: "<<event_number<<std::endl;
-    for(int i=0; i<NDetector_Implemented; i++)
-        std::cout<<" : det_"<<i<<" counts = "<<fDet[i] -> Get2DHitCounts();
+    for(int i=0; i<NDetector_Implemented; i++) {
+        std::cout<<" : det_"<<i<<" counts = "<<fDet[i] -> Get2DHitCounts() << std::endl;
+	for(point_t coord : fDet[i]->GetRealHits()) {
+	    std::cout << "det_" << i << "(" << coord.x << ", " << coord.y << ", " << coord.z << ")" << std::endl;
+	}
+    }
     std::cout<<std::endl;
 
     fEventNumber++;

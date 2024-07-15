@@ -48,7 +48,7 @@ gem4 = {
     position = 0, 0, 740;
     dimension = 102.4, 102.4, 0.1;
     offset = 12.64123, 1.816466, 0;
-    tilt angle = 0, 0.785398, 0;
+    tilt angle = 0, 0.785398, 0; #0.785398
     participate tracking = 0;
 }
 
@@ -136,7 +136,7 @@ time sample correlation coefficient = 0.7
 ###############################################################################
 
 # minimum and maximum cluster size
-min cluster size = 1
+min cluster size = 2
 max cluster size = 20
 
 ###############################################################################

@@ -11,7 +11,7 @@ TF1* gaus_fit(TH1F* hist){
     int nBins = hist->GetNbinsX(); 
     int maxBin = hist->GetMaximumBin(); 
     double maxCount = hist->GetBinContent(maxBin); 
-    double limitCount = maxCount / 10;
+    double limitCount = maxCount / 20;
     double low = -1, high = -1; 
     
      for (int i = 1; i <= maxBin; ++i) {
@@ -45,8 +45,8 @@ void setHistogramFitStats(TH1F* hist) {
 
     TPaveStats* stats = (TPaveStats*)hist->GetListOfFunctions()->FindObject("stats");
     if (stats) {
-        stats->SetOptFit(1111);  // Set the options to show fit statistics
-        stats->SetOptStat(0);    // Hide the default statistics
+        stats->SetOptStat(11); // Hide the default statistics
+        stats->SetOptFit(1111);
     }
     gPad->Modified();  // Ensure the pad is updated with the new statistics box
     gPad->Update();    // Final update to the pad
@@ -129,9 +129,6 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
                 std::cerr << "Histogram " << histName << " is empty." << std::endl;
                 continue;
             }
-
-	    gStyle->SetOptFit(111); 
-	    gStyle->SetOptStat(0); 
 
 	    // Fit the histogram 
 	    std::string fittedHistName = histName + "_fitted";
@@ -251,7 +248,6 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
 
 	for (int i = 0; i < 4 && zoomed10mmHistIndex < nZoomed10mmHists; ++i, ++zoomed10mmHistIndex) {
 	    multiPageCanvas->cd(i+1);
-	    gStyle->SetOptFit(111); 
 	    zoomed10mmHistVector[zoomed10mmHistIndex]->Draw(); 
 	    gPad->Update();
 	}
@@ -269,9 +265,7 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
 
 	for (int i = 0; i < 4 && zoomedHistIndex < nZoomedHists; ++i, ++zoomedHistIndex) {
 	    multiPageCanvas->cd(i+1);
-	    gStyle->SetOptFit(111); 
 	    zoomedHistVector[zoomedHistIndex]->Draw(); 
-	    gPad->Update();
 	}
 
 	multiPageCanvas->Update();

@@ -39,6 +39,7 @@
 #include <vector>
 #include "GEMStruct.h"
 #include "ConfigObject.h"
+#include "FileNameManager.h"
 
 namespace apv_strip_mapping {
 

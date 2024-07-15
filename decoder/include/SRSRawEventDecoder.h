@@ -9,6 +9,8 @@
 
 //#define APV_HEADER 1400 // for setup #2
 #define APV_HEADER 1700  // for setup #1
+//#define APV_HEADER 2100  // for setup #1
+
 
 class SRSRawEventDecoder : public AbstractRawDecoder
 {

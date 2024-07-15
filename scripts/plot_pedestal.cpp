@@ -94,6 +94,7 @@ void plot_pedestal(const char* path = "../database/gem_ped.dat", const std::stri
     froot->Close();
 
     // plot histos
+    std::cout << "Bug Check, res.size() = " << res.size()/3 << std::endl; 
     int nMPD = res.size() / 3 / 16 + 1;
     TCanvas *c_offset[nMPD];
     TCanvas *c_noise[nMPD];

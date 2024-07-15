@@ -11,7 +11,7 @@ gem0 = {
     layer id = 0; # this one is the key
     position = 0, 0, 0;   # (x_coord,-12.52  y_coord, z_coord): global coordinate
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
-    offset = 1.110212, 10.44072, 0;     # x_offset, y_offset, z_offset
+    offset = 1.11021197, 10.44071960, 0; 
     tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
@@ -20,8 +20,8 @@ gem1 = {
     layer id = 1;
     position = 0, 0, 100.0;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.336958, 10.34262, 0;
-    tilt angle = 0, 0, 0;
+    offset = 1.33696091, 10.34261990, -0.00000050; 
+    tilt angle = 0.00041031, 0.00156455, -0.00193476;
     participate tracking = 1;
 }
 
@@ -47,8 +47,8 @@ gem4 = {
     layer id = 4;
     position = 0, 0, 740;
     dimension = 102.4, 102.4, 0.1;
-    offset = 8.43523, 1.905936, 0;
-    tilt angle = 0, 0.10472, 0;
+    offset = 8.43523026, 1.90593600, 0.00000049; 
+    tilt angle = -0.00015214, 0.10505414, 0.00269444;
     participate tracking = 0;
 }
 
@@ -56,8 +56,8 @@ gem5 = {
     layer id = 5;
     position = 0, 0, 1020;
     dimension = 51.2, 51.2, 0.1;
-    offset = 2.277771, 13.31649, 0; #for 100 um centered on 0, (x,y,z) = (3.047485, 13.95983, 0)
-    tilt angle = 0, 0, 0;
+    offset = 2.27777100, 13.31649017, -0.00000038; 
+    tilt angle = -0.00000065, -0.00005580, 0.00004019;
     participate tracking = 1;
 }
 
@@ -65,8 +65,8 @@ gem6 = {
     layer id = 6;
     position = 0, 0, 1120;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.709691, 14.69649, 0; #for 100 um centered on 0, (x,y,z) = (2.45435555, 15.45916, 0)
-    tilt angle = 0, 0, 0;
+    offset = 1.70969105, 14.69649029, 0.00000039; 
+    tilt angle = -0.00000344, 0.00003083, 0.00016231;
     participate tracking = 1;
 }
 
@@ -167,6 +167,7 @@ save max track quantity = 10
 # and output whatever the best track chi2 it finds
 track max chi2 = 1e5
 
+effective search radius = 142
 ###############################################################################
 #                                optics cut                                   #
 ###############################################################################

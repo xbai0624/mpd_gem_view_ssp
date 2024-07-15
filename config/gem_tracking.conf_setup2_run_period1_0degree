@@ -1,4 +1,3 @@
-
 ###############################################################################
 #                      deliminitors: " ,;:@\'\"\r"                            #
 ###############################################################################
@@ -11,8 +10,8 @@ gem0 = {
     layer id = 0; # this one is the key
     position = 0, 0, 0;   # (x_coord,-12.52  y_coord, z_coord): global coordinate
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
-    offset = 1.110212, 10.44072, 0;     # x_offset, y_offset, z_offset
-    tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
+    offset = 1.11021197, 10.44071960, 0; 
+    tilt angle = 0, 0, 0; 
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
 
@@ -20,8 +19,8 @@ gem1 = {
     layer id = 1;
     position = 0, 0, 100.0;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.336958, 10.34262, 0;
-    tilt angle = 0, 0, 0;
+    offset = 1.33695853, 10.34261990, -0.00000061; 
+    tilt angle = 0.00049629, 0.00175316, -0.00203504;
     participate tracking = 1;
 }
 
@@ -47,8 +46,8 @@ gem4 = {
     layer id = 4;
     position = 0, 0, 740;
     dimension = 102.4, 102.4, 0.1;
-    offset = 7.72238, 1.928346, 0;
-    tilt angle = 0, 0, 0;
+    offset = 7.72238016, 1.92834604, -0.00000065; 
+    tilt angle = -0.00004958, -0.00017436, 0.00269727; 
     participate tracking = 0;
 }
 
@@ -56,8 +55,8 @@ gem5 = {
     layer id = 5;
     position = 0, 0, 1020;
     dimension = 51.2, 51.2, 0.1;
-    offset = 2.277771, 13.31649, 0; #for 100 um centered on 0, (x,y,z) = (3.047485, 13.95983, 0)
-    tilt angle = 0, 0, 0;
+    offset = 2.277771, 13.31649017, -0.00000023;
+    tilt angle = 0.00000942, -0.00009101, 0.00013535;
     participate tracking = 1;
 }
 
@@ -65,8 +64,8 @@ gem6 = {
     layer id = 6;
     position = 0, 0, 1120;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.709691, 14.69649, 0; #for 100 um centered on 0, (x,y,z) = (2.45435555, 15.45916, 0)
-    tilt angle = 0, 0, 0;
+    offset = 1.70969105, 14.69649029, 0.00000026;
+    tilt angle = -0.00001263, 0.00005826, 0.00010595; 
     participate tracking = 1;
 }
 
