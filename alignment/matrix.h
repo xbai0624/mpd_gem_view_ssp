@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <vector>
 #include <ostream>
+#include <cstdint>
 
 namespace tracking_dev
 {

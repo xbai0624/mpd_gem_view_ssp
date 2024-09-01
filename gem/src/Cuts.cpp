@@ -590,6 +590,10 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
     block_data.offset = tmp.at("offset").arr<double>();
     block_data.tilt_angle.clear();
     block_data.tilt_angle = tmp.at("tilt angle").arr<double>();
+    block_data.second_order_offset.clear(); 
+    block_data.second_order_offset = tmp.at("second order offset").arr<double>(); 
+    block_data.second_order_tilt_angle.clear(); 
+    block_data.second_order_tilt_angle = tmp.at("second order tilt angle").arr<double>(); 
     block_data.is_tracker = static_cast<bool>(tmp.at("participate tracking").val<int>());
 
     __parse_key_value(block[0], key, value);

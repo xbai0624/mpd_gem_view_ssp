@@ -11,8 +11,10 @@ gem0 = {
     layer id = 0; # this one is the key
     position = 0, 0, 0;   # (x_coord,-12.52  y_coord, z_coord): global coordinate
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
-    offset = 1.11021197, 10.44071960, 0; 
+    offset = 1.110212, 10.44072, 0; 
     tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
 
@@ -20,8 +22,10 @@ gem1 = {
     layer id = 1;
     position = 0, 0, 100.0;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.33696091, 10.34261990, -0.00000050; 
-    tilt angle = 0.00041031, 0.00156455, -0.00193476;
+    offset = 1.336958, 10.34262, 0; 
+    tilt angle = 0, 0, 0;
+    second order offset = -0.00000012, -0.00000033, -0.00000046;
+    second order tilt angle = 0.00003046, -0.00001082, -0.00226796;
     participate tracking = 1;
 }
 
@@ -31,6 +35,8 @@ gem2 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 0, 0, 0;
     tilt angle = 0, 0, 0;
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -40,6 +46,8 @@ gem3 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 0, 0, 0;
     tilt angle = 0, 0, 0;
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -47,8 +55,10 @@ gem4 = {
     layer id = 4;
     position = 0, 0, 740;
     dimension = 102.4, 102.4, 0.1;
-    offset = 8.43523026, 1.90593600, 0.00000049; 
-    tilt angle = -0.00015214, 0.10505414, 0.00269444;
+    offset = 8.43523, 1.905936, 0; 
+    tilt angle = 0, 0.10472, 0;
+    second order offset = 0.00000018,  0.00000085, -0.00000079;
+    second order tilt angle = 0.00000605,  0.00000494,  0.00298299;
     participate tracking = 0;
 }
 
@@ -56,8 +66,10 @@ gem5 = {
     layer id = 5;
     position = 0, 0, 1020;
     dimension = 51.2, 51.2, 0.1;
-    offset = 2.27777100, 13.31649017, -0.00000038; 
-    tilt angle = -0.00000065, -0.00005580, 0.00004019;
+    offset = 2.277771, 13.31649, 0; 
+    tilt angle = 0, 0, 0;
+    second order offset = 0.00000000,  0.00000001, -0.00000018;
+    second order tilt angle = 0.00000021, -0.00000454, -0.00004327;
     participate tracking = 1;
 }
 
@@ -65,8 +77,10 @@ gem6 = {
     layer id = 6;
     position = 0, 0, 1120;
     dimension = 51.2, 51.2, 0.1;
-    offset = 1.70969105, 14.69649029, 0.00000039; 
-    tilt angle = -0.00000344, 0.00003083, 0.00016231;
+    offset = 1.709691, 14.69649, 0; 
+    tilt angle = 0, 0, 0;
+    second order offset = 0.00000000, -0.00000001,  0.00000020;
+    second order tilt angle = -0.00000058,  0.00000373,  0.00026562;
     participate tracking = 1;
 }
 

@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <ostream>
+#include <cstdint>
 
 ////////////////////////////////////////////////////////////////
 // slot address for MPD

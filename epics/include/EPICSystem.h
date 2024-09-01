@@ -5,6 +5,7 @@
 #include <string>
 #include <deque>
 #include <unordered_map>
+#include <cstdint>
 
 // epics channel
 struct EPICSChannel

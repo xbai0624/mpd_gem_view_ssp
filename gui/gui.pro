@@ -8,7 +8,7 @@ TARGET = ../bin/data_viewer
 ######################################################################
 # compiler configs
 
-CONFIG += c++14 release
+CONFIG += c++17 release
 QT += core gui widgets
 
 ######################################################################

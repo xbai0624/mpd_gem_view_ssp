@@ -3,7 +3,7 @@
 THIS_DIR=$(dirname "$0") 
 THIS_DIR=$(cd "$THIS_DIR" && pwd)
 
-source $THIS_DIR/setup_env.sh
+source "$THIS_DIR/setup_env.sh"
 
 RUN=$1
 PEDESTAL=$2
@@ -19,8 +19,7 @@ do
 	echo "analyzing run:" $RUN 
         echo "split #:" $splitNum 
 
-	$THIS_DIR/bin/replay -c 0 -t 0 -z 1 -n -1 --tracking on --pedestal $THIS_DIR/database/gem_ped_$PEDESTAL.dat --common_mode $THIS_DIR/database/CommonModeRange_$PEDESTAL.txt --gem_map $THIS_DIR/database/$GEM_MAP --tracking_config $THIS_DIR/config/$TRACK_CONFIG /home/daq/coda/data/fermilab_beamtest_$RUN.evio.$splitNum 
-
+	"$THIS_DIR/bin/replay" -c 0 -t 0 -z 1 -n -1 --tracking on --pedestal "$THIS_DIR/database/gem_ped_$PEDESTAL.dat" --common_mode "$THIS_DIR/database/CommonModeRange_$PEDESTAL.txt" --gem_map "$THIS_DIR/database/$GEM_MAP" --tracking_config "$THIS_DIR/config/$TRACK_CONFIG" "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/data/fermilab_beamtest_$RUN.evio.$splitNum"
 	# rename runs
         mv "$THIS_DIR/Rootfiles/cluster_0_fermilab_beamtest_$RUN..root_data_quality_check.root" "$THIS_DIR/Rootfiles/cluster_0_fermilab_beamtest_$RUN_$splitNum..root_data_quality_check.root"
 
@@ -58,8 +57,8 @@ root -b -q  "$posRes"
 if [ "$BATCH_MODE" -eq 0 ]
 then
 	# show pos res
-	evince $THIS_DIR/Rootfiles/fitted_positionResolution_$RUN.root.pdf & 
+	evince $'THIS_DIR'/Rootfiles/fitted_positionResolution_$RUN.root.pdf & 
 
 	# show run
-	evince $THIS_DIR/Rootfiles/cluster_0_fermilab_beamtest_$RUN..root_data_quality_check.root.pdf &
+	evince $'THIS_DIR'/Rootfiles/cluster_0_fermilab_beamtest_$RUN..root_data_quality_check.root.pdf &
 fi

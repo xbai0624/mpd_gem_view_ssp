@@ -8,6 +8,11 @@ TARGET = ../bin/alignment
 INCLUDEPATH += .
 
 ######################################################################
+# 
+QMAKE_CXXFLAGS -= -std=gnu++1y
+QMAKE_CXXFLAGS += -std=c++17
+
+######################################################################
 # decoder headers
 INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
 # decoder lib

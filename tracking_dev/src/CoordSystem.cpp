@@ -38,6 +38,22 @@ namespace tracking_dev {
                     );
             angle_gem[layer] = angle;
 
+            // second order offset
+            point_t SO_offset(
+                i.second.second_order_offset.at(0), 
+                i.second.second_order_offset.at(1), 
+                i.second.second_order_offset.at(2)
+                ); 
+            SO_offset_gem[layer] = SO_offset; 
+
+            // second order global angle
+            point_t SO_tilt_angle(
+                i.second.second_order_tilt_angle.at(0),
+                i.second.second_order_tilt_angle.at(1), 
+                i.second.second_order_tilt_angle.at(2)
+                );
+            SO_angle_gem[layer] = SO_tilt_angle; 
+
             // size
             point_t dim(
                     i.second.dimension.at(0),
@@ -107,6 +123,39 @@ namespace tracking_dev {
     
     }
 
+void CoordSystem::Global_Rotate(point_t & p, const point_t &rot)
+    {
+        // refer to: https://en.wikipedia.org/wiki/Rotation_matrix
+        // R = RzRyRx
+        // Global rotation function is primarily for second order rotation parameters
+
+        double c_gamma = std::cos(rot.z); 
+	double s_gamma = std::sin(rot.z);
+
+        double c_beta = std::cos(rot.y); 
+	double s_beta = std::sin(rot.y);
+
+        double c_alpha = std::cos(rot.x);
+	double s_alpha = std::sin(rot.x);
+	
+	double local_x = p.x; 
+	double local_y = p.y; 
+	double local_z = p.z; // Rotation is now global in reference to layer 0 (z = 0) 
+        
+	double x = (c_beta * c_gamma) * local_x +
+               (s_alpha * s_beta * c_gamma - c_alpha * s_gamma) * local_y +
+               (c_alpha * s_beta * c_gamma + s_alpha * s_gamma) * local_z;
+
+    	double y = (c_beta * s_gamma) * local_x +
+               (s_alpha * s_beta * s_gamma + c_alpha * c_gamma) * local_y +
+               (c_alpha * s_beta * s_gamma - s_alpha * c_gamma) * local_z;
+
+    	double z = (-s_beta) * local_x +
+               (c_beta * s_alpha) * local_y + 
+               (c_alpha * c_beta) * local_z;
+
+        p.x = x; p.y = y; p.z = z;
+    }
 
     void CoordSystem::Translate(point_t &p, const point_t &t)
     {
@@ -119,17 +168,23 @@ namespace tracking_dev {
         //std::cout << "Translated point: (" << p.x << ", " << p.y << ", " << p.z << ")" << std::endl;
     }
 
-    void CoordSystem::Transform(point_t &p, const point_t &rot, const point_t &t)
+    void CoordSystem::Transform(point_t &p, const point_t &rot, const point_t &t, const point_t &SO_rot, const point_t &SO_t)
     {
-        // first do angle correction
+        // First, do angle correction (first order)
         Rotate(p, rot);
 
-        // second to offset correction
+        // Second, do offset correction (first order)
         Translate(p, t);
+
+        // Third, do global angle correction (second order)
+        Global_Rotate(p, SO_rot); 
+
+        // Fourth, do offset correction (second order)
+        Translate(p, SO_t);
     }
 
     void CoordSystem::Transform(point_t &p, int ilayer)
     {
-        Transform(p, angle_gem[ilayer], offset_gem[ilayer]);
+        Transform(p, angle_gem[ilayer], offset_gem[ilayer], SO_angle_gem[ilayer], SO_offset_gem[ilayer]);
     }
 };

@@ -7,7 +7,9 @@ TARGET = fadc
 
 QT += widgets gui core
 
-CONFIG += c++14 release
+CONFIG += c++17 release
+QMAKE_CXXFLAGS -= -std=gnu++1y
+QMAKE_CXXFLAGS += -std=c++17
 
 INCLUDEPATH += ./include
 

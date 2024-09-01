@@ -10,21 +10,42 @@
 TF1* gaus_fit(TH1F* hist){
     int nBins = hist->GetNbinsX(); 
     int maxBin = hist->GetMaximumBin(); 
-    double maxCount = hist->GetBinContent(maxBin); 
-    double limitCount = maxCount / 20;
+    double maxCount = hist->GetBinContent(maxBin);
+    double percentage = 0.1;  
+    double limitCount = maxCount / (1/percentage);
     double low = -1, high = -1; 
     
      for (int i = 1; i <= maxBin; ++i) {
         if (hist->GetBinContent(i) >= limitCount) {
-            low = hist->GetBinLowEdge(i);
-            break;
+            double diff_A = std::abs(hist->GetBinContent(i) - limitCount);
+            double diff_B = std::abs(hist->GetBinContent(i-1) - limitCount);
+
+            if (diff_A <= diff_B) {
+                low = hist->GetBinLowEdge(i); 
+                break;
+            }
+
+            if (diff_B < diff_A){ 
+                low = hist->GetBinLowEdge(i - 1);  
+                break; 
+                }
         }
     }
 
     for (int i = maxBin; i <= nBins; ++i) {
         if (hist->GetBinContent(i) <= limitCount) {
-            high = hist->GetBinLowEdge(i);
-            break;
+            double diff_A = std::abs(hist->GetBinContent(i) - limitCount);
+            double diff_B = std::abs(hist->GetBinContent(i-1) - limitCount);
+
+            if (diff_A <= diff_B) {
+                high = hist->GetBinLowEdge(i) + hist->GetBinWidth(i); 
+                break;
+            }
+
+            if (diff_B < diff_A){ 
+                high = hist->GetBinLowEdge(i - 1) + hist->GetBinWidth(i - 1);  
+                break; 
+                }
         }
     }
 
@@ -65,9 +86,15 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
 	return; 
     }
 
+    /*
     std::string defaultPath = "/home/daq/data_viewer/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root"; 
     std::string outputPath = "/home/daq/data_viewer/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
     if (runNumFlag) outputPath = Form("/home/daq/data_viewer/mpd_gem_view_ssp/Rootfiles/fitted_positionResolution_%d.root", runNum); 
+    */
+
+    std::string defaultPath = "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
+    std::string outputPath = "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
+    if (runNumFlag) outputPath = Form("/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/Rootfiles/fitted_positionResolution_%d.root", runNum);
 
     TFile* outputFile; 
     TFile* defaultFile; 
@@ -84,7 +111,7 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
     }
 
     if (!outputFile || outputFile->IsZombie()) {
-                std::cerr << "Error creating output file (input/default faulty): /home/daq/data_viewer/mpd_gem_view_ssp/scripts/tmp_plots/fitted_histograms.root" << std::endl;
+                std::cerr << "Error creating output file (input/default faulty): path/to/mpd_gem_view_ssp/scripts/tmp_plots/fitted_histograms.root" << std::endl;
                 f1->Close();
                 delete f1;
 		return;
@@ -216,7 +243,8 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
 	gPad->Update(); 
     }
 
-    std::string defaultPdfPath = "/home/daq/data_viewer/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.pdf";
+    // std::string defaultPdfPath = "/home/daq/data_viewer/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.pdf";
+    std::string defaultPdfPath = "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.pdf";
 
     canvas->Update();
     canvas->Print((defaultPdfPath + "(").c_str());

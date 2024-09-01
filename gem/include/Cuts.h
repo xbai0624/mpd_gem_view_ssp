@@ -111,12 +111,15 @@ public:
         std::vector<double> dimension;
         std::vector<double> offset;
         std::vector<double> tilt_angle;
+        std::vector<double> second_order_offset; 
+        std::vector<double> second_order_tilt_angle; 
         bool is_tracker;
 
         block_t() : module_name(""), layer_id(0)
         {
             position.clear(); dimension.clear();
             offset.clear(); tilt_angle.clear();
+            second_order_offset.clear(); second_order_tilt_angle.clear(); 
             is_tracker = true;
         }
     };
