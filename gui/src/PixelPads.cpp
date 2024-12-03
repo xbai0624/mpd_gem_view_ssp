@@ -206,20 +206,19 @@ namespace pixel {
 
             painter -> restore();
 
-            /*
             // show mapping
             QFont font = painter->font();
-            if(i.second.ix >= 18)
-            font.setPointSize(6);
+            if(i.second -> ix >= 18)
+                font.setPointSize(6);
             else
-            font.setPointSize(10);
+                font.setPointSize(10);
             painter -> setFont(font);
             painter -> setPen(Qt::black);
-            int ch = pixel::PixelMapping::Instance().GetStripNoFromCoord(i.second.ix, i.second.iy);
-            painter -> drawText(i.second.x_pos, i.second.y_pos + i.second.height, QString::number(ch));
-            */
+            int ch = pixel::PixelMapping::Instance().GetStripNoFromCoord(i.second -> ix, i.second -> iy);
+            painter -> drawText(i.second -> x_pos, i.second -> y_pos + i.second -> height, QString::number(ch));
         }
 
+        /*
         // draw apv channel name on the canvas
         painter -> save();
         //QFont font = painter -> font();
@@ -230,6 +229,7 @@ namespace pixel {
             painter -> drawText(apv_name_floc[i.first].first, apv_name_floc[i.first].second, QString(apv_name_sloc[i.first].c_str()));
         }
         painter -> restore();
+        */
 
     }
 
