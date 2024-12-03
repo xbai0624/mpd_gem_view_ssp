@@ -1,362 +1,425 @@
 #include "HistoItem.h"
 
-#include <iostream>
-#include <cmath>
+#include <QPen>
+#include <QPainter>
+#include <QGraphicsSceneMouseEvent>
 
-#define ROTATE_X_LABEL
-
-#ifdef CONVERT
-#include "APVStripMapping.h"
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
-// ctor
+// for unit test
+static const double test_dist[] = {
+    0,      0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,      0, 
+    0,      0,      0,      0,      0,      0,      0,      0,      1,      0, 
+    0,      8,      5,     21,     20,     44,    116,    216,    305,    563,
+    911,   1294,   1914,   2648,   3435,   4407,   5321,   6259,   7153,   7498,
+    7932,   7869,   7657,   7031,   6216,   5379,   4288,   3435,   2588,   1871,
+    1326,    881,    533,    363,    210,    122,     67,     40,     30,     15,
+    6,      1,      0,      1,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,      0,
+    0,      0,      0,      0,      0,      0,      0,      0,      0,      0,
+};
 
 HistoItem::HistoItem()
 {
-    // default bounding rect
-    _boundingRect.setRect(0, 0, 50, 50);
+    bounding_rect = QRectF(0, 0, 100, 100);
+    updateDrawingRange();
+    clearContent();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// dtor
+HistoItem::HistoItem(double width, double height)
+{
+    bounding_rect = QRectF(0, 0, width, height);
+    updateDrawingRange();
+    clearContent();
+}
 
 HistoItem::~HistoItem()
 {
-    _contents.clear();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// get bounding rect
+void HistoItem::updateDrawingRange()
+{
+    // total drawable area - leave a margin to get rid of scroll bars
+    double margin = 0.1;
+    drawing_range = QRectF(
+            bounding_rect.width() * margin, bounding_rect.height() * margin,
+            bounding_rect.width() * (1 - 2*margin), bounding_rect.height() * (1 - 2*margin)
+            );
+}
+
+void HistoItem::clearContent()
+{
+    original_data2.clear();
+    _data2.clear();
+    _content.clear();
+    _select_box.clear();
+    _coordinate_frame.clear();
+}
+
+void HistoItem::SetBoundingRect(const QRectF &f)
+{
+    prepareGeometryChange();
+
+    bounding_rect = mapRectFromScene(f);
+    //bounding_rect = f;
+    bounding_rect.setRect(0, 0, bounding_rect.width(), bounding_rect.height());
+
+    setPos(f.x(), f.y());
+
+    updateDrawingRange();
+}
 
 QRectF HistoItem::boundingRect() const
 {
-    return _boundingRect;
+    // we don't want the bounding rectangle to change, that
+    // will make the drawing area change on different data.
+    // so we make a fixed drawing area, and scale our data to
+    // this area
+
+    return bounding_rect;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// mouse press event
-
-void HistoItem::mousePressEvent([[maybe_unused]]QGraphicsSceneMouseEvent *e)
+void HistoItem::PassData()
 {
-    if(root_canvas != nullptr)
-        root_canvas -> DrawCanvas(_title.toStdString(), _contents);
-    else {
-        std::cout<<"Info::QMainCanvas not set yet..."<<std::endl;
-    }
-}
+    original_data2.clear();
 
-////////////////////////////////////////////////////////////////////////////////
-// set QMainCanvas
-
-void HistoItem::PassQMainCanvasPointer(QMainCanvas *canvas)
-{
-    root_canvas = canvas;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// paint
-
-void HistoItem::paint(QPainter* painter, 
-        [[maybe_unused]]const QStyleOptionGraphicsItem *option, 
-        [[maybe_unused]]QWidget *widget)
-{
-    UpdateRange();
-
-    // draw contents
-    QPen pen1(Qt::blue, 1);
-    painter -> setPen(pen1);
-    QPolygonF _shape = PrepareContentShape();
-    painter -> drawPolygon(_shape);
-
-    // draw axis
-    QPen pen(Qt::black, 1);
-    painter -> setPen(pen);
-    QVector<QLineF> axis = PrepareAxis();
-    painter -> drawLines(axis);
-
-    // draw axis marks
-    DrawAxisMarks(painter);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// resize event
-
-void HistoItem::resizeEvent()
-{
-    prepareGeometryChange();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// set bounding rect
-
-void HistoItem::SetBoundingRect(const QRectF& f)
-{
-    prepareGeometryChange();
-
-    // in our case scene coords overlaps with item coords
-    _boundingRect = mapRectFromScene(f);
-    //_boundingRect = f;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// convert strip orders
-#ifdef CONVERT
-static std::vector<float> convert_strip(const std::vector<float> &original)
-{
-    std::vector<float> res;
-
-    size_t S = original.size();
-    if(S <= 0) return res;
-
-    res.resize(S);
-    int APV_TS = 129;
-
-    if((int)S % APV_TS != 0) {
-        std::cout<<__PRETTY_FUNCTION__<<" ERROR: incorrect APV raw frame format."
-            <<" skipping converting..."
-            <<std::endl;
-        return original;
+    for(int i=0; i<100; i++) {
+        original_data2.emplace_back(i, test_dist[i]);
     }
 
-    int TS = (int)S/APV_TS;
-    for(int ts = 0; ts<TS; ts++)
-    {
-        int i = ts*APV_TS;
-        for(int ch = 0; ch<128; ch++)
+    updateDrawingContent();
+}
+
+void HistoItem::updateDrawingContent()
+{
+    // clear previous event, drawing content is saved in _data2
+    _data2.clear();
+
+    // get data range for zoom in
+    QPair<double, double> draw_data_range;
+    if(second_pos > first_pos) {
+        draw_data_range.first = data_x_range.first +
+            (first_pos - drawing_range.x()) / drawing_range.width() * (data_x_range.second - data_x_range.first);
+        draw_data_range.second = data_x_range.first +
+            (second_pos - drawing_range.x()) / drawing_range.width() * (data_x_range.second - data_x_range.first);
+        //qDebug()<<"data range selected" << draw_data_range.first<<", "<<draw_data_range.second;
+    }
+
+    // extract drawable-part data
+    for(auto &i: original_data2) {
+        if(second_pos > first_pos) {
+            if(i.first >= draw_data_range.first && i.first <= draw_data_range.second)
+                _data2.emplace_back(i);
+        }
+        else
+            _data2.emplace_back(i);
+    }
+
+    prepareDataShape();
+}
+
+void HistoItem::prepareDataShape()
+{
+    updateDrawingRange();
+
+    // shape data
+    auto find_data_range = [&](QPair<double, double> &xr, QPair<double, double> &yr){
+        if(_data2.size() <= 0)
+            xr.first = 0, xr.second = 0, yr.first = 0, yr.second = 0;
+
+        xr.first = xr.second = _data2.at(0).first;
+        yr.first = yr.second = _data2.at(0).second;
+
+        for(auto &i: _data2)
         {
-            res[i+ch] = original[i + apv_strip_mapping::mapped_strip_arr.at("INFNXYGEM")[ch]];
+            double x = i.first, y = i.second;
+
+            if(x < xr.first)
+                xr.first = x;
+            if(x > xr.second)
+                xr.second = x;
+            if(y < yr.first)
+                yr.first = y;
+            if(y > yr.second)
+                yr.second = y;
         }
-    }
-
-    return res;
-}
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
-// draw histo
-
-QPolygonF HistoItem::PrepareContentShape()
-{
-#ifdef CONVERT
-    // convert strips
-    _contents = convert_strip(_contents);
-#endif
-
-    QPolygonF shape;
-    if(_contents.size() <= 0) {
-        shape << QPointF(0, 0);
-        return shape;
-    }
-
-    int size = static_cast<int>(_contents.size());
-
-    int start = 0;
-    shape << Coord(start, 0);
-    for(int i=start;i<size+start;i++) {
-        shape << Coord(i, _contents[i-start]);
-        shape << Coord(i+1, _contents[i-start]);
-    }
-    shape << Coord(size+start, _contents[size-1]);
-    // close shape
-    shape << Coord(size+start, 0);
-
-    return shape;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// draw axis
-
-QVector<QLineF> HistoItem::PrepareAxis()
-{
-    QVector<QLineF> res;
-
-    // main axis
-    QLineF x_top(area_x1, area_y1, area_x2, area_y1);
-    QLineF x_bot(area_x1, area_y2, area_x2, area_y2);
-    QLineF y_left(area_x1, area_y1, area_x1, area_y2);
-    QLineF y_right(area_x2, area_y1, area_x2, area_y2);
-
-    res.push_back(x_top);
-    res.push_back(x_bot);
-    res.push_back(y_left);
-    res.push_back(y_right);
-
-    return res;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// draw axis marks (a helper)
-
-void HistoItem::DrawAxisMarks(QPainter *painter)
-{
-    // generate mark label
-    auto label = [&](const float &data_min, const float &data_max, 
-            const float &draw_min, const float &draw_max,
-            const float &draw_pos, bool invert = false) -> QString
-    {
-        float data_pos = 0.;
-        if(!invert) 
-            data_pos = (draw_pos - draw_min) / (draw_max - draw_min) 
-                * (data_max - data_min);
-        else {
-            data_pos = (draw_pos - draw_min) / (draw_max - draw_min) 
-                * (data_max - data_min);
-            data_pos = data_max - data_pos;
-        }
-
-        int ss = static_cast<int>(data_pos);
-
-        return QString(std::to_string(ss).c_str());
     };
 
-    // get text dimension
-    QFont font("times", 8);
+    if(_data2.size() > 0) {
+        _content.clear();
+
+        find_data_range(data_x_range, data_y_range);
+
+        double scale_factor_x = drawing_range.width()/(data_x_range.second - data_x_range.first);
+        double scale_factor_y = drawing_range.height()/(data_y_range.second - data_y_range.first);
+
+        _content<<QPointF(drawing_range.x(), drawing_range.y() + drawing_range.height());
+
+        for(int i=0; i<_data2.size()-1; i++)
+        {
+            _content<<QPointF(
+                    drawing_range.x() + (_data2[i].first - data_x_range.first)*scale_factor_x, 
+                    drawing_range.y() + drawing_range.height() - (_data2[i].second - data_y_range.first)*scale_factor_y
+                    )
+                <<QPointF(
+                        drawing_range.x() + (_data2[i+1].first - data_x_range.first)*scale_factor_x, 
+                        drawing_range.y() + drawing_range.height() - (_data2[i].second - data_y_range.first)*scale_factor_y
+                        );
+        }
+
+        _content << QPointF(drawing_range.x() + (data_x_range.second - data_x_range.first)*scale_factor_x, drawing_range.y() + drawing_range.height());
+    }
+}
+
+void HistoItem::paint(QPainter *painter,
+        [[maybe_unused]] const QStyleOptionGraphicsItem *option,
+        [[maybe_unused]] QWidget *widget)
+{
+    // scale pen width
+    qreal scaleX = painter -> worldTransform().m11();
+    qreal scaleY = painter -> worldTransform().m22();
+    qreal scale = std::sqrt(scaleX * scaleY);
+
+    QPen pen1(Qt::blue, 2./scale);
+
+    // draw data
+    painter -> setPen(pen1);
+    prepareDataShape();
+    painter -> drawPolygon(_content);
+
+    pen1.setColor(Qt::black);
+    painter -> setPen(pen1);
+    // draw coordinate frame
+    drawAxis(painter, data_x_range.first, data_x_range.second, data_y_range.first, data_y_range.second);
+
+    // draw the bounding rect
+    pen1.setColor(QColor(189, 189, 189));
+    pen1.setWidthF(2./scale);
+    painter -> setPen(pen1);
+
+    //drawBoundingRect(painter);
+
+    // draw the select box
+    if(_select_box.size() == 4)
+    {
+        pen1.setColor(QColor(138, 206, 247));
+        pen1.setWidthF(2./scale);
+        painter -> setPen(pen1);
+
+        drawSelectBox(painter);
+    }
+}
+
+void HistoItem::drawAxis(QPainter *painter, double data_x1, double data_x2, double data_y1, double data_y2)
+{
+    _coordinate_frame.clear();
+    _coordinate_frame << QPointF(drawing_range.x(), drawing_range.y()*0.6)
+        <<QPointF(drawing_range.x(), drawing_range.y() + drawing_range.height())
+        <<QPointF(drawing_range.x() + drawing_range.width(), drawing_range.y() + drawing_range.height())
+        <<QPointF(drawing_range.x() + drawing_range.width(), drawing_range.y()*0.6);
+
+    painter -> drawPolygon(_coordinate_frame);
+
+    // draw ticks, length in pixel
+    double tick_length = bounding_rect.width() / 100;
+    // text font below tick
+    QFont font;
+    int font_size = bounding_rect.width() / 50 > 6 ? bounding_rect.width() / 50 : 6;
+    font.setPixelSize(font_size);
     QFontMetrics fm(font);
-    painter -> setFont(QFont("times", 8));
+    painter -> setFont(font);
 
-    // x axis marks
-    float x_mark_len = 1.5/100. * (area_x2 - area_x1); // mark length
-    float x_pos = area_x1;
-    float i = 0;
-    float x_w = x_mark_interval;
-    while(x_pos < area_x2)
-    {
-        painter->drawLine(QLineF(x_pos, area_y2, x_pos, area_y2 - x_mark_len));
-        if(i!=0) {
-            QString ss = label(data_x_min, data_x_max, area_x1, area_x2, x_pos);
-            int font_width = fm.horizontalAdvance(ss);
+    int decimal_digits = 0; // show how many digits after decimal point
+
+    // only draw meaningful settings
+    if(data_x2 > data_x1) {
+        double ratio = drawing_range.width() / (data_x2 - data_x1);
+        QVector<double> ticks = getAxisTicks(data_x1, data_x2);
+
+        for(auto &i: ticks) {
+            QPointF p1(drawing_range.x() + (i-data_x1) * ratio, drawing_range.y() + drawing_range.height());
+            QPointF p2(drawing_range.x() + (i-data_x1) * ratio, drawing_range.y() + drawing_range.height() + tick_length);
+            painter -> drawLine(p1, p2);
+
+            QString s(std::to_string(i).c_str());
+            s = s.sliced(0, s.lastIndexOf(".") + decimal_digits);
+            int font_width = fm.horizontalAdvance(s);
             int font_height = fm.height();
-#ifdef ROTATE_X_LABEL
-            painter -> save();
-            painter -> translate(x_pos - font_width/2, area_y2 + 0.6*font_height);
-            painter -> rotate(45);
-            painter -> drawText(0, 0, ss);
-            painter -> restore();
-#else
-            painter -> drawText(x_pos - font_width/2, area_y2 + font_height, ss);
-#endif
+
+            painter -> drawText(drawing_range.x() + (i-data_x1)*ratio - font_width / 2,
+                    drawing_range.y() + drawing_range.height() + font_height * 1.5,
+                    s);
         }
-        x_pos = area_x1 + x_w * (i + 1.0);
-        i = i + 1.0;
     }
 
-    // y axis marks
-    float y_mark_len = 1.5/100 * (area_y2 - area_y1);
-    float y_pos = area_y1;
-    i = 0;
-    float y_w = y_mark_interval;
-    while(y_pos < area_y2)
-    {
-        painter -> drawLine(QLineF(area_x1, y_pos, area_x1 + y_mark_len, y_pos));
-        if(i != 0) {
-            QString ss = label(data_y_min, data_y_max, area_y1, area_y2, y_pos, true);
-            int font_width = fm.horizontalAdvance(ss);
-            int font_height = fm.height();
-            painter -> drawText(area_x1 - font_width -2, y_pos + font_height/2, ss);
-        }
-        y_pos = area_y1 + y_w * (i + 1.0);
-        i = i + 1.0;
-    }
+    // only draw meaningful settings
+    if(data_y2 > data_y1) {
+        double ratio = (drawing_range.height()) / (data_y2 - data_y1);
+        QVector<double> ticks = getAxisTicks(data_y1, data_y2);
 
-    // draw title
-    int font_width = fm.horizontalAdvance(_title);
-    float x_title =  (area_x1 + area_x2) / 2. - font_width / 2.;
-    //float y_title = area_y1 + fm.height();
-    float y_title = area_y1 - 2; // 2 pixel away
-    painter -> drawText(x_title, y_title, _title);
+        for(auto &i: ticks) {
+            QPointF p1(drawing_range.x() - tick_length, drawing_range.y() + drawing_range.height() - (i-data_y1) * ratio);
+            QPointF p2(drawing_range.x(), drawing_range.y() + drawing_range.height() - (i-data_y1) * ratio);
+            painter -> drawLine(p1, p2);
+
+            QString s(std::to_string(i).c_str());
+            s = s.sliced(0, s.lastIndexOf(".") + decimal_digits);
+            int font_width = fm.horizontalAdvance(s);
+            int font_height = fm.height();
+
+            painter -> drawText(drawing_range.x() - tick_length - font_width,
+                    drawing_range.y() + drawing_range.height() - (i - data_y1)*ratio + font_height/2,
+                    s);
+        }
+    }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// How to draw a histogram
-//    1) find the dimension information of the drawing area (x1, y1, x2, y2)
-//    2) find the range of data, including a) how many bins in x axis (0, x_max)
-//                                         b) y_min and y_max
-//    3) drawing area (x2 - x1) would be mapped to data range (x_max - 0)
-//       drawing area (y2 - y1) would be mapped to data range (y_max - y_min)
-//    4) for a point in data: (x_data, y_data) the mapped coords in the drawing 
-//       area would be:   x_draw = x1 + (x_data - 0)/x_max * (x2 - x1)
-//                        y_draw = y1 + (y_data - y_min) / (y_max - y_min) * (y2 - y1)
-// 
-// a helper for fixing ranges
-
-void HistoItem::UpdateRange()
+void HistoItem::drawBoundingRect(QPainter *painter)
 {
-    QRectF default_range = boundingRect();
+    QPolygonF frame;
+    frame << QPointF(bounding_rect.x(), bounding_rect.y())
+        <<QPointF(bounding_rect.x(), bounding_rect.y() + bounding_rect.height())
+        <<QPointF(bounding_rect.x() + bounding_rect.width(), bounding_rect.y() + bounding_rect.height())
+        <<QPointF(bounding_rect.x() + bounding_rect.width(), bounding_rect.y());
 
-    // QGraphicsItem drawing area range
-    // 10% pixel away from the bounding rect
-    float ratio_away = 0.1;
-    float margin_x = ratio_away*default_range.width(); 
-    float margin_y = ratio_away*default_range.height(); 
- 
-    area_x1 = default_range.x() + margin_x;
-    area_x2 = area_x1 + default_range.width() - 2.*margin_x;
-    area_y1 = default_range.y() + margin_y;
-    area_y2 = area_y1 + default_range.height() - 2.*margin_y;
+    painter -> drawPolygon(frame);
+}
 
-    // set default data range equal to the size of drawing area
-    data_x_min = 0;
-    data_x_max = area_x2 - area_x1;
-    data_y_min = 0;
-    data_y_max = area_y2 - area_y1;
+void HistoItem::drawSelectBox(QPainter *painter)
+{
+    painter -> drawPolygon(_select_box);
+}
 
-    if(_contents.size() <= 0)
-       return; 
+void HistoItem::mousePressEvent([[maybe_unused]]QGraphicsSceneMouseEvent *event)
+{
+    //qDebug() << "histo item mouse press event.";
 
-    // range from data
-    // max x is the total counts of x bins
-    data_x_max = static_cast<float>(_contents.size());
-    float min = _contents[0];
-    float max = min;
-    for(auto &i: _contents)
-    {
-        if(min > i) min = i;
-        if(max < i) max = i;
-
-        // debug: fix scale
-        //if(i > 580) i = 580;
-        //if(i < -180) i = -180;
+    if(event -> button() == Qt::LeftButton){
+        mouse_left_button_down = true;
+        first_pos = mapFromScene(event -> scenePos()).x();
     }
 
-    // make sure 0 is included in y axis
-    if(min > 0) min = 0;
+    //qDebug() << "first pos: "<<first_pos;
+}
 
-    data_y_min = min;
+void HistoItem::mouseReleaseEvent([[maybe_unused]]QGraphicsSceneMouseEvent *event)
+{
+    //qDebug() << " histo item mouse release event.";
 
-    // y max should be 10% larger for pretty reason
-    data_y_max = max * (1.1);
+    if(event -> button() == Qt::LeftButton) {
+        mouse_left_button_down = false;
+        second_pos = mapFromScene(event -> scenePos()).x();
 
-    // debug: fix scale
-    //data_y_min = -180;
-    //data_y_max = 580;
-    
-    // find optimal mark interval
-    auto get_interval = [&](float &min, float &max) -> float
+        _select_box.clear();
+    }
+    else if(event -> button() == Qt::RightButton) {
+        first_pos = 0, second_pos = 0;
+    }
+
+    updateDrawingContent();
+
+    update();
+    //qDebug() << "second pos: "<<second_pos;
+}
+
+void HistoItem::mouseMoveEvent([[maybe_unused]]QGraphicsSceneMouseEvent *event)
+{
+    if(!mouse_left_button_down)
+        return;
+
+    _select_box.clear();
+    qreal current_pos = mapFromScene(event -> scenePos()).x();
+
+    _select_box << QPointF(bounding_rect.x() + first_pos, bounding_rect.y())
+        << QPointF(bounding_rect.x() + first_pos, bounding_rect.y() + bounding_rect.height())
+        << QPointF(bounding_rect.x() + current_pos, bounding_rect.y() + bounding_rect.height())
+        << QPointF(bounding_rect.x() + current_pos, bounding_rect.y());
+
+    update();
+}
+
+QVector<double> HistoItem::getAxisTicks(double a_min, double a_max)
+{
+    QVector<double> marks;
+
+    if(a_max <= a_min)  {
+        return marks;
+    }
+    // 1. get the total range
+    double distance = a_max - a_min;
+
+    // 2. normalize the range to: 1 - 10
+    int power = 0;
+    if(distance > 10) {
+        while(distance > 10.)
+        {
+            distance /= 10;
+            power++;
+        }
+    }
+    else if(distance < 1) {
+        while(distance < 1) {
+            distance *= 10;
+            power--;
+        }
+    }
+
+    // 3. get scale
+    auto pow_span = [](double a, int n) -> double
     {
-        float res;
-        res = (max - min) / 10;
-        return res;
+        if(n == 0) 
+            return 1.0;
+
+        if( n > 0)
+            return a * pow(a, n-1);
+
+        return 1./a * pow(a, n+1);
     };
+    double scale = pow_span(10, power);
 
-    x_mark_interval = get_interval(area_x1, area_x2);
-    y_mark_interval = get_interval(area_y1, area_y2);
+    // 4. get proper space, in units: 1, or 0.5, or 0.25
+    double spacing = 1.0;
+    if(distance >= 5)
+        spacing = 1.0;
+    else if(distance >= 2)
+        spacing /= 2.0;
+    else
+        spacing /= 4.0;
+
+    spacing *= scale;
+
+    // 5. generate marks
+    int n = 1.0;
+    if(a_min > 0) {
+        // range on the right side of x=0
+        while(n * spacing <= a_max) {
+            if(n*spacing >= a_min)
+                marks.push_back(n*spacing);
+            n++;
+        }
+    }
+    else if(a_max < 0) {
+        // range on the left side of x=0
+        while (n*spacing <= -a_min) {
+            if(n*spacing >= -a_max)
+                marks.push_back(-n*spacing);
+            n++;
+        }
+    }
+    else {
+        // range spans x = 0
+        marks.push_back(0);
+        while(n * spacing <= a_max) {
+            marks.push_back(n*spacing);
+            n++;
+        }
+        n = 1.0;
+        while(n*spacing <= -a_min) {
+            marks.push_back(-n*spacing);
+            n++;
+        }
+    }
+
+    return marks;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 
 
-void HistoItem::SetTitle(const std::string  &ss)
-{
-    _title = QString(ss.c_str());
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// 
-
-void HistoItem::Clear()
-{
-    _title = "";
-    _contents.clear();
-}

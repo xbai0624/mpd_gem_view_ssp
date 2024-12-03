@@ -12,10 +12,6 @@
 #include <QScrollBar>
 #include <QCoreApplication>
 
-#include <TCanvas.h>
-#include <TStyle.h>
-#include <TFile.h>
-
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -148,11 +144,12 @@ void Viewer::InitLeftView()
 void Viewer::InitRightView()
 {
     // right content (show selected apv)
-    pRightCanvas = new QMainCanvas(pRight);
+    //pRightCanvas = new QMainCanvas(pRight);
     // right control interface
     pRightCtrlInterface = new QWidget(pRight);
     // fix the width in the right side layout
-    pRight -> setFixedWidth(450);
+    //pRight -> setFixedWidth(450);
+    pRight -> setMaximumWidth(250);
 
     InitCtrlInterface();
 
@@ -164,7 +161,7 @@ void Viewer::InitRightView()
     pLogBox -> setEnabled(false);
 
     pRightLayout -> addWidget(pRightCtrlInterface);
-    pRightLayout -> addWidget(pRightCanvas);
+    //pRightLayout -> addWidget(pRightCanvas);
     pRightLayout -> addWidget(pLogBox);
 }
 
@@ -187,16 +184,15 @@ void Viewer::InitCtrlInterface()
     _layout1 -> addWidget(file_indicator, 0, 1);
     _layout1 -> addWidget(bOpenFile, 0, 2);
 
-   // a event number input window
-    QHBoxLayout *_layout2 = new QHBoxLayout();
+    // a event number input window
     QLabel *l2 = new QLabel("Event Number: ", pRightCtrlInterface);
     QSpinBox *event_number = new QSpinBox(pRightCtrlInterface);
     event_number -> setRange(0, 9999);
     event_number -> setObjectName("event_number");
     QPushButton *btn_save_event = new QPushButton("Save Event to Disk", pRightCtrlInterface);
-    _layout2 -> addWidget(l2);
-    _layout2 -> addWidget(btn_save_event);
-    _layout2 -> addWidget(event_number);
+    _layout1 -> addWidget(l2, 1, 0);
+    _layout1 -> addWidget(event_number, 1, 1);
+    _layout1 -> addWidget(btn_save_event, 1, 2);
 
     // function modules for generating pedestals 
     QGridLayout *_layout3 = new QGridLayout();
@@ -306,7 +302,6 @@ void Viewer::InitCtrlInterface()
 
     // add to overall layout
     layout -> addLayout(_layout1);
-    layout -> addLayout(_layout2);
     layout -> addLayout(_layout3);
     layout -> addLayout(_layout7);
     layout -> addLayout(_layout6);
@@ -351,7 +346,7 @@ void Viewer::InitLeftTab()
         QWidget *tabWidget = new QWidget(pLeftTab);
         QVBoxLayout *tabWidgetLayout = new QVBoxLayout(tabWidget);
         HistoWidget *c = new HistoWidget(tabWidget);
-        c -> PassQMainCanvasPointer(pRightCanvas);
+        //c -> PassQMainCanvasPointer(pRightCanvas);
         tabWidgetLayout -> addWidget(c);
         vTabCanvas.push_back(c);
 
@@ -368,7 +363,7 @@ void Viewer::InitLeftTab()
         QVBoxLayout *tabWidgetLayout = new QVBoxLayout(tabWidget);
         HistoWidget *c = new HistoWidget(tabWidget);
         c -> Divide(4, 2); // each layer has 4 chambers
-        c -> PassQMainCanvasPointer(pRightCanvas);
+        //c -> PassQMainCanvasPointer(pRightCanvas);
         tabWidgetLayout -> addWidget(c);
         vTabCanvasOnlineHits.push_back(c);
 
@@ -549,7 +544,7 @@ void Viewer::DrawGEMRawHistos(int num)
     std::vector<APVAddress> temp_addr;
     temp.push_back(mData.begin()->second);
     temp_addr.push_back(mData.begin()->first);
-    pRightCanvas->DrawCanvas(temp, temp_addr, 1, 1);
+    //pRightCanvas->DrawCanvas(temp, temp_addr, 1, 1);
 }
 
 

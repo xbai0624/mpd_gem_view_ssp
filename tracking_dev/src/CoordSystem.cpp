@@ -75,8 +75,8 @@ namespace tracking_dev {
                    (c_alpha*s_beta*s_gamma - s_alpha*c_gamma) * local_z;
 
         double z = (-s_beta) * p.x +
-                   (c_beta*s_gamma) * p.y +
-                   (c_beta*c_gamma) * local_z;
+                   (c_beta*s_alpha) * p.y +
+                   (c_beta*c_alpha) * local_z;
 
         p.x = x; p.y = y; p.z = z + p.z;
     }

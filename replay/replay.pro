@@ -36,12 +36,9 @@ LIBS += -L../tracking_dev/lib -ltracking_dev
 
 ######################################################################
 # root headers
-INCLUDEPATH += ${ROOTSYS}/include
+INCLUDEPATH += $$system(root-config --incdir)
 # root libs
-LIBS += -L${ROOTSYS}/lib -lCore -lRIO -lNet \
-	-lHist -lGraf -lGraf3d -lGpad -lTree \
-	-lRint -lPostscript -lMatrix -lPhysics \
-	-lGui -lRGL -lMathCore
+LIBS += $$system(root-config --glibs)
 
 ######################################################################
 # moc dir

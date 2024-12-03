@@ -1,7 +1,7 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
-#include "QMainCanvas.h"
+//#include "QMainCanvas.h"
 #include "ComponentsSchematic.h"
 #include "GEMAnalyzer.h"
 #include "GEMReplay.h"
@@ -94,9 +94,8 @@ private:
     QWidget *pLeft;                         // left area
     QWidget *pRight;                        // right area
     QTabWidget *pLeftTab;                   // tab for the left side area
-    //std::vector<QMainCanvas*> vTabCanvas; // tab contents, using cern root
     std::vector<HistoWidget*> vTabCanvas;   // tab contents, use self-implemented HistoWidgets
-    QMainCanvas *pRightCanvas;              // right side canvas
+    //QMainCanvas *pRightCanvas;              // right side canvas
     QWidget *pRightCtrlInterface;           // the control interface on right side
     // online hits
     std::vector<HistoWidget*> vTabCanvasOnlineHits; // tab contents, for drawing online hits

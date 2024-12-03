@@ -39,13 +39,10 @@ LIBS += -L../epics/lib -lepics
 ######################################################################
 # ROOT headers libs
 
-INCLUDEPATH += ${ROOTSYS}/include
+INCLUDEPATH += $$system(root-config --incdir)
 
 # root libs
-LIBS += -L$(ROOTSYS)/lib -lCore -lRIO -lNet \
-        -lHist -lGraf -lGraf3d -lGpad -lTree \
-        -lRint -lPostscript -lMatrix -lPhysics \
-        -lGui -lRGL
+LIBS += $$system(root-config --glibs)
 
 ######################################################################
 #  dir setting
