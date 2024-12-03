@@ -9,13 +9,18 @@
 HistoWidget::HistoWidget(QWidget *parent): QWidget(parent)
 {
     scene = new QGraphicsScene(this);
-    view = new HistoView(scene);
+    //view = new HistoView(scene);
+    view = new QGraphicsView(this);
+    view -> setScene(scene);
+
+    QHBoxLayout *layout = new QHBoxLayout(this);
+    layout->addWidget(view);
 
     ReInitHistoItems();
     ReDistributePaintingArea();
 
-    QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->addWidget(view);
+    // disable touch events, otherwise it pops out a harmless warning
+    view -> viewport() -> setAttribute(Qt::WA_AcceptTouchEvents, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,17 +112,20 @@ void HistoWidget::ReDistributePaintingArea()
     h = h - margin_y;
 
     // fix scene rect
-    scene -> setSceneRect(0, 0, w-margin_x, h);
+    scene -> setSceneRect(0, 0, w, h);
 
     float x_interval = w / fCol;
     float y_interval = h / fRow;
 
-    for(int i=0;i<fRow;i++)
+    for(int i=0;i<fRow;i++) {
         for(int j=0;j<fCol;j++)
         {
             QRectF f(x_interval*j, y_interval*i, x_interval, y_interval);
             pItem[i*fCol + j] -> SetBoundingRect(f);
         }
+    }
+
+    Refresh();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +143,7 @@ void HistoWidget::Refresh()
 // distribute painting area
 
 void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data, 
-            const std::vector<APVAddress> &addr, int row, int col)
+        const std::vector<APVAddress> &addr, int row, int col)
 {
     if(row != fRow || col != fCol)
     {
@@ -150,9 +158,9 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
     for(unsigned int i=0; i < data.size(); i++) {
         pItem[i] -> ReceiveContents(data[i]);
         std::string title = "slot_" + std::to_string(addr[i].crate_id) +
-                            "_fiber_" + std::to_string(addr[i].mpd_id) + 
-                            "_apv_" + std::to_string(addr[i].adc_ch);
-        pItem[i] -> SetTitle(title);
+            "_fiber_" + std::to_string(addr[i].mpd_id) + 
+            "_apv_" + std::to_string(addr[i].adc_ch);
+        //pItem[i] -> SetTitle(title);
     }
 }
 
@@ -160,7 +168,7 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
 // distribute painting area, get title from parameters
 
 void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data, 
-            const std::vector<std::string> &vTitle, int row, int col)
+        const std::vector<std::string> &vTitle, int row, int col)
 {
     if(row != fRow || col != fCol)
     {
@@ -175,17 +183,8 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
     for(unsigned int i=0; i < data.size(); i++) {
         pItem[i] -> ReceiveContents(data[i]);
         std::string title = vTitle[i];
-        pItem[i] -> SetTitle(title);
+        //pItem[i] -> SetTitle(title);
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// pass QMainCanvas pointer
-
-void HistoWidget::PassQMainCanvasPointer(QMainCanvas *canvas)
-{
-    for(int i=0;i<fRow*fCol;i++)
-        pItem[i] -> PassQMainCanvasPointer(canvas);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,7 +192,7 @@ void HistoWidget::PassQMainCanvasPointer(QMainCanvas *canvas)
 
 void HistoWidget::Clear()
 {
-    for(int i=0;i<fRow*fCol;i++)
-        pItem[i] -> Clear();
+    //for(int i=0;i<fRow*fCol;i++)
+    //    pItem[i] -> Clear();
 }
 

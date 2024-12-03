@@ -225,7 +225,8 @@ namespace pixel {
         //QFont font = painter -> font();
         //font.setPixelSize(12);
         painter -> setPen(Qt::black);
-        painter -> setFont(QFont("times", 22));
+        //painter -> setFont(QFont("times", 22));
+        painter -> setFont(QFont("Arial", 22));
         for(auto &i: apv_name_iloc) {
             painter -> drawText(apv_name_floc[i.first].first, apv_name_floc[i.first].second, QString(apv_name_sloc[i.first].c_str()));
         }

@@ -3,11 +3,11 @@
 
 #include <vector>
 #include <QGraphicsScene>
-#include "HistoView.h"
+#include <QGraphicsView>
+//#include "HistoView.h"
 #include "HistoItem.h"
 
 #include "MPDDataStruct.h"
-#include "QMainCanvas.h"
 
 class HistoWidget : public QWidget
 {
@@ -30,7 +30,6 @@ public:
     void DrawCanvas(const std::vector<std::vector<int>> &data, 
             const std::vector<std::string> &title, int, int);
 
-    void PassQMainCanvasPointer(QMainCanvas* canvas);
     void Clear();
 
 protected:
@@ -39,7 +38,8 @@ protected:
 
 private:
     QGraphicsScene *scene;
-    HistoView *view;
+    //HistoView *view;
+    QGraphicsView *view;
     HistoItem **pItem = nullptr;
 
     // divide the whole area into fCol by fRow sections

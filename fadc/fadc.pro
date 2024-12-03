@@ -22,12 +22,9 @@ INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
 LIBS += -L../decoder/lib -ldecoder
 
 # ROOT headers libs
-INCLUDEPATH += ${ROOTSYS}/include
+INCLUDEPATH += $$system(root-config --incdir)
 # root libs
-LIBS += -L$(ROOTSYS)/lib -lCore -lRIO -lNet \
-        -lHist -lGraf -lGraf3d -lGpad -lTree \
-        -lRint -lPostscript -lMatrix -lPhysics \
-        -lGui -lRGL -lSpectrum -lMathCore
+LIBS += $$system(root-config --glibs)
 
 # The following define makes your compiler warn you if you use any
 # feature of Qt which has been marked as deprecated (the exact warnings
