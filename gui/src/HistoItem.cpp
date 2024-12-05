@@ -1,5 +1,6 @@
 #include "HistoItem.h"
 
+#include <cmath>
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
@@ -83,7 +84,7 @@ void HistoItem::PassData()
     original_data2.clear();
 
     for(int i=0; i<100; i++) {
-        original_data2.emplace_back(i, test_dist[i]);
+        original_data2.push_back(qMakePair(i, test_dist[i]));
     }
 
     updateDrawingContent();
@@ -108,10 +109,10 @@ void HistoItem::updateDrawingContent()
     for(auto &i: original_data2) {
         if(second_pos > first_pos) {
             if(i.first >= draw_data_range.first && i.first <= draw_data_range.second)
-                _data2.emplace_back(i);
+                _data2.push_back(i);
         }
         else
-            _data2.emplace_back(i);
+            _data2.push_back(i);
     }
 
     prepareDataShape();
@@ -241,7 +242,7 @@ void HistoItem::drawAxis(QPainter *painter, double data_x1, double data_x2, doub
             painter -> drawLine(p1, p2);
 
             QString s(std::to_string(i).c_str());
-            s = s.sliced(0, s.lastIndexOf(".") + decimal_digits);
+            s = s.mid(0, s.lastIndexOf(".") + decimal_digits);
             int font_width = fm.horizontalAdvance(s);
             int font_height = fm.height();
 
@@ -262,7 +263,7 @@ void HistoItem::drawAxis(QPainter *painter, double data_x1, double data_x2, doub
             painter -> drawLine(p1, p2);
 
             QString s(std::to_string(i).c_str());
-            s = s.sliced(0, s.lastIndexOf(".") + decimal_digits);
+            s = s.mid(0, s.lastIndexOf(".") + decimal_digits);
             int font_width = fm.horizontalAdvance(s);
             int font_height = fm.height();
 

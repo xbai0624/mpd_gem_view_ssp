@@ -35,7 +35,7 @@ public:
         original_data2.clear();
 
         for(size_t i=0; i<v.size(); i++) {
-            original_data2.emplace_back(static_cast<double>(i), static_cast<double>(v.at(i)));
+            original_data2.push_back(qMakePair(static_cast<double>(i), static_cast<double>(v.at(i))));
         }
 
         updateDrawingContent();

@@ -8,6 +8,8 @@ TARGET = ../bin/data_viewer
 ######################################################################
 # compiler configs
 
+QMAKE_CXXFLAGS -= -std=gnu++1z
+QMAKE_CXXFLAGS += -std=c++17
 CONFIG += c++17 release
 QT += core gui widgets
 
