@@ -13,16 +13,16 @@
 #define DANNING_ALGORITHM_RMS_THRESHOLD 5.0 // Ben's firmware is using 5.0
 
 //#define USE_VME
-//#define USE_SSP
-#define USE_SRS
+#define USE_SSP
+//#define USE_SRS
 
 //#define INVERSE_POLARITY_VALID
 
 // the UVA type APV hybrid card and INFN type APV hybrid card have different strip conversion
 // here we add an option to choose the corresponding types
 
-//#define UVA_TYPE_APV_HYBRID
-#define INFN_TYPE_APV_HYBRID
+#define UVA_TYPE_APV_HYBRID
+//#define INFN_TYPE_APV_HYBRID
 
 #ifdef UVA_TYPE_APV_HYBRID
 constexpr int g_skip_channel[] = {0, 1, 2, 3, 4, 5, 6};

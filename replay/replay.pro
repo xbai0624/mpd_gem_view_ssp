@@ -62,6 +62,7 @@ DEFINES += QT_DEPRECATED_WARNINGS #MULTI_THREAD
 
 ######################################################################
 HEADERS += src/generate_gem_histos.h \
+           src/MollerROStripDesign.hpp \
 
 # source path
 SOURCES += src/main.cpp \

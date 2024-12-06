@@ -180,7 +180,8 @@ void HistoItem::paint(QPainter *painter,
     qreal scaleY = painter -> worldTransform().m22();
     qreal scale = std::sqrt(scaleX * scaleY);
 
-    QPen pen1(Qt::blue, 2./scale);
+    //QPen pen1(Qt::blue, 2./scale);
+    QPen pen1(Qt::blue);
 
     // draw data
     painter -> setPen(pen1);

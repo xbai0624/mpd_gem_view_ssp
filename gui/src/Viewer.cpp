@@ -149,7 +149,7 @@ void Viewer::InitRightView()
     pRightCtrlInterface = new QWidget(pRight);
     // fix the width in the right side layout
     //pRight -> setFixedWidth(450);
-    pRight -> setMaximumWidth(250);
+    pRight -> setMaximumWidth(450);
 
     InitCtrlInterface();
 
@@ -157,7 +157,7 @@ void Viewer::InitRightView()
     pLogBox = new QTextEdit(pRight);
     pLogBox -> setTextColor(QColor("black"));
     pLogBox -> textCursor().insertText("System Log:\n");
-    pLogBox -> setFixedHeight(90);
+    pLogBox -> setMinimumHeight(90);
     pLogBox -> setEnabled(false);
 
     pRightLayout -> addWidget(pRightCtrlInterface);
@@ -632,9 +632,11 @@ void Viewer::DrawGEMOnlineHits(int num)
                 // y plane is already in local GEM coord, b/c for SBS arrangement, y is the shorter side
                 hit_pos -= APV_STRIP_SIZE * GEMPos * nAPV;
             }
-            if(hit_pos >= nAPV * APV_STRIP_SIZE)
-                std::cout<<"ERROR: strip no: "<<hit_pos<<", vector size: "
-                    <<nAPV * APV_STRIP_SIZE<<std::endl;
+            if(hit_pos >= nAPV * APV_STRIP_SIZE) {
+                std::cout<<"Warning: strip no: "<<hit_pos<<", exceeds vector size: "
+                    <<nAPV * APV_STRIP_SIZE<<", probably due to special strip treatments."<<std::endl;
+                continue;
+            }
             res[hit_pos] = static_cast<int>(i.charge);
         }
         return res;
