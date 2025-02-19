@@ -45,6 +45,8 @@ public:
     void updateDrawingContent();
     void prepareDataShape();
     void clearContent();
+    void SetTitle(const std::string &);
+    void drawTitle(QPainter *painter);
 
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -71,6 +73,9 @@ private:
     bool mouse_left_button_down = false;
     qreal first_pos=0, second_pos=0;
     QPolygonF _select_box;
+
+    // title
+    QString _title = "hist";
 };
 
 #endif

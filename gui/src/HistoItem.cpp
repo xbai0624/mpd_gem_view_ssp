@@ -209,6 +209,9 @@ void HistoItem::paint(QPainter *painter,
 
         drawSelectBox(painter);
     }
+
+    // draw a title
+    drawTitle(painter);
 }
 
 void HistoItem::drawAxis(QPainter *painter, double data_x1, double data_x2, double data_y1, double data_y2)
@@ -424,4 +427,28 @@ QVector<double> HistoItem::getAxisTicks(double a_min, double a_max)
     return marks;
 }
 
+void HistoItem::SetTitle(const std::string &s)
+{
+    _title = QString::fromStdString(s);
+}
 
+void HistoItem::drawTitle(QPainter *painter)
+{
+    // text font below tick
+    QFont font;
+    int font_size = bounding_rect.width() / 50 > 6 ? bounding_rect.width() / 50 : 6;
+    font.setPixelSize(font_size);
+    QFontMetrics fm(font);
+    painter -> setFont(font);
+
+    int font_width = fm.horizontalAdvance(_title);
+    int font_height = fm.height();
+
+    QPen pen1(Qt::black);
+    // draw data
+    painter -> setPen(pen1);
+ 
+    painter -> drawText(drawing_range.x() + drawing_range.width()/2 - font_width/2,
+            drawing_range.y() - font_height/2 - 5, // 5 pixel to give it some margin
+            _title);
+}

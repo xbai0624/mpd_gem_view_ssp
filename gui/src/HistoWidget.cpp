@@ -160,7 +160,7 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
         std::string title = "slot_" + std::to_string(addr[i].crate_id) +
             "_fiber_" + std::to_string(addr[i].mpd_id) + 
             "_apv_" + std::to_string(addr[i].adc_ch);
-        //pItem[i] -> SetTitle(title);
+        pItem[i] -> SetTitle(title);
     }
 }
 
