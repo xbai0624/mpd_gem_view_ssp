@@ -215,6 +215,7 @@ const std::unordered_map<std::string, const int* const> mapped_strip_arr = {
     {"INFNXWGEM", _mapped_strip_infn_xw},
     {"MOLLERGEM", _mapped_strip_infn_xy}, // for SRS system, moller gem should use INFN XY mapping
     {"HALLDGEM", _mapped_strip_infn_xy}, // for Hall D setup - Lubomir
+    {"PRADGEM", _mapped_strip_apv_internal},
     {"INTERNAL", _mapped_strip_apv_internal}
 };
 

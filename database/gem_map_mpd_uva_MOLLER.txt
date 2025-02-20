@@ -64,7 +64,7 @@
 # readout           : readout type (Cartesian/UV)
 # XOffset           : x offset
 # YOffset           : y offset
-# GEMType           : gem chamber type (UVAGEM/INFNGEM/UVGEM)
+# GEMType           : gem chamber type (UVAUVGEM/UVAXYGEM/INFNXYGEM/UVAXWGEM/INFNXWGEM/MOLLERGEM/HALLDGEM/PRADGEM)
 # no_apv_x	    : how many APVs on gem chamber x plane
 # no_apv_y	    : how many APVs on gem chamber y plane
 # x_pitch           : distance between readout strips on chamber x plane (0.4 mm)

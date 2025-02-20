@@ -1251,6 +1251,12 @@ GEMAPV::StripNb GEMAPV::MapStripPRad(int ch)
     // APV25 Internal Channel Mapping
     int strip = 32*(ch%4) + 8*(ch/4) - 31*(ch/16);
 
+    // this convert is needed IF: --
+    // you are using MPD electronics and UVA type APV hybrid board
+    // APV25 Hybrid on-board chip pin to pananonic connector pin conversion
+    // IF you are using SRS electronics, comment out this line
+    strip = strip + 1 + strip%4 - 5 * ( (strip/4) % 2 );
+
     // APV25 Channel to readout strip Mapping
     if((plane->GetType() == GEMPlane::Plane_X) && (plane_index == 11)) {
         if(strip & 1)
@@ -1703,9 +1709,15 @@ void GEMAPV::getMiddleAverage(float &average, const float *buf)
 
 void GEMAPV::buildStripMap()
 {
+    std::string chamber_type = GetPlane() -> GetDetector() -> GetType();
+
     for(uint32_t i = 0; i < APV_STRIP_SIZE; ++i)
     {
-        strip_map[i] = MapStripMPD(i);
+        if(chamber_type == "PRADGEM") {
+            strip_map[i] = MapStripPRad(i);
+        }
+        else
+            strip_map[i] = MapStripMPD(i);
     }
 }
 

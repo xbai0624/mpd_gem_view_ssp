@@ -373,6 +373,32 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
         }
     };
 
+    // PRad gem chambers
+    // For PRad GEM: Y Axis (1) must be the long side, with two 12-slot backplanes
+    //               X Axis (0) must be the short side, with one 5-slot, one 7-slot backplanes
+    auto prad_xy = [&]() {
+        // suppose there's no overlapping area between each chambers
+        // otherwise this needs to be modified
+
+        // size: the total length of one gem chamber plane, 
+        //       determined from number of apvs and strip pitch,
+        //       size * layer_det_capacity = the length of the entire gem detector layer
+
+        // plane_strip: is layer oriented (all gem detectors in one layer are combined)
+
+        // position: is in XY orthogonal coordinate system
+        if(type == Plane_X)
+        {
+            position = -0.5*(size * layer_det_capacity + 31*STRIP_PITCH) + STRIP_PITCH*plane_strip;
+            const double& x_offset = detector -> GetLayer() -> GetXOffset();
+            position += x_offset;
+        } else {
+            position = -0.5*(size - STRIP_PITCH) + STRIP_PITCH*((int)(plane_strip/2));
+            const double& y_offset = detector -> GetLayer() -> GetYOffset();
+            position += y_offset;
+        }
+    };
+
     // re-organize using maps, this is to cut off the time spent on string comparison
     const std::unordered_map<std::string, std::function<void()>> get_position = {
         {"UVAXYGEM", xy},
@@ -381,7 +407,8 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
         {"INFNXWGEM", sbs_xw},
         {"UVAUVGEM", sbs_uv},
         {"MOLLERGEM", moller_uv},
-	{"HALLDGEM", halld_xy},
+        {"HALLDGEM", halld_xy},
+        {"PRADGEM", prad_xy}
     };
 
     // calculate strip position
@@ -406,6 +433,15 @@ void GEMPlane::ClearStripHits()
 void GEMPlane::AddStripHit(int strip, float charge, short maxtime, bool xtalk, 
         int crate, int mpd, int adc, const std::vector<float> &_ts_adc)
 {
+    std::string detector_type = GetDetector() -> GetType();
+    if(detector_type == "PRADGEM") {
+        // PRad floating strip removal
+        // hard coded because it is specific to PRad GEM setting
+        if((type == Plane_X) &&
+                ((strip < 16) || (strip > 1391)))
+            return;
+    }
+
     strip_hits.emplace_back(strip, charge, maxtime, GetStripPosition(strip),
             xtalk, crate, mpd, adc);
 
