@@ -393,7 +393,7 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
             const double& x_offset = detector -> GetLayer() -> GetXOffset();
             position += x_offset;
         } else {
-            position = -0.5*(size - STRIP_PITCH) + STRIP_PITCH*((int)(plane_strip/2));
+            position = -0.5*(size - STRIP_PITCH) + STRIP_PITCH*plane_strip;
             const double& y_offset = detector -> GetLayer() -> GetYOffset();
             position += y_offset;
         }
