@@ -1275,7 +1275,7 @@ GEMAPV::StripNb GEMAPV::MapStripPRad(int ch)
 
     // calculate plane strip mapping
     // reverse strip number by orient
-    if(orient != plane->GetOrientation())
+    if(orient == 1)
         strip = 127 - strip;
 
     // special APV
@@ -1625,6 +1625,30 @@ void GEMAPV::SetUnusedChannels(const std::vector<int> &v)
             exit(0);
         }
         AddUnusedChannel(j);
+    }
+
+    // PRad unused channels
+    if(apv_name == "PRadSplit") {
+        for(int i = 0; i< APV_STRIP_SIZE; i++)
+        {
+            auto s = MapStripPRad(i);
+            int floating_strip = s.local;
+
+            if(orient == 1)
+                floating_strip = 127 - floating_strip;
+
+            // for PRad split APV, the first 16 channels 
+            // are unconnected (detector physical order)
+            // so need to fill in the APV interanl channel number
+            if(floating_strip < 16 && floating_strip >= 0)
+                AddUnusedChannel(i);
+        }
+
+        if(unused_channels.size() != 16) {
+            std::cout<<"ERROR:: Failed to isolated floating strips for PRad Split APV."
+                <<std::endl;
+            exit(0);
+        }
     }
 
     // sort for fast search
