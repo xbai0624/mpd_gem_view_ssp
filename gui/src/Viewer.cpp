@@ -318,6 +318,8 @@ void Viewer::InitCtrlInterface()
     connect(le_commonMode, SIGNAL(textChanged(const QString &)), this, SLOT(SetCommonModeOutputPath(const QString &)));
     connect(le_num, SIGNAL(textChanged(const QString &)), this, SLOT(SetPedestalMaxEvents(const QString &)));
     connect(le_replay, SIGNAL(textChanged(const QString &)), this, SLOT(SetRootFileOutputPath(const QString &)));
+    //connect(le_split, &QLineEdit::returnPressed, this, [=](){SetFileSplitMax(le_split->text());});
+    //connect(le_split_start, &QLineEdit::returnPressed, this, [=](){SetFileSplitMin(le_split_start->text());});
     connect(le_split, SIGNAL(textChanged(const QString &)), this, SLOT(SetFileSplitMax(const QString &)));
     connect(le_split_start, SIGNAL(textChanged(const QString &)), this, SLOT(SetFileSplitMin(const QString &)));
     connect(b4, SIGNAL(pressed()), this, SLOT(ReplayHit()));
@@ -909,9 +911,16 @@ void Viewer::SetRootFileOutputPath(const QString &s)
 void Viewer::SetFileSplitMax(const QString &s)
 {
     std::string ss = s.toStdString();
-    int i = std::stoi(ss);
+    int i = -1;
+    try {
+        i = std::stoi(ss);
+    } catch(...) {
+        std::cout<<"ERROR: connot convert "<<ss<<" to an integer for max split."<<std::endl;
+        std::cout<<"       using default: "<< i<<std::endl;
+    }
 
     fFileSplitEnd = i;
+    std::cout<<"INFO:: setting maximum file split: "<<fFileSplitEnd<<std::endl;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -920,9 +929,16 @@ void Viewer::SetFileSplitMax(const QString &s)
 void Viewer::SetFileSplitMin(const QString &s)
 {
     std::string ss = s.toStdString();
-    int i = std::stoi(ss);
+    int i = 0;
+    try {
+        i = std::stoi(ss);
+    } catch(...) {
+        std::cout<<"ERROR: connot convert "<<ss<<" to an integer for min split."<<std::endl;
+        std::cout<<"       using default: "<<i<<std::endl;
+    }
 
     fFileSplitStart = i;
+    std::cout<<"INFO:: setting minimum file split: "<<fFileSplitStart<<std::endl;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -931,14 +947,19 @@ void Viewer::SetFileSplitMin(const QString &s)
 void Viewer::SetPedestalMaxEvents(const QString & s)
 {
     std::string ss = s.toStdString();
-    int i = std::stoi(ss);
-    if(i <= 0) {
+    int i = 0;
+    try {
+        i = std::stoi(ss);
+    } catch(...) {
+    }
+    if (i <= 0) {
         std::cout<<"Warning: max events for generating pedestal is invalid"
-                 <<std::endl;
+            <<std::endl;
         std::cout<<"     using default 5000."<<std::endl;
         return;
     }
     fPedestalMaxEvents = i;
+    std::cout<<"INFO: max events for generating pedestals: "<<fPedestalMaxEvents<<std::endl;
 }
 
 
@@ -991,7 +1012,7 @@ void Viewer::GeneratePedestal()
             tr("GEM Data Viewer"),
             tr("Generating Pedestal/CommonMode usually takes a while... \
                 \nPress Yes to start..."),
-           QMessageBox::No | QMessageBox::Yes );
+            QMessageBox::No | QMessageBox::Yes );
     if(reply != QMessageBox::Yes)
         return;
 
