@@ -31,7 +31,7 @@ run_command() {
     echo "$name started: $cmd"
 
     # Run the command in xterm without any additional output
-    xterm -e "$cmd" &
+    xterm -e bash -lc "$cmd; rc=\$?; echo; echo 'Exit code:' \$rc" &
 
     # Store the PID and corresponding command name
     local pid=$!
@@ -40,7 +40,7 @@ run_command() {
 }
 
 # Set max_jobs based on the number of physical cores initially
-max_jobs=5
+max_jobs=3
 
 # Loop over the commands sequentially
 for i in "${!commands[@]}"; do

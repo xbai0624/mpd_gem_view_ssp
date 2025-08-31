@@ -14,7 +14,7 @@ gem0 = {
     tilt angle = 0, 0, 0;
     second order offset = 0, 0, 0;
     second order tilt angle = 0, 0, 0;  
-    participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
+    participate tracking = 1; #1: this chamber is part of tracking system; 0: not tracking system
 }
 
 gem1 = {
@@ -23,8 +23,8 @@ gem1 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 1.336958, 10.34262, 0; 
     tilt angle = 0, 0, 0;
-    second order offset = -0.00000028, -0.00000028, -0.00000027;
-    second order tilt angle = 0.00002611, -0.00002762, -0.00178947;
+    second order offset = -0.00000035, -0.00000029, -0.00000035;
+    second order tilt angle = 0.00002792, -0.00003408, -0.00210549;
     participate tracking = 1;
 }
 
@@ -56,8 +56,8 @@ gem4 = {
     dimension = 102.4, 102.4, 0.1;
     offset = 7.72238, 1.928346, 0; 
     tilt angle = 0, 0, 0;
-    second order offset = -0.00000002, -0.00000003, -0.00000032;
-    second order tilt angle = 0.00002167, -0.00001665,  0.00273179;
+    second order offset = -0.00000002, -0.00000003, -0.00000044;
+    second order tilt angle = 0.00002422, -0.00001901, 0.00283998;
     participate tracking = 0;
 }
 
@@ -67,8 +67,8 @@ gem5 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 2.277771, 13.31649, 0;
     tilt angle = 0, 0, 0;
-    second order offset = -0.00000001,  0.00000000, -0.00000004;
-    second order tilt angle = 0.00000103, -0.00000436,  0.00005881;
+    second order offset = -0.00000001, 0, -0.00000009;
+    second order tilt angle = 0.00000072, -0.00000472, 0.00007016;
     participate tracking = 1;
 }
 
@@ -78,8 +78,8 @@ gem6 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 1.709691, 14.69649, 0;
     tilt angle = 0, 0, 0,;
-    second order offset = 0.00000000, -0.00000000,  0.00000006;
-    second order tilt angle = -0.00000120,  0.00000377,  0.00012913;
+    second order offset = 0, 0, 0.00000012;
+    second order tilt angle = -0.00000097, 0.0000041, 0.00015076;
     participate tracking = 1;
 }
 

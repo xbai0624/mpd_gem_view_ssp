@@ -13,6 +13,8 @@ gem0 = {
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
     offset = 1.110212, 10.44072, 0;     # x_offset, y_offset, z_offset
     tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
 
@@ -22,6 +24,8 @@ gem1 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 1.336958, 10.34262, 0;
     tilt angle = 0, 0, 0;
+    second order offset = -0.00000017, -0.00000029, -0.00000036; 
+    second order tilt angle = 0.00002854, -0.00001659, -0.00208708;
     participate tracking = 1;
 }
 
@@ -31,6 +35,8 @@ gem2 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 0, 0, 0;
     tilt angle = 0, 0, 0;
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -40,6 +46,8 @@ gem3 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 0, 0, 0;
     tilt angle = 0, 0, 0;
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -49,6 +57,8 @@ gem4 = {
     dimension = 102.4, 102.4, 0.1;
     offset = 10.87453, 1.865956, 0;
     tilt angle = 0, 0.471239, 0;
+    second order offset = 0.00000249, 0.00000586, -0.00000116;
+    second order tilt angle = -0.0000011, 0.0000052, 0.00517694;
     participate tracking = 0;
 }
 
@@ -58,6 +68,8 @@ gem5 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 2.277771, 13.31649, 0; #for 100 um centered on 0, (x,y,z) = (3.047485, 13.95983, 0)
     tilt angle = 0, 0, 0;
+    second order offset = -0.00000001, 0, -0.00000008; 
+    second order tilt angle = 0.00000054, -0.0000053, 0.00002544; 
     participate tracking = 1;
 }
 
@@ -67,6 +79,8 @@ gem6 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 1.709691, 14.69649, 0; #for 100 um centered on 0, (x,y,z) = (2.45435555, 15.45916, 0)
     tilt angle = 0, 0, 0;
+    second order offset = 0.00000001, 0, 0.0000001; 
+    second order tilt angle = -0.00000083, 0.00000442, 0.00019423; 
     participate tracking = 1;
 }
 

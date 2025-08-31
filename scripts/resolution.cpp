@@ -1,5 +1,3 @@
-
-
 double get_sigma(TH1F *h, double low = 0, double high = 0)
 {
     if(!h) return 0;

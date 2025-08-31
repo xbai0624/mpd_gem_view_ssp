@@ -79,48 +79,38 @@ namespace tracking_dev {
     {
         // refer to: https://en.wikipedia.org/wiki/Rotation_matrix
         // R = RzRyRx
-	
-	/* Diagnostic
-	std::cout << std::setprecision(15);
-        std::cout << "Initial Coordinates: " << std::endl;
-        std::cout << "x: " << p.x << " y: " << p.y << " z: " << p.z << std::endl;
-	*/ 
+
+        // Minh: Assuming extrinsic rotation within the detector local frame
 
         double c_gamma = std::cos(rot.z); 
-	double s_gamma = std::sin(rot.z);
+	    double s_gamma = std::sin(rot.z);
 
         double c_beta = std::cos(rot.y); 
-	double s_beta = std::sin(rot.y);
+	    double s_beta = std::sin(rot.y);
 
         double c_alpha = std::cos(rot.x);
-	double s_alpha = std::sin(rot.x);
+	    double s_alpha = std::sin(rot.x);
 	
-	double local_x = p.x; 
-	double local_y = p.y; 
-	double local_z = 0.; //Original code implemented by xinzhan (rotation is in gem local coord)
+        double local_x = p.x; // Assuming xy coordinates are same regardless local/global frame
+        double local_y = p.y; 
+        double local_z = 0; // Set detector coordinates in local frame 
         
-	double x = (c_beta * c_gamma) * local_x +
-               (s_alpha * s_beta * c_gamma - c_alpha * s_gamma) * local_y;
+	    double x =  (c_beta * c_gamma) * local_x +
+                    (s_alpha * s_beta * c_gamma - c_alpha * s_gamma) * local_y +
+                    (c_alpha * s_beta * c_gamma + s_alpha * s_gamma) * local_z;
 
-    	double y = (c_beta * s_gamma) * local_x +
-               (s_alpha * s_beta * s_gamma + c_alpha * c_gamma) * local_y;
+    	double y =  (c_beta * s_gamma) * local_x +
+                    (s_alpha * s_beta * s_gamma + c_alpha * c_gamma) * local_y +
+                    (c_alpha * s_beta * s_gamma - s_alpha * c_gamma) * local_z;
 
-    	double z = (-s_beta) * local_x +
-               (c_beta * s_alpha) * local_y;
+    	double z =  (-s_beta) * local_x +
+                    (c_beta * s_alpha) * local_y + 
+                    (c_alpha * c_beta) * local_z;
 
-	/* Diagnostic
-	// Debug print statements
-        std::cout << std::setprecision(15);
-        std::cout << "Intermediate rotation results: " << std::endl;
-        std::cout << "x: " << x << " y: " << y << " z: " << z << std::endl;
-	*/
-
-        p.x = x; p.y = y; p.z = p.z + z;
-
-	// Diagnostics
-	// Debug print the final rotated point
-        //std::cout << "Rotated point: (" << p.x << ", " << p.y << ", " << p.z << ")" << std::endl;
-    
+        // Reset hits to global frame 
+        p.x = x; 
+        p.y = y; 
+        p.z = p.z + z; 
     }
 
 void CoordSystem::Global_Rotate(point_t & p, const point_t &rot)
@@ -130,29 +120,29 @@ void CoordSystem::Global_Rotate(point_t & p, const point_t &rot)
         // Global rotation function is primarily for second order rotation parameters
 
         double c_gamma = std::cos(rot.z); 
-	double s_gamma = std::sin(rot.z);
+	    double s_gamma = std::sin(rot.z);
 
         double c_beta = std::cos(rot.y); 
-	double s_beta = std::sin(rot.y);
+	    double s_beta = std::sin(rot.y);
 
         double c_alpha = std::cos(rot.x);
-	double s_alpha = std::sin(rot.x);
+	    double s_alpha = std::sin(rot.x);
 	
-	double local_x = p.x; 
-	double local_y = p.y; 
-	double local_z = p.z; // Rotation is now global in reference to layer 0 (z = 0) 
+        double local_x = p.x; 
+        double local_y = p.y; 
+        double local_z = p.z; // Rotation is now global coordinates
         
-	double x = (c_beta * c_gamma) * local_x +
-               (s_alpha * s_beta * c_gamma - c_alpha * s_gamma) * local_y +
-               (c_alpha * s_beta * c_gamma + s_alpha * s_gamma) * local_z;
+	    double x =  (c_beta * c_gamma) * local_x +
+                    (s_alpha * s_beta * c_gamma - c_alpha * s_gamma) * local_y +
+                    (c_alpha * s_beta * c_gamma + s_alpha * s_gamma) * local_z;
 
-    	double y = (c_beta * s_gamma) * local_x +
-               (s_alpha * s_beta * s_gamma + c_alpha * c_gamma) * local_y +
-               (c_alpha * s_beta * s_gamma - s_alpha * c_gamma) * local_z;
+    	double y =  (c_beta * s_gamma) * local_x +
+                    (s_alpha * s_beta * s_gamma + c_alpha * c_gamma) * local_y +
+                    (c_alpha * s_beta * s_gamma - s_alpha * c_gamma) * local_z;
 
-    	double z = (-s_beta) * local_x +
-               (c_beta * s_alpha) * local_y + 
-               (c_alpha * c_beta) * local_z;
+    	double z =  (-s_beta) * local_x +
+                    (c_beta * s_alpha) * local_y + 
+                    (c_alpha * c_beta) * local_z;
 
         p.x = x; p.y = y; p.z = z;
     }
@@ -170,16 +160,16 @@ void CoordSystem::Global_Rotate(point_t & p, const point_t &rot)
 
     void CoordSystem::Transform(point_t &p, const point_t &rot, const point_t &t, const point_t &SO_rot, const point_t &SO_t)
     {
-        // First, do angle correction (first order)
+        // First, do systematic FIRST ORDER angle correction (Extrinsic rotation)
         Rotate(p, rot);
 
-        // Second, do offset correction (first order)
+        // Second, do FIRST ORDER offset correction (Done in the global frame) 
         Translate(p, t);
 
-        // Third, do global angle correction (second order)
+        // Third, do SECOND ORDER global angle correction (Extrinsic rotation)
         Global_Rotate(p, SO_rot); 
 
-        // Fourth, do offset correction (second order)
+        // Fourth, do SECOND ORDER offset correction (Done in the global frame)
         Translate(p, SO_t);
     }
 

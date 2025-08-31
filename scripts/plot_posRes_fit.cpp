@@ -5,6 +5,7 @@
 #include <TClass.h> 
 #include <TROOT.h> 
 #include <TF1.h> 
+#include "TSystem.h" 
 
 //A helper function to generate the gaus fit equation needed 
 TF1* gaus_fit(TH1F* hist){
@@ -12,7 +13,7 @@ TF1* gaus_fit(TH1F* hist){
     int maxBin = hist->GetMaximumBin(); 
     double maxCount = hist->GetBinContent(maxBin);
     double percentage = 0.1;  
-    double limitCount = maxCount / (1/percentage);
+    double limitCount = maxCount * percentage;
     double low = -1, high = -1; 
     
      for (int i = 1; i <= maxBin; ++i) {
@@ -92,9 +93,16 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
     if (runNumFlag) outputPath = Form("/home/daq/data_viewer/mpd_gem_view_ssp/Rootfiles/fitted_positionResolution_%d.root", runNum); 
     */
 
-    std::string defaultPath = "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
-    std::string outputPath = "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
-    if (runNumFlag) outputPath = Form("/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/Rootfiles/fitted_positionResolution_%d.root", runNum);
+    std::string defaultPath = "/mnt/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
+    std::string outputPath = "/mnt/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.root";
+    if (runNumFlag) {
+        outputPath = Form("/mnt/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/Rootfiles/fitted_positionResolution_%d.root", runNum);
+        if (!gSystem->AccessPathName(outputPath.c_str())) 
+            gSystem->Unlink(outputPath.c_str());
+        std::string outPDF_Path = outputPath + ".pdf"; 
+        if (!gSystem->AccessPathName(outPDF_Path.c_str())) 
+            gSystem->Unlink(outPDF_Path.c_str());
+    } 
 
     TFile* outputFile; 
     TFile* defaultFile; 
@@ -244,7 +252,7 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
     }
 
     // std::string defaultPdfPath = "/home/daq/data_viewer/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.pdf";
-    std::string defaultPdfPath = "/media/minh-dao/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.pdf";
+    std::string defaultPdfPath = "/mnt/Dual_OS_Drive/Liyanage_MPGD_Files/DAQ_Analysis_Software/mpd_gem_view_ssp/scripts/tmp_plots/fitted_positionResolution.pdf";
 
     canvas->Update();
     canvas->Print((defaultPdfPath + "(").c_str());
@@ -332,9 +340,9 @@ void plot_posRes_fit(const char* filename = "default",  int runNum = -1)
         delete defaultCanvas;
     }
 
+    std::cout << "Completed fitting residue histograms" << endl;
+
     gROOT->SetBatch(kFALSE); 
-    
-    std::cout << "Completed fitting residue histograms" << endl;  
 }
 
 

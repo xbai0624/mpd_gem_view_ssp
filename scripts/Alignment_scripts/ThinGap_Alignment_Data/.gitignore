@@ -1,0 +1,5 @@
+# File: scripts/Alignment_scripts/ThinGap_Alignment_Data/.gitignore
+# Ignore everything in this directory
+*
+# Except for this file
+!.gitignore
