@@ -51,7 +51,7 @@ void bestTrack_localHit(const char *clusterRootName = "default")
 	return; 
     }
 
-    TTree *inputTree = (TTree*)inputFile->Get("GEMCluster;2"); //Directly get TTree from file
+    TTree *inputTree = (TTree*)inputFile->Get("GEMCluster;1"); //Directly get TTree from file
     if (!inputTree) {
 	std::cerr << "Error: TTree could not be retrieved from file: " << inputFile->GetName() << std::endl; 
     }
@@ -133,101 +133,102 @@ void bestTrack_localHit(const char *clusterRootName = "default")
     std::cout << "All setup is done, moving on to event selection" << std::endl;
 
     for (int i = 0; i < inputTree->GetEntries(); ++i) {
-	    inputTree->GetEntry(i); //Select entry
+	inputTree->GetEntry(i); //Select entry
 
-	    int tracker0 = 0;
-	    int tracker0_x = 0; 
-	    int tracker0_y = 0;
+	int tracker0 = 0;
+	int tracker0_x = 0; 
+	int tracker0_y = 0;
 
-	    int tracker1 = 0;
-	    int tracker1_x = 0;
+	int tracker1 = 0;
+	int tracker1_x = 0;
         int tracker1_y = 0;
 
-	    int tracker4 = 0; 
-	    int tracker4_x = 0;
-        int tracker4_y = 0;
-
-	    int tracker5 = 0;
-	    int tracker5_x = 0;
+	int tracker5 = 0; 
+	int tracker5_x = 0;
         int tracker5_y = 0;
+
+	int tracker6 = 0;
+	int tracker6_x = 0;
+        int tracker6_y = 0;
 	
-	    //healthFile << "Event: " << i << endl;   
+	//healthFile << "Event: " << i << endl;   
 
-	    for(int j = 0; j < nCluster; ++j) {
-	        //healthFile << "planeID num : " << planeID->at(j) << endl;  
-	        if (planeID->at(j) == 0) {
-	            tracker0++;
-	            if (axis->at(j) == 0) tracker0_x++; 
-	            if (axis->at(j) == 1) tracker0_y++;
-	        }
+	for(int j = 0; j < nCluster; ++j) {
+	  //healthFile << "planeID num : " << planeID->at(j) << endl;  
+	  if (planeID->at(j) == 0) {
+	      tracker0++;
+	      if (axis->at(j) == 0) tracker0_x++; 
+	      if (axis->at(j) == 1) tracker0_y++;
+	  }
 
-            if (planeID->at(j) == 1) {
-                tracker1++;
-                if (axis->at(j) == 0) tracker1_x++;
-                if (axis->at(j) == 1) tracker1_y++;
-            }
+	  if (planeID->at(j) == 1) {
+	      tracker1++;
+	      if (axis->at(j) == 0) tracker1_x++;
+              if (axis->at(j) == 1) tracker1_y++;
+	  }
 
-            if (planeID->at(j) == 4) {
-                tracker4++;
-                if (axis->at(j) == 0) tracker4_x++;
-                if (axis->at(j) == 1) tracker4_y++;
-            }
+	  if (planeID->at(j) == 5) {
+	      tracker5++;
+	      if (axis->at(j) == 0) tracker5_x++;
+              if (axis->at(j) == 1) tracker5_y++;
+	  }
 
-            if (planeID->at(j) == 5) {
-                tracker5++; 
-                if (axis->at(j) == 0) tracker5_x++;
-                if (axis->at(j) == 1) tracker5_y++;
-            }
-	    } 
+	  if (planeID->at(j) == 6) {
+	      tracker6++; 
+	      if (axis->at(j) == 0) tracker6_x++;
+              if (axis->at(j) == 1) tracker6_y++;
+	  }
+	} 
 	
-        if (tracker0 != 2 || tracker1 != 2 || tracker4 != 2 || tracker5 != 2) continue;
-        if (NTracks_found != 1) continue;
+	if(tracker0 != 2 || tracker1 != 2 || tracker5 != 2 || tracker6 != 2) continue;
+	if (NTracks_found != 1) continue;
 
-	    healthFile << "Event: " << i << std::endl;
-        healthFile << "Tracker0 Cluster Count (X+Y): " << tracker0 << std::endl;
-        healthFile << "Tracker0 X Axis Cluster Num: " << tracker0_x << std::endl;
-        healthFile << "Tracker0 y Axis Cluster Num: " << tracker0_y << std::endl;
-        healthFile << "Tracker1 Cluster Count (X+Y): " << tracker1 << std::endl;
-        healthFile << "Tracker1 X Axis Cluster Num: " << tracker1_x << std::endl;
+	healthFile << "Event: " << i << std::endl;
+
+	healthFile << "Tracker0 Cluster Count (X+Y): " << tracker0 << std::endl;
+	healthFile << "Tracker0 X Axis Cluster Num: " << tracker0_x << std::endl;
+	healthFile << "Tracker0 y Axis Cluster Num: " << tracker0_y << std::endl;
+	healthFile << "Tracker1 Cluster Count (X+Y): " << tracker1 << std::endl;
+	healthFile << "Tracker1 X Axis Cluster Num: " << tracker1_x << std::endl;
         healthFile << "Tracker1 y Axis Cluster Num: " << tracker1_y << std::endl;
-        healthFile << "Tracker4 Cluster Count (X+Y): " << tracker4 << std::endl;
-        healthFile << "Tracker4 X Axis Cluster Num: " << tracker4_x << std::endl;
-        healthFile << "Tracker4 y Axis Cluster Num: " << tracker4_y << std::endl;
-        healthFile << "Tracker5 Cluster Count (X+Y): " << tracker5 << std::endl;
-        healthFile << "Tracker5 X Axis Cluster Num: " << tracker5_x << std::endl;
+	healthFile << "Tracker5 Cluster Count (X+Y): " << tracker5 << std::endl;
+	healthFile << "Tracker5 X Axis Cluster Num: " << tracker5_x << std::endl;
         healthFile << "Tracker5 y Axis Cluster Num: " << tracker5_y << std::endl;
+	healthFile << "Tracker6 Cluster Count (X+Y): " << tracker6 << std::endl;
+	healthFile << "Tracker6 X Axis Cluster Num: " << tracker6_x << std::endl;
+        healthFile << "Tracker6 y Axis Cluster Num: " << tracker6_y << std::endl;
 
-        //if(tracker0 != 2 || tracker1 != 2 || tracker5 != 2 || tracker6 != 2) continue;
-        healthFile << "NTracks Found : " << NTracks_found << std::endl;
+	//if(tracker0 != 2 || tracker1 != 2 || tracker5 != 2 || tracker6 != 2) continue;
+	healthFile << "NTracks Found : " << NTracks_found << std::endl;
 
-        int totalTracks = trackCandidates;
+	int totalTracks = trackCandidates;
 	
-        outputFile << "Evt:" << std::setw(6) << std::left << i;
-        filter1File << "Event Passed Check 1: " << i << std::endl;
+	outputFile << "Evt:" << std::setw(6) << std::left << i;
+	filter1File << "Event Passed Check 1: " << i << std::endl;
 	
-        // Loop over hits to find those corresponding to the best track, which should be track 1
-        if (hit_trackIndex != nullptr && hit_xLocal != nullptr && hit_yLocal != nullptr && hit_zLocal != nullptr && totalTracks == 1) {
-            for (size_t j = 0; j < hit_trackIndex->size(); ++j){
-            if (hit_trackIndex->at(j) == 0){
-                filter2File << "Event Passed Check 2: " << i << std::endl;
+	// Loop over hits to find those corresponding to the best track, which should be track 1
+	if (hit_trackIndex != nullptr && hit_xLocal != nullptr && hit_yLocal != nullptr && hit_zLocal != nullptr && totalTracks == 1) {
+		for (size_t j = 0; j < hit_trackIndex->size(); ++j){
+		  if (hit_trackIndex->at(j) == 0){
+		    filter2File << "Event Passed Check 2: " << i << std::endl;
 
-                // Get the x, y, and z coordinates of the hit
-                double x = hit_xLocal->at(j);
-                double y = hit_yLocal->at(j);
-                double z = hit_zLocal->at(j);
+		    // Get the x, y, and z coordinates of the hit
+		    double x = hit_xLocal->at(j);
+		    double y = hit_yLocal->at(j);
+		    double z = hit_zLocal->at(j);
 
-                // Get the layer index of said hit 
-                int layer = hit_module->at(j);
+		    // Get the layer index of said hit 
+		    int layer = hit_module->at(j);
 
-                outputFile << "   Layer:" << layer
-                    << " (" << std::setw(10) << x
-                    << "," << std::setw(10) << y
-                    << "," << z << ")";
-            }
-            }
-        }
+		    outputFile << "   Layer:" << layer
+			       << " (" << std::setw(10) << x
+			       << "," << std::setw(10) << y
+			       << "," << z << ")";
+		  }
+		}
+	}
 
-        outputFile << std::endl; 
+	outputFile << std::endl; 
     }
  
     outputFile.close();
