@@ -6,7 +6,6 @@
 #include <TSystem.h>
 #include <iomanip>
 #include <cstdio>
-#include <ios> 
 
 //Helper to clean final text file
 void cleanEmptyLines(const std::string& inputPath, const std::string& outputPath) {
@@ -42,40 +41,27 @@ void bestTrack_localHit(const char *clusterRootName = "default")
   //gSystem->Load("libPhysics");
   
     if (strcmp(clusterRootName, "default") == 0) { //Check if input root file is typed in
-	    std::cout << "Input GEMCluster root file with tracking on IS NEEDED" << std::endl;
-	    return; 
+	std::cout << "Input GEMCluster root file with tracking on IS NEEDED" << std::endl;
+	return; 
     }
    	
     TFile* inputFile = TFile::Open(clusterRootName, "READ"); //Access input cluster root file
     if (!inputFile || inputFile->IsZombie()) { //Error check in case problem with file
-	    std::cerr << "Error opening file: " << clusterRootName << std::endl; 
-	    return; 
+	std::cerr << "Error opening file: " << clusterRootName << std::endl; 
+	return; 
     }
 
-    //TTree *inputTree = (TTree*)inputFile->Get("GEMCluster;0"); //Directly get TTree from file
-    TTree* inputTree = nullptr;  
-    std::string GEMCluster_fname; 
-    for (int i = 0; i <= 100; i++){
-        GEMCluster_fname = "GEMCluster;" + std::to_string(i);
-        inputTree = (TTree*)inputFile->Get(GEMCluster_fname.c_str()); //Directly get TTree from file
-        if (!inputTree) {
-            std::cerr << "Error: TTree \"" << GEMCluster_fname
-            << "\" could not be retrieved from file: "
-            << inputFile->GetName() << std::endl;
-            continue;
-        }
-        if (inputTree) {
-            break;
-        }
+    TTree *inputTree = (TTree*)inputFile->Get("GEMCluster;2"); //Directly get TTree from file
+    if (!inputTree) {
+	std::cerr << "Error: TTree could not be retrieved from file: " << inputFile->GetName() << std::endl; 
     }
-    std::cout << "Using tree: " << GEMCluster_fname << std::endl;
     //inputTree->Print();
 
     std::string outputPath = "temp_all_localHits_bestTrack.txt"; //Setting output path for text file
     std::ofstream outputFile(outputPath, std::ofstream::out | std::ofstream::trunc); 
     if (!outputFile.is_open()) {
-	    std::cerr << "Failed to open file for writing" << std::endl; 
-	    return; 
+	std::cerr << "Failed to open file for writing" << std::endl; 
+	return; 
     }
 
     std::string clean_outputPath = "all_localHits_bestTrack.txt"; //String for final text file cleaned up
@@ -83,15 +69,15 @@ void bestTrack_localHit(const char *clusterRootName = "default")
     std::string healthPath = "health.txt";
     std::ofstream healthFile(healthPath, std::ofstream::out | std::ofstream::trunc);
     if (!healthFile.is_open()) {
-	    std::cerr << "Failed to open health file for writing" << std::endl;
-	    return;
+	std::cerr << "Failed to open health file for writing" << std::endl;
+	return;
     }
 
     std::string filter1Path = "filter1.txt"; 
     std::ofstream filter1File(filter1Path, std::ofstream::out | std::ofstream::trunc);
     if (!filter1File.is_open()) {
-	    std::cerr << "Failed to open filter1 file for writing" << std::endl;
-	    return;
+	std::cerr << "Failed to open filter1 file for writing" << std::endl;
+	return;
     }
 
     std::string filter2Path = "filter2.txt";
@@ -164,47 +150,37 @@ void bestTrack_localHit(const char *clusterRootName = "default")
 	    int tracker5 = 0;
 	    int tracker5_x = 0;
         int tracker5_y = 0;
-
-	    int prototype = 0; 
-	    int prototype_x = 0; 
-	    int prototype_y = 0; 
 	
 	    //healthFile << "Event: " << i << endl;   
 
-        for(int j = 0; j < nCluster; ++j) {
-            //healthFile << "planeID num : " << planeID->at(j) << endl;  
-            if (planeID->at(j) == 0) {
-                tracker0++;
-                if (axis->at(j) == 0) tracker0_x++; 
-                if (axis->at(j) == 1) tracker0_y++;
-        }
+	    for(int j = 0; j < nCluster; ++j) {
+	        //healthFile << "planeID num : " << planeID->at(j) << endl;  
+	        if (planeID->at(j) == 0) {
+	            tracker0++;
+	            if (axis->at(j) == 0) tracker0_x++; 
+	            if (axis->at(j) == 1) tracker0_y++;
+	        }
 
             if (planeID->at(j) == 1) {
                 tracker1++;
                 if (axis->at(j) == 0) tracker1_x++;
                 if (axis->at(j) == 1) tracker1_y++;
-        }
+            }
 
             if (planeID->at(j) == 4) {
                 tracker4++;
                 if (axis->at(j) == 0) tracker4_x++;
                 if (axis->at(j) == 1) tracker4_y++;
-        }
+            }
 
             if (planeID->at(j) == 5) {
                 tracker5++; 
                 if (axis->at(j) == 0) tracker5_x++;
                 if (axis->at(j) == 1) tracker5_y++;
-        }
-
-            if (planeID->at(j) == 2) { // For TG2 in layer 2
-                prototype++;
-                if (axis->at(j) == 0) prototype_x++;
-                if (axis->at(j) == 1) prototype_y++;
-        }
-        } 
+            }
+	    } 
 	
-        if(tracker0 != 2 || tracker1 != 2 || tracker4 != 2 || tracker5 != 2 || prototype != 2) continue;
+        if (tracker0 != 2 || tracker1 != 2 || tracker4 != 2 || tracker5 != 2) continue;
         if (NTracks_found != 1) continue;
 
 	    healthFile << "Event: " << i << std::endl;
@@ -220,14 +196,11 @@ void bestTrack_localHit(const char *clusterRootName = "default")
         healthFile << "Tracker5 Cluster Count (X+Y): " << tracker5 << std::endl;
         healthFile << "Tracker5 X Axis Cluster Num: " << tracker5_x << std::endl;
         healthFile << "Tracker5 y Axis Cluster Num: " << tracker5_y << std::endl;
-	    healthFile << "Prototype Cluster Count (X+Y): " << prototype << std::endl;
-        healthFile << "Prototype X Axis Cluster Num: " << prototype_x << std::endl;
-        healthFile << "Prototype y Axis Cluster Num: " << prototype_y << std::endl;
 
         //if(tracker0 != 2 || tracker1 != 2 || tracker5 != 2 || tracker6 != 2) continue;
         healthFile << "NTracks Found : " << NTracks_found << std::endl;
 
-	    int totalTracks = trackCandidates;
+        int totalTracks = trackCandidates;
 	
         outputFile << "Evt:" << std::setw(6) << std::left << i;
         filter1File << "Event Passed Check 1: " << i << std::endl;
@@ -235,22 +208,22 @@ void bestTrack_localHit(const char *clusterRootName = "default")
         // Loop over hits to find those corresponding to the best track, which should be track 1
         if (hit_trackIndex != nullptr && hit_xLocal != nullptr && hit_yLocal != nullptr && hit_zLocal != nullptr && totalTracks == 1) {
             for (size_t j = 0; j < hit_trackIndex->size(); ++j){
-                if (hit_trackIndex->at(j) == 0){
-                    filter2File << "Event Passed Check 2: " << i << std::endl;
+            if (hit_trackIndex->at(j) == 0){
+                filter2File << "Event Passed Check 2: " << i << std::endl;
 
-                    // Get the x, y, and z coordinates of the hit
-                    double x = hit_xLocal->at(j);
-                    double y = hit_yLocal->at(j);
-                    double z = hit_zLocal->at(j);
+                // Get the x, y, and z coordinates of the hit
+                double x = hit_xLocal->at(j);
+                double y = hit_yLocal->at(j);
+                double z = hit_zLocal->at(j);
 
-                    // Get the layer index of said hit 
-                    int layer = hit_module->at(j);
+                // Get the layer index of said hit 
+                int layer = hit_module->at(j);
 
-                    outputFile << "   Layer:" << layer
-                        << " (" << std::setw(10) << x
-                        << "," << std::setw(10) << y
-                        << "," << z << ")";
-                }
+                outputFile << "   Layer:" << layer
+                    << " (" << std::setw(10) << x
+                    << "," << std::setw(10) << y
+                    << "," << z << ")";
+            }
             }
         }
 
