@@ -35,8 +35,8 @@ gem2 = {
     dimension = 102.4, 102.4, 0.1;
     offset = 15.00379, 0.11165, 0;
     tilt angle = 0, 0.785398, 0;
-    second order offset = 0, 0, 0;
-    second order tilt angle = 0, 0, 0;
+    second order offset = -0.00001682, 0.0000332, -0.00000063;
+    second order tilt angle = 0.00002938, 0.00007326, 0.00676891;
     participate tracking = 0;
 }
 
@@ -70,7 +70,7 @@ gem5 = {
     tilt angle = 0, 0, 0;
     second order offset = 0, 0, 0.00000011;
     second order tilt angle = 0.00000067, 0.00000347, 0.00016443;
-    participate tracking = 0;
+    participate tracking = 1;
 }
 
 
@@ -154,7 +154,7 @@ max cluster size = 20
 ###############################################################################
 
 # minimum number of hits required for tracking
-minimum hits on track = 3
+minimum hits on track = 4
 
 # give up tracking for this event when number of track candidates larger than
 # this value, suggested value is smaller than 10^5, if too many tracks, 

@@ -53,9 +53,14 @@ void bestTrack_localHit(const char *clusterRootName = "default")
     }
 
     //TTree *inputTree = (TTree*)inputFile->Get("GEMCluster;0"); //Directly get TTree from file
-    TTree* inputTree = nullptr;  
+    TTree* inputTree = (TTree*)inputFile->Get("GEMCluster"); 
+    if (!inputTree) {
+        std::cerr << "Error: TTree GEMCluster could not be retrieved from file: " << inputFile->GetName() << std::endl;
+        return;
+    }
+    /*
     std::string GEMCluster_fname; 
-    for (int i = 0; i <= 100; i++){
+    for (int i = 0; i <= 100; i += 2){
         GEMCluster_fname = "GEMCluster;" + std::to_string(i);
         inputTree = (TTree*)inputFile->Get(GEMCluster_fname.c_str()); //Directly get TTree from file
         if (!inputTree) {
@@ -70,6 +75,7 @@ void bestTrack_localHit(const char *clusterRootName = "default")
     }
     std::cout << "Using tree: " << GEMCluster_fname << std::endl;
     //inputTree->Print();
+    */
 
     std::string outputPath = "temp_all_localHits_bestTrack.txt"; //Setting output path for text file
     std::ofstream outputFile(outputPath, std::ofstream::out | std::ofstream::trunc); 
@@ -100,6 +106,21 @@ void bestTrack_localHit(const char *clusterRootName = "default")
         std::cerr << "Failed to open filter2 file for writing" << std::endl;
         return;
     }
+
+    std::string filter1FailPath = "filter1Fail.txt";
+    std::ofstream filter1FailFile(filter1FailPath, std::ofstream::out | std::ofstream::trunc);
+    if (!filter1FailFile.is_open()) {
+        std::cerr << "Failed to open filter1Fail file for writing" << std::endl;
+        return;
+    }
+
+    std::string filter2FailPath = "filter2Fail.txt";
+    std::ofstream filter2FailFile(filter2FailPath, std::ofstream::out | std::ofstream::trunc);
+    if (!filter2FailFile.is_open()) {
+        std::cerr << "Failed to open filter2Fail file for writing" << std::endl;
+        return;
+    }
+
 
     //Initializing variables to hold data from branches
     int trackCandidates, NTracks_found, nCluster; 
@@ -204,8 +225,28 @@ void bestTrack_localHit(const char *clusterRootName = "default")
         }
         } 
 	
-        if(tracker0 != 2 || tracker1 != 2 || tracker4 != 2 || tracker5 != 2 || prototype != 2) continue;
-        if (NTracks_found != 1) continue;
+        if(tracker0 != 2 || tracker1 != 2 || tracker4 != 2 || tracker5 != 2 || prototype != 2 || NTracks_found != 1) {
+            /*
+            filter1FailFile << "Event: " << i << std::endl;
+            filter1FailFile << "Tracker0 Cluster Count (X+Y): " << tracker0 << std::endl;
+            filter1FailFile << "Tracker0 X Axis Cluster Num: " << tracker0_x << std::endl;
+            filter1FailFile << "Tracker0 y Axis Cluster Num: " << tracker0_y << std::endl;
+            filter1FailFile << "Tracker1 Cluster Count (X+Y): " << tracker1 << std::endl;
+            filter1FailFile << "Tracker1 X Axis Cluster Num: " << tracker1_x << std::endl;
+            filter1FailFile << "Tracker1 y Axis Cluster Num: " << tracker1_y << std::endl;
+            filter1FailFile << "Tracker4 Cluster Count (X+Y): " << tracker4 << std::endl;
+            filter1FailFile << "Tracker4 X Axis Cluster Num: " << tracker4_x << std::endl;
+            filter1FailFile << "Tracker4 y Axis Cluster Num: " << tracker4_y << std::endl;
+            filter1FailFile << "Tracker5 Cluster Count (X+Y): " << tracker5 << std::endl;
+            filter1FailFile << "Tracker5 X Axis Cluster Num: " << tracker5_x << std::endl;
+            filter1FailFile << "Tracker5 y Axis Cluster Num: " << tracker5_y << std::endl;
+            filter1FailFile << "Prototype Cluster Count (X+Y): " << prototype << std::endl;
+            filter1FailFile << "Prototype X Axis Cluster Num: " << prototype_x << std::endl;
+            filter1FailFile << "Prototype y Axis Cluster Num: " << prototype_y << std::endl;
+            filter1FailFile << "Number of Tracks Found: " << NTracks_found << std::endl; 
+            */
+            continue;
+        }
 
 	    healthFile << "Event: " << i << std::endl;
         healthFile << "Tracker0 Cluster Count (X+Y): " << tracker0 << std::endl;
@@ -250,7 +291,7 @@ void bestTrack_localHit(const char *clusterRootName = "default")
                         << " (" << std::setw(10) << x
                         << "," << std::setw(10) << y
                         << "," << z << ")";
-                }
+                } 
             }
         }
 
