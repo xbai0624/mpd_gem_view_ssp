@@ -46,8 +46,8 @@ gem3 = {
     dimension = 102.4, 102.4, 0.1;
     offset = 8.59082, 0.30490, 0;
     tilt angle = 0, 0.0523599, 0;
-    second order offset = 0, 0, 0;
-    second order tilt angle = 0, 0, 0;
+    second order offset = -0.00000017, 0.00000042, 0.00000075;
+    second order tilt angle = 0.00000456, 0.00000384, 0.00351253;
     participate tracking = 0;
 }
 

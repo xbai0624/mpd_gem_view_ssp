@@ -58,24 +58,6 @@ void bestTrack_localHit(const char *clusterRootName = "default")
         std::cerr << "Error: TTree GEMCluster could not be retrieved from file: " << inputFile->GetName() << std::endl;
         return;
     }
-    /*
-    std::string GEMCluster_fname; 
-    for (int i = 0; i <= 100; i += 2){
-        GEMCluster_fname = "GEMCluster;" + std::to_string(i);
-        inputTree = (TTree*)inputFile->Get(GEMCluster_fname.c_str()); //Directly get TTree from file
-        if (!inputTree) {
-            std::cerr << "Error: TTree \"" << GEMCluster_fname
-            << "\" could not be retrieved from file: "
-            << inputFile->GetName() << std::endl;
-            continue;
-        }
-        if (inputTree) {
-            break;
-        }
-    }
-    std::cout << "Using tree: " << GEMCluster_fname << std::endl;
-    //inputTree->Print();
-    */
 
     std::string outputPath = "temp_all_localHits_bestTrack.txt"; //Setting output path for text file
     std::ofstream outputFile(outputPath, std::ofstream::out | std::ofstream::trunc); 
@@ -218,7 +200,7 @@ void bestTrack_localHit(const char *clusterRootName = "default")
                 if (axis->at(j) == 1) tracker5_y++;
         }
 
-            if (planeID->at(j) == 2) { // For TG2 in layer 2
+            if (planeID->at(j) == 3) { // For TG2 in layer 3
                 prototype++;
                 if (axis->at(j) == 0) prototype_x++;
                 if (axis->at(j) == 1) prototype_y++;

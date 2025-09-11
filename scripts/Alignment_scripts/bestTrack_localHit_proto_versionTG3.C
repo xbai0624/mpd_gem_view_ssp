@@ -218,7 +218,7 @@ void bestTrack_localHit(const char *clusterRootName = "default")
                 if (axis->at(j) == 1) tracker5_y++;
         }
 
-            if (planeID->at(j) == 2) { // For TG2 in layer 2
+            if (planeID->at(j) == 2) { // For TG3 in layer 2
                 prototype++;
                 if (axis->at(j) == 0) prototype_x++;
                 if (axis->at(j) == 1) prototype_y++;
