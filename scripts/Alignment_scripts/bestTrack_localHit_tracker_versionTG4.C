@@ -51,7 +51,7 @@ void bestTrack_localHit(const char *clusterRootName = "default")
 	return; 
     }
 
-    TTree *inputTree = (TTree*)inputFile->Get("GEMCluster;1"); //Directly get TTree from file
+    TTree *inputTree = (TTree*)inputFile->Get("GEMCluster"); //Directly get TTree from file
     if (!inputTree) {
 	std::cerr << "Error: TTree could not be retrieved from file: " << inputFile->GetName() << std::endl; 
     }

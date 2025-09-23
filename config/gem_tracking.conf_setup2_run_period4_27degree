@@ -13,6 +13,8 @@ gem0 = {
     dimension = 51.2, 51.2, 0.1;   # x_size, y_size, z_size: (full length)
     offset = 1.092437, 10.44072, 0;     # x_offset, y_offset, z_offset
     tilt angle = 0, 0, 0; # x_axis_tilt_angle, y_axis_tilt_angle, z_axis_tilt_angle
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 1; # 1: this chamber is part of tracking system; 0: not tracking system
 }
 
@@ -22,6 +24,8 @@ gem1 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 1.371378, 10.34262, 0;
     tilt angle = 0, 0, 0;
+    second order offset = 0.00000035, 0.00000026, -0.00000031;
+    second order tilt angle = -0.00002652, 0.0000365, -0.00218384;
     participate tracking = 1;
 }
 
@@ -31,6 +35,8 @@ gem2 = {
     dimension = 102.4, 102.4, 0.1;
     offset = 11.0901, 0.4053, 0;
     tilt angle = 0, 0.471239, 0;
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -40,6 +46,8 @@ gem3 = {
     dimension = 102.4, 102.4, 0.1;
     offset = 12.5359, 0.2084, 0;
     tilt angle = 0, 0.471239, 0;
+    second order offset = 0, 0, 0;
+    second order tilt angle = 0, 0, 0;
     participate tracking = 0;
 }
 
@@ -49,6 +57,8 @@ gem4 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 2.291571, 13.31649, 0; #for 100 um centered on 0, (x,y,z) = (3.047485, 13.95983, 0)
     tilt angle = 0, 0, 0;
+    second order offset = -0.00000001, 0, -0.00000011;
+    second order tilt angle = 0.00000043, -0.00000475, 0.00009832;
     participate tracking = 1;
 }
 
@@ -58,6 +68,8 @@ gem5 = {
     dimension = 51.2, 51.2, 0.1;
     offset = 1.691571, 14.69649, 0; #for 100 um centered on 0, (x,y,z) = (2.45435555, 15.45916, 0)
     tilt angle = 0, 0, 0;
+    second order offset = 0, 0, 0.00000013;
+    second order tilt angle = -0.00000025, 0.00000353, 0.00013189;
     participate tracking = 1;
 }
 
@@ -158,6 +170,7 @@ save max track quantity = 10
 # and output whatever the best track chi2 it finds
 track max chi2 = 1e5
 
+effective search radius = 142
 ###############################################################################
 #                                optics cut                                   #
 ###############################################################################

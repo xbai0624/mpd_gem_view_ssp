@@ -54,13 +54,13 @@ APV,    2,      0,      0,     20,     1,      0,     14,     0,      0,      no
 APV,    2,      1,      0,     21,     0,      3,     13,     0,      0,      normal, 0,      0,
 APV,    2,      1,      0,     21,     1,      1,     12,     0,      0,      normal, 0,      0,
 
-## Prototype I (UVa TG3)
+## Prototype I (UVa TG1)
 APV,    2,      2,      0,     33,     0,      8,     11,     0,      0,      normal, 0,      0,
 APV,    2,      2,      0,     33,     0,      9,     10,     1,      0,      normal, 0,      0,
 APV,    2,      2,      0,     33,     1,      4,      9,     0,      0,      normal, 0,      0,
 APV,    2,      2,      0,     33,     1,      5,      8,     1,      0,      normal, 0,      0,
 
-## Prototype II (UVa TG2)
+## Prototype II (UVa Standard)
 APV,    2,      3,      0,     32,     0,      10,     7,     0,      0,      normal, 0,      0,
 APV,    2,      3,      0,     32,     0,      11,     6,     1,      0,      normal, 0,      0,
 APV,    2,      3,      0,     32,     1,      6,      5,     0,      0,      normal, 0,      0,
