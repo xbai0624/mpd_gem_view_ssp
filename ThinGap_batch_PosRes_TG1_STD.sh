@@ -38,7 +38,7 @@ run_command() {
 }
 
 # Set max_jobs based on the number of physical cores initially
-max_jobs=5
+max_jobs=3
 
 # Loop over the commands sequentially
 for i in "${!commands[@]}"; do
