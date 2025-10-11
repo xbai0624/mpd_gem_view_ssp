@@ -1,0 +1,63 @@
+###############################################################
+# apv configurations
+# Items    : the current configuration (APV)
+# CrateID  : the Unique ID for the Crate
+# FECID    : FEC address in Crate
+# GEMID    : detector ID
+# dimension: x/y 0/1
+# ADCId    : the ADCId address of APV
+# I2C      : the I2C address of APV
+# Pos      : Position
+# Invert   : how the detector is positioned in the layer First two are normal (1) last two are inverted (0)
+# other    : backup param used for large scare spectrometer
+#
+# notes    : FEC: CrateID and FECID  uniquely define the FEC address
+#            APV: crateID, FECID ADCId uniquely define the APV address
+
+###############################################################
+# layer configurations
+# Items             : Layer
+# LayerID           : layer id
+# ChambersPerLayer  : how many chambers on this layer
+# readout           : readout type (Cartesian/UV)
+# XOffset           : x offset
+# YOffset           : y offset
+# GEMType           : gem chamber type (UVAXYGEM/INFNXYGEM/UVUVGEM/INTERNAL)
+# nb_of_apvs_on_chamber_x_plane: how many APVs on gem chamber x plane
+# nb_of_apvs_on_chamber_y_plane: how many APVs on gem chamber y plane
+# x_pitch           : distance between readout strips on chamber x plane (0.4 mm)
+# y_pitch           : distance between readout strips on chamber y plane (0.4 mm)
+# x_flip            : flip x direction
+# y_flip            : flip y direction
+
+
+# Layer configurations
+# Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch
+
+Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  8,   8,   0.4,    0.4, 1, 1
+
+###############################################################
+# This section is for SSP
+###############################################################
+#Items, crate_id,    Layer,  fec_id,   GEMID,  dimension,  ADCId,  I2C,    Pos,    Invert, other,  backplane,  GEMPOS
+#============================= Crate_2 Layer_4 GEM_0 ===================================
+
+# X-dimension fiber 13
+##
+APV,    2,      0,      0,     13,     1,      0,     15,     0,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      1,     14,     1,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      2,     13,     2,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      3,     12,     3,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      4,     11,     4,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      5,     10,     5,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      6,      9,     6,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      7,      8,     7,      0,      normal, 0,      0,
+
+APV,    2,      0,      0,     13,     0,      8,      7,     0,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      9,      6,     1,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      10,     5,     2,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      11,     4,     3,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      12,     3,     4,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      13,     2,     5,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      14,     1,     6,      1,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      15,     0,     7,      1,      normal, 0,      0,
