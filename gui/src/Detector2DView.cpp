@@ -46,6 +46,11 @@ void Detector2DView::InitView()
                     dynamic_cast<Detector2DItem*>(det[addr]) -> SetStripAngle(160, 160);
                     dynamic_cast<Detector2DItem*>(det[addr]) -> SetReadoutType(readout_type);
                 }
+                else if(readout_type.find("XW") != std::string::npos) {
+                    dynamic_cast<Detector2DItem*>(det[addr]) -> SetStripAngle(0, 160);
+                    dynamic_cast<Detector2DItem*>(det[addr]) -> SetReadoutType(readout_type);
+                }
+ 
                 dynamic_cast<Detector2DItem*>(det[addr]) -> SetTitle("layer" + std::to_string(l.first) +
                         " gem" + std::to_string(i));
                 dynamic_cast<Detector2DItem*>(det[addr]) -> SetStripIndexRange(0, n_strips_x, 0, n_strips_y);
