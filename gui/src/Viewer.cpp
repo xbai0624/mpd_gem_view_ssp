@@ -667,14 +667,24 @@ void Viewer::DrawGEMOnlineHits(int num)
 
         GEMPlane *pln_x = i -> GetPlane(GEMPlane::Plane_X);
         GEMPlane *pln_y = i -> GetPlane(GEMPlane::Plane_Y);
+        std::vector<int> x_online_hits, y_online_hits;
 
-        const std::vector<StripHit> & x_hits = pln_x -> GetStripHits();
-        int x_apvs = pln_x -> GetCapacity();
-        std::vector<int> x_online_hits = get_histo(x_hits, x_apvs, true, chamber_pos);
+        if(pln_x != nullptr) {
+            const std::vector<StripHit> & x_hits = pln_x -> GetStripHits();
+            int x_apvs = pln_x -> GetCapacity();
+            x_online_hits = get_histo(x_hits, x_apvs, true, chamber_pos);
+            // clear strip hits for next event
+            pln_x -> ClearStripHits();
 
-        const std::vector<StripHit> & y_hits = pln_y -> GetStripHits();
-        int y_apvs = pln_y -> GetCapacity();
-        std::vector<int> y_online_hits = get_histo(y_hits, y_apvs, false, chamber_pos);
+        }
+
+        if(pln_y != nullptr){
+            const std::vector<StripHit> & y_hits = pln_y -> GetStripHits();
+            int y_apvs = pln_y -> GetCapacity();
+            y_online_hits = get_histo(y_hits, y_apvs, false, chamber_pos);
+            // clear strip hits for next event
+            pln_y -> ClearStripHits();
+        }
 
         int index = get_vector_index(layer_id);
 
@@ -684,10 +694,6 @@ void Viewer::DrawGEMOnlineHits(int num)
 
         online_hits[index][chamber_pos] = std::pair<std::vector<int>,
             std::vector<int>>(x_online_hits, y_online_hits);
-
-        // clear strip hits for next event
-        pln_x -> ClearStripHits();
-        pln_y -> ClearStripHits();
     }
 
     // draw online hits
