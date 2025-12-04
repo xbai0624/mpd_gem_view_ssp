@@ -197,10 +197,7 @@ public:
     int GetStripCrossTalkFlag(const GEM_Strip_Data &p, const GEM_Strip_Data &c, const GEM_Strip_Data &n);
     void RebuildDetectorMap();
     void RebuildDAQMap();
-    void FillRawDataSRS(const GEMRawData &raw, EventData &event, bool do_zeroSup = true);
-    // srs online cm not availabe
-    void FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw,
-            const APVDataType &flags, EventData &event, bool do_zeroSup = true);
+    void FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw, EventData &event, bool do_zeroSup = true);
     // online cm availabe
     void FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
             const APVDataType &flags, const std::vector<int> &online_cm, EventData &event, bool do_zeroSup = true);
@@ -231,6 +228,7 @@ public:
     GEMMPD *GetMPD(const MPDAddress &addr) const;
     GEMAPV *GetAPV(const APVAddress &addr) const;
     GEMAPV *GetAPV(const int &crate_id, const int &mpd, const int &adc) const;
+    GEMAPV *GetGhostAPV(const APVAddress &addr) const;
 
     std::vector<GEM_Strip_Data> GetZeroSupData() const;
     std::vector<GEMAPV*> GetAPVList() const;

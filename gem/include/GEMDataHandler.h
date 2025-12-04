@@ -71,6 +71,7 @@ public:
 
     // feeding data
     void FeedDataSRS(const GEMRawData &gemData);
+    void FeedDataSRS(const APVAddress &addr, const std::vector<int> &raw_data);
     // with online cm
     void FeedDataMPD(const APVAddress &addr, const std::vector<int> &raw_data, const APVDataType &flags,
             const std::vector<int> &online_common_mode);

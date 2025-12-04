@@ -66,8 +66,8 @@ public:
     void FillPedHist();
     void ResetPedHist();
     void FitPedestal();
-    void FillRawDataSRS(const uint32_t *buf, const uint32_t &siz);
-    void FillRawDataSRS(const std::vector<int> &buf, const APVDataType &flags=APVDataType());
+    //void FillRawDataSRS(const uint32_t *buf, const uint32_t &siz);
+    void FillRawDataSRS(const std::vector<int> &buf);
     void FillRawDataMPD(const std::vector<int> &buf, const APVDataType &flags=APVDataType());
     void FillOnlineCommonMode(const std::vector<int> &);
     void FillZeroSupData(const uint32_t &ch, const uint32_t &ts, const unsigned short &val);

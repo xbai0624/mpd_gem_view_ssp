@@ -1,6 +1,6 @@
 #!/bin/bash
 
-folders=(alignment decoder epics fadc gem gui replay tracking_dev)
+folders=(alignment decoder epics fadc gem gui replay tracking_dev .)
 
 echo "start"
 

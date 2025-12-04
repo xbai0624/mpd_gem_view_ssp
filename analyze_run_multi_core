@@ -1,34 +1,39 @@
 #!/bin/bash
 
-source setup_env.sh
+export LD_LIBRARY_PATH=${PWD}/decoder/lib:${PWD}/gem/lib:${PWD}/epics/lib:${PWD}/tracking_dev/lib:${LD_LIBRARY_PATH}
 
 # pedestal file
-PEDESTAL_FILE="database/gem_ped_186.dat"
-COMMON_MODE_FILE="database/CommonModeRange_186.txt"
+PEDESTAL_FILE="database/gem_ped_749.dat"
+COMMON_MODE_FILE="database/CommonModeRange_749.txt"
+
+export PEDESTAL_FILE
+export COMMON_MODE_FILE
+export LD_LIBRARY_PATH
 
 # raw data file path
-RAW_DIR="$HOME/test/evio_data"
+RAW_DIR="/data/Gem"
+export RAW_DIR
 
 # analysis setup
 RUN=-1
-TOTAL_EVENTS=-1
+NSPLITS=0
 NCORE=1
 
-if [ $# -lt 1 ] || [ $# -gt 3 ]; then
-    echo "Usage: $0 RUN [TOTAL_EVENTS_PER_SPLIT] [NJOBS]"
-    echo "       [TOTAL_EVENTS_PER_SPLIT] can be a rough close number, e.g. 3456 can be rounded up to the larger side 4000"
+if [ $# -ne 3 ]; then
+    echo "Usage: $0 RUN [NSPLITS] [NJOBS]."
+    echo "       Please fill in the correct parameters."
     exit 1
 fi
 
 RUN=$1
-[ $# -ge 2 ] && TOTAL_EVENTS=$2
-[ $# -ge 3 ] && NCORE=$3
+NSPLITS=$2
+NCORE=$3
 
-echo "Analyzing run $RUN for $TOTAL_EVENTS events with $NCORE job(s)"
+echo "Analyzing run $RUN for $NSPLITS file splits with $NCORE job(s)"
 
 # get ready all file splits
 list_evio_splits() {
-    local pattern="$RAW_DIR/fermilab_beamtest_$RUN.evio.*"
+    local pattern="$RAW_DIR/gem0_000$RUN.evio.*"
     local files=($(ls $pattern 2>/dev/null))
 
     if [ ${#files[@]} -eq 0 ]; then
@@ -41,23 +46,82 @@ list_evio_splits() {
 
 # show all files that will be analyzed
 echo "files queued for analysis: "
-files=$(list_evio_splits)
+files=($(list_evio_splits))
 for f in "${files[@]}"; do
     echo $f
 done
 
-# replay run
-for f in "${files[@]}"; do
-    echo "analyzing file: $f"
-    ./bin/replay -c 0 -t 0 -z 1 -n $TOTAL_EVENTS --tracking off --pedestal $PEDESTAL_FILE --common_mode $COMMON_MODE_FILE $f
+NFILES_FOUND=${#files[@]}
+
+if [ $NFILES_FOUND -lt $NSPLITS ]; then
+    NSPLITS=$NFILES_FOUND
+fi
+
+NJOB=$(( (NSPLITS + NCORE - 1) / NCORE ))
+echo "Files to be replayed: " $NSPLITS "on " $NCORE "CPUS"
+echo "each CPU replay " $NJOB "files"
+
+FILES_STRING="${files[*]}"
+export RUN
+export NSPLITS
+export NCORE
+
+for ((core=0; core<NCORE; core++)); do
+    start=$(( core*NJOB ))
+    end=$(( start + NJOB - 1 ))
+
+    if (( end >= NSPLITS )); then
+        end=$(( NSPLITS - 1 ))
+    fi
+
+    echo "CPU $core process files index $start -> $end"
+
+    CMD="
+    files=( $FILES_STRING )
+    for ((i=$start; i<=$end; i++)); do
+        f=\"\${files[\$i]}\"
+        OUTPUT_ROOT_PATH=\"Rootfiles/prad_gem_run\${RUN}_split\$i.root\"
+        ./bin/replay \
+            -c 0 -t 0 -z 1 -n -1 \
+            --tracking off \
+            --pedestal \"\$PEDESTAL_FILE\" \
+            --common_mode \"\$COMMON_MODE_FILE\" \
+            --output_root_filename \"\$OUTPUT_ROOT_PATH\" \
+            \"\$f\"
+    done;
+    "
+    xterm -T "CPU $core" -e /bin/bash -c "$CMD" &
 done
 
-exit
+wait
+echo "All jobs completed, comibning ROOT files"
+FINAL_ROOT_FILE="Rootfiles/prad_gem_run${RUN}.root"
+SPLIT_ROOT_FILE_PATTERN=$(ls Rootfiles/prad_gem_run${RUN}_split*.root 2>/dev/null | grep -v "data_quality_check")
+if [[ -n "$SPLIT_ROOT_FILE_PATTERN" ]]; then
+    hadd -f $FINAL_ROOT_FILE $SPLIT_ROOT_FILE_PATTERN 
+    if [ $? -eq 0 ]; then
+        echo "All files merged into : " $FINAL_ROOT_FILE
+        rm -rf $SPLIT_ROOT_FILE_PATTERN
+    else
+        echo "Merge failed. " $FINAL_ROOT_FILE
+    fi
+fi
+FINAL_ROOT_QUALITY_CHECK="Rootfiles/prad_gem_run${RUN}.root_data_quality_check.root"
+SPLIT_ROOT_QUALITY_CHECK="Rootfiles/prad_gem_run${RUN}_split[0-9]*.root_data_quality_check.root"
+if ls $SPLIT_ROOT_QUALITY_CHECK 1> /dev/null 2>&1; then
+    hadd -f $FINAL_ROOT_QUALITY_CHECK $SPLIT_ROOT_QUALITY_CHECK 
+    if [ $? -eq 0 ]; then
+        echo "All files merged into : " $FINAL_ROOT_QUALITY_CHECK
+        rm -rf Rootfiles/prad_gem_run${RUN}_split*.root_data_quality_check.root
+    else
+        echo "Merge failed. " $FINAL_ROOT_QUALITY_CHECK
+    fi
+fi
+echo "Comining Root files completed."
 
 # plot run
-ROOT_FILE='scripts/plot_quality_results.cpp("Rootfiles/cluster_0_vtp_trigger_test_'${RUN}'.evio.0.root_data_quality_check.root")'
+ROOT_FILE='scripts/plot_quality_results.cpp("Rootfiles/prad_gem_run'${RUN}'.root_data_quality_check.root")'
 root -b -q $ROOT_FILE
 
 # show run
-evince Rootfiles/cluster_0_vtp_trigger_test_$RUN.evio.0.root_data_quality_check.root.pdf 
-
+evince Rootfiles/prad_gem_run$RUN.root_data_quality_check.root.pdf 

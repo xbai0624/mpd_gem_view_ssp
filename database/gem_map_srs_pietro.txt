@@ -22,7 +22,7 @@
 # readout           : readout type (Cartesian/UV)
 # XOffset           : x offset
 # YOffset           : y offset
-# GEMType           : gem chamber type (UVAXYGEM/INFNXYGEM/UVUVGEM/INTERNAL)
+# GEMType           : gem chamber type (UVAXYGEM/INFNXYGEM/UVUVGEM/INTERNAL/FITCYLINDRICAL)
 # nb_of_apvs_on_chamber_x_plane: how many APVs on gem chamber x plane
 # nb_of_apvs_on_chamber_y_plane: how many APVs on gem chamber y plane
 # x_pitch           : distance between readout strips on chamber x plane (0.4 mm)
@@ -34,7 +34,9 @@
 # Layer configurations
 # Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch
 
-Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  8,   8,   0.4,    0.4, 1, 1
+Layer,  0,  1,  UV,  0,   0,   FITCYLINDRICAL,  6,   6,   1.358,    1.358,  1,  1
+Layer,  1,  1,  UV,  0,   0,   FITCYLINDRICAL,  6,   6,   1.358,    1.358,  1,  1
+
 
 ###############################################################
 # This section is for SSP
@@ -44,16 +46,17 @@ Layer,  0,  1,  CARTESIAN,  0,   0,   INFNXYGEM,  8,   8,   0.4,    0.4, 1, 1
 
 # X-dimension fiber 13
 ##
-APV,    2,      0,      0,     13,     1,      0,     15,     0,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      1,     14,     1,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      2,     13,     2,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      4,     11,     4,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      5,     10,     5,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      6,      9,     6,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      7,      8,     7,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      0,     15,     0,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      1,     14,     1,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     0,      2,     13,     2,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      4,     11,     3,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      5,     10,     4,      0,      normal, 0,      0,
+APV,    2,      0,      0,     13,     1,      6,      9,     5,      0,      normal, 0,      0,
 
-APV,    2,      0,      0,     13,     1,      8,      7,     0,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      9,      6,     1,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      10,     5,     2,      0,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      14,     1,     6,      1,      normal, 0,      0,
-APV,    2,      0,      0,     13,     1,      15,     0,     7,      1,      normal, 0,      0,
+
+APV,    2,      1,      0,     14,     0,      7,      8,     5,      0,      normal, 0,      0,
+APV,    2,      1,      0,     14,     0,      8,      7,     1,      0,      normal, 0,      0,
+APV,    2,      1,      0,     14,     1,      9,      6,     0,      0,      normal, 0,      0,
+APV,    2,      1,      0,     14,     1,      10,     5,     2,      0,      normal, 0,      0,
+APV,    2,      1,      0,     14,     1,      14,     1,     4,      0,      normal, 0,      0,
+APV,    2,      1,      0,     14,     1,      15,     0,     3,      0,      normal, 0,      0,

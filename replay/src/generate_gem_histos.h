@@ -44,6 +44,7 @@ namespace quality_check_histos
     float get_seed_strip_mean_time(const StripCluster &c);
     std::pair<double, double> convert_uv_to_xy_moller(const double &u, const double &v);
     std::pair<double, double> convert_xw_to_xy_sbs(const double &x, const double &w);
+    std::pair<double, double> convert_uv_to_xy_fit_cylindrical(const double &x, const double &w);
 };
 
 #endif
@@ -167,6 +168,10 @@ namespace quality_check_histos
                     //return c1.total_charge > c2.total_charge;
                     return c1.peak_charge > c2.peak_charge;
                     });
+            std::sort(y_clusters.begin(), y_clusters.end(), [&](const StripCluster &c1, const StripCluster &c2) {
+                    //return c1.total_charge > c2.total_charge;
+                    return c1.peak_charge > c2.peak_charge;
+                    });
             size_t c_s = x_clusters.size() < y_clusters.size() ? x_clusters.size() : y_clusters.size();
 
             for(size_t i=0; i<c_s; i++) {
@@ -174,7 +179,8 @@ namespace quality_check_histos
                 histM.histo_2d<float>(Form("h_raw_size_correlation_layer%d", layer)) -> Fill(x_clusters[i].hits.size(), y_clusters[i].hits.size());
                 histM.histo_2d<float>(Form("h_raw_seed_strip_mean_time_corr_layer%d", layer)) -> Fill(get_seed_strip_mean_time(x_clusters[i]), get_seed_strip_mean_time(y_clusters[i]));
 
-				if(det->GetType() == "MOLLERGEM") {
+				if(det->GetType() == "MOLLERGEM")
+                {
 					auto &x_strips = x_clusters[i].hits;
 					auto &y_strips = y_clusters[i].hits;
 					bool has_intersect = false;
@@ -192,6 +198,19 @@ namespace quality_check_histos
 						histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(p2d.first, p2d.second);
 					}
 				}
+                else if( det -> GetType() == "FITCYLINDRICAL")
+                {
+                    auto p2d = convert_uv_to_xy_fit_cylindrical(x_clusters[i].position, y_clusters[i].position);
+
+                    double half_x_length = 365.6/2.; // mm
+                    double half_y_length = 365.6/2.; // mm
+
+                    //if( p2d.first < half_x_length && p2d.first > -half_x_length &&
+                    //        p2d.second < half_y_length && p2d.second > -half_y_length)
+                    {
+                        histM.histo_2d<float>(Form("h_raw_pos_correlation_layer%d", layer)) -> Fill(p2d.first, p2d.second);
+                    }
+                }
 				else if( (det -> GetType() == "INFNXWGEM") || (det -> GetType() == "UVAXWGEM") )
 				{
 					auto p2d = convert_xw_to_xy_sbs(x_clusters[i].position, y_clusters[i].position);
@@ -494,6 +513,20 @@ namespace quality_check_histos
 
 		return std::make_pair(x, y);
 	}
+
+	std::pair<double, double> convert_uv_to_xy_fit_cylindrical(const double &u, const double &v)
+	{
+        return std::make_pair(u, v);
+		// FIT Cylindircal strip angle is 45 degree, for both U and V strips
+		double angle = 45 * 3.1415926 / 180.;
+		double x = 0, y = 0; 
+
+        x = TMath::Cos(angle) * u - TMath::Sin(angle) * v;
+        y = TMath::Sin(angle) * u + TMath::Cos(angle) * v;
+
+		return std::make_pair(x, y);
+	}
+
 }
 
 #endif

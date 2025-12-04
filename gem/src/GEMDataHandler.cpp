@@ -177,10 +177,18 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
             }
             if(decoded_data.find(apvs[i]) != decoded_data.end()) {
                 if(decoded_online_cm.find(apvs[i]) != decoded_online_cm.end())
+#ifdef USE_SRS
+                    FeedDataSRS(apvs[i], decoded_data.at(apvs[i]));
+#else
                     FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]),
                             decoded_online_cm.at(apvs[i]));
+#endif
                 else
+#ifdef USE_SRS
+                    FeedDataSRS(apvs[i], decoded_data.at(apvs[i]));
+#else
                     FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]));
+#endif
             }
         }
     };
@@ -205,9 +213,17 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
         }
 
         if(decoded_online_cm.find(i.first) != decoded_online_cm.end())
+#ifdef USE_SRS
+            FeedDataSRS(i.first, i.second);
+#else
             FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first), decoded_online_cm.at(i.first));
+#endif
         else
+#ifdef USE_SRS
+            FeedDataSRS(i.first, i.second);
+#else
             FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first));
+#endif
     }
 #endif
 }
@@ -545,11 +561,25 @@ void GEMDataHandler::FillHistograms([[maybe_unused]]const EventData &data)
 
 void GEMDataHandler::FeedDataSRS(const GEMRawData &gemData)
 {
+    APVAddress addr = gemData.addr;
+    std::vector<int> data;
+    for(size_t i=0; i<gemData.size; i++) {
+        data.push_back(gemData.buf[i]);
+    }
+
+    FeedDataSRS(addr, data);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// feed gem data, for SRS
+
+void GEMDataHandler::FeedDataSRS(const APVAddress &addr, const std::vector<int> &data)
+{
     if(gem_sys) {
 		if(!bEvio2RootFiles)
-			gem_sys -> FillRawDataSRS(gemData, *new_event);
+			gem_sys -> FillRawDataSRS(addr, data, *new_event);
 		else
-			gem_sys -> FillRawDataSRS(gemData, *new_event, false);
+			gem_sys -> FillRawDataSRS(addr, data, *new_event, false);
 	}
 }
 

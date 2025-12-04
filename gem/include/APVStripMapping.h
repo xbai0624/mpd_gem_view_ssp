@@ -216,6 +216,7 @@ const std::unordered_map<std::string, const int* const> mapped_strip_arr = {
     {"MOLLERGEM", _mapped_strip_infn_xy}, // for SRS system, moller gem should use INFN XY mapping
     {"HALLDGEM", _mapped_strip_infn_xy}, // for Hall D setup - Lubomir
     {"PRADGEM", _mapped_strip_apv_internal},
+    {"FITCYLINDRICAL", _mapped_strip_infn_xy},
     {"INTERNAL", _mapped_strip_apv_internal}
 };
 
@@ -273,6 +274,9 @@ struct APVInfo
 
     APVInfo(){};
     APVInfo(const std::string &str)
+        : crate_id(-1), layer_id(-1), mpd_id(-1), detector_id(-1), dimension(-1),
+        adc_ch(-1), i2c_ch(-1), apv_pos(-1), invert(-1), discriptor(""),
+        backplane_id(-1), gem_pos(-1)
     {
         if(str.find("APV") == std::string::npos)
             return;

@@ -31,6 +31,7 @@ GEMMPD::GEMMPD(const int &cid,
 {
     // open slots for inserting APVs
     adc_list.resize(slots, nullptr);
+    ghost_adc_list.resize(slots, nullptr);
 
     addr.crate_id = cid;
     addr.mpd_id = mid;
@@ -44,12 +45,20 @@ GEMMPD::GEMMPD(const GEMMPD &that)
 {
     // open slots for inserting APVs
     adc_list.resize(that.adc_list.size(), nullptr);
+    ghost_adc_list.resize(that.adc_list.size(), nullptr);
 
     for(uint32_t i = 0; i < that.adc_list.size(); ++i)
     {
         // add the copied apv to the same slot
         if(that.adc_list.at(i) != nullptr)
             AddAPV(new GEMAPV(*that.adc_list.at(i)), i);
+    }
+
+    for(uint32_t i = 0; i < that.ghost_adc_list.size(); ++i)
+    {
+        // add the copied apv to the same slot
+        if(that.ghost_adc_list.at(i) != nullptr)
+            AddGhostAPV(new GEMAPV(*that.ghost_adc_list.at(i)), i);
     }
 }
 
@@ -63,6 +72,9 @@ GEMMPD::GEMMPD(GEMMPD &&that)
     // reset the connection
     for(uint32_t i = 0; i < adc_list.size(); ++i)
         adc_list[i]->SetMPD(this, i);
+    // reset the connection
+    for(uint32_t i = 0; i < ghost_adc_list.size(); ++i)
+        ghost_adc_list[i]->SetMPD(this, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +99,7 @@ GEMMPD &GEMMPD::operator =(const GEMMPD &rhs)
     addr = rhs.addr;
     ip = rhs.ip;
     adc_list.resize(rhs.adc_list.size(), nullptr);
+    ghost_adc_list.resize(rhs.adc_list.size(), nullptr);
 
     for(uint32_t i = 0; i < rhs.adc_list.size(); ++i)
     {
@@ -94,6 +107,14 @@ GEMMPD &GEMMPD::operator =(const GEMMPD &rhs)
         if(rhs.adc_list.at(i) != nullptr)
             AddAPV(new GEMAPV(*rhs.adc_list.at(i)), i);
     }
+
+    for(uint32_t i = 0; i < rhs.ghost_adc_list.size(); ++i)
+    {
+        // add the copied apv to the same slot
+        if(rhs.ghost_adc_list.at(i) != nullptr)
+            AddAPV(new GEMAPV(*rhs.ghost_adc_list.at(i)), i);
+    }
+
     return *this;
 }
 
@@ -109,10 +130,15 @@ GEMMPD &GEMMPD::operator =(GEMMPD &&rhs)
     addr = std::move(rhs.addr);
     ip = std::move(rhs.ip);
     adc_list = std::move(rhs.adc_list);
+    ghost_adc_list = std::move(rhs.adc_list);
 
     // reset the connection
     for(uint32_t i = 0; i < adc_list.size(); ++i)
         adc_list[i]->SetMPD(this, i);
+    // reset the connection
+    for(uint32_t i = 0; i < ghost_adc_list.size(); ++i)
+        ghost_adc_list[i]->SetMPD(this, i);
+ 
     return *this;
 }
 
@@ -219,6 +245,38 @@ bool GEMMPD::AddAPV(GEMAPV *apv, const int &slot)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// add an ghost apv to mpd, return false if failed
+
+bool GEMMPD::AddGhostAPV(GEMAPV *apv, const int &slot)
+{
+    if(apv == nullptr)
+        return false;
+
+    if((uint32_t)slot >= ghost_adc_list.size()) {
+        std::cerr << "GEM MPD " << id
+                  << ": Abort to add an apv to ghost adc channel "
+                  << apv->GetADCChannel()
+                  << ", this MPD only has " << ghost_adc_list.size()
+                  << " channels. (defined in GEMMPD.h)"
+                  << std::endl;
+        return false;
+    }
+
+    if(ghost_adc_list.at(slot) != nullptr) {
+        std::cerr << "GEM MPD " << id
+                  << ": Abort to add an apv to ghost adc channel "
+                  << apv->GetADCChannel()
+                  << ", channel is occupied"
+                  << std::endl;
+        return false;
+    }
+
+    ghost_adc_list[slot] = apv;
+    apv->SetMPD(this, slot);
+    return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // remove apv in the slot
 
 void GEMMPD::RemoveAPV(const int &slot)
@@ -227,6 +285,21 @@ void GEMMPD::RemoveAPV(const int &slot)
         return;
 
     auto &apv = adc_list[slot];
+    if(apv) {
+        apv->UnsetMPD(true);
+        delete apv, apv = nullptr;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// remove apv in the ghost slot
+
+void GEMMPD::RemoveGhostAPV(const int &slot)
+{
+    if((uint32_t)slot >= ghost_adc_list.size())
+        return;
+
+    auto &apv = ghost_adc_list[slot];
     if(apv) {
         apv->UnsetMPD(true);
         delete apv, apv = nullptr;
@@ -252,11 +325,37 @@ void GEMMPD::DisconnectAPV(const int &slot, bool force_disconn)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// disconnect ghost apv in the ghost slot
+
+void GEMMPD::DisconnectGhostAPV(const int &slot, bool force_disconn)
+{
+    if((uint32_t)slot >= ghost_adc_list.size())
+        return;
+
+    auto &apv = ghost_adc_list[slot];
+    if(!apv)
+        return;
+
+    if(!force_disconn)
+        apv->UnsetMPD(true);
+
+    apv = nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // clear all the apvs in mpd
 
 void GEMMPD::Clear()
 {
     for(auto &adc : adc_list)
+    {
+        // prevent calling remove apv
+        if(adc)
+            adc->UnsetMPD(true);
+        delete adc;
+    }
+
+    for(auto &adc : ghost_adc_list)
     {
         // prevent calling remove apv
         if(adc)
@@ -278,6 +377,19 @@ const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// get the ghost apv in the ghost slot
+
+GEMAPV *GEMMPD::GetGhostAPV(const int &slot)
+const
+{
+    if((uint32_t)slot >= ghost_adc_list.size())
+        return nullptr;
+
+    return ghost_adc_list[slot];
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // get apv list in this mpd
 
 std::vector<GEMAPV*> GEMMPD::GetAPVList()
@@ -285,6 +397,22 @@ const
 {
     std::vector<GEMAPV*> result;
     for(auto &adc : adc_list)
+    {
+        if(adc != nullptr)
+            result.push_back(adc);
+    }
+    return result;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// get apv list in this mpd
+
+std::vector<GEMAPV*> GEMMPD::GetGhostAPVList()
+const
+{
+    std::vector<GEMAPV*> result;
+    for(auto &adc : ghost_adc_list)
     {
         if(adc != nullptr)
             result.push_back(adc);

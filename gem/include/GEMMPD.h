@@ -38,8 +38,11 @@ public:
     void SetCrateID(const int &i){crate_id = i;}
     void SetMPDID(const int &i){id = i;}
     bool AddAPV(GEMAPV *apv, const int &slot);
+    bool AddGhostAPV(GEMAPV *apv, const int &slot);
     void RemoveAPV(const int &slot);
+    void RemoveGhostAPV(const int &slot);
     void DisconnectAPV(const int &slot, bool force_disconn = false);
+    void DisconnectGhostAPV(const int &slot, bool force_disconn = false);
     void Clear();
 
     // get parameters
@@ -51,7 +54,9 @@ public:
     const std::string &GetIP() const {return ip;}
     uint32_t GetCapacity() const {return adc_list.size();}
     GEMAPV *GetAPV(const int &slot) const;
+    GEMAPV *GetGhostAPV(const int &slot) const;
     std::vector<GEMAPV*> GetAPVList() const;
+    std::vector<GEMAPV*> GetGhostAPVList() const;
 
     // functions apply to all apv members
     template<typename... Args>
@@ -71,6 +76,16 @@ private:
     MPDAddress addr;
     std::string ip;
     std::vector<GEMAPV*> adc_list;
+    // add a ghost APV list, because in some DAQ configuration, one APV
+    // connects to both X and Y plane simultaneously - like FIT Cylindrical uRWELL.
+    // To handle that, I make a copy of that APV, so two APVs in total, each APV
+    // will be assigned to a dedicated X or Y plane, during plane position 
+    // reconstruction, the GEMPlane class can filter out APV channels that doesn't 
+    // belong to itself according to the mapping
+    // The ghost APV have every DAQ parameter the same, only reconstruction
+    // parameters like plane_index will be different, so no need to repeat evaluating
+    // all the conditions done for the original "adc_list", as they will be the same
+    std::vector<GEMAPV*> ghost_adc_list;
 };
 
 #endif

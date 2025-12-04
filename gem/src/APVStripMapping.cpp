@@ -107,7 +107,7 @@ void Mapping::LoadMap(const char* path)
         std::string tmp = trim(line);
 
         // skip comment
-        if(tmp[0] == '#') continue;
+        if(tmp.empty() || tmp[0] == '#') continue;
 
         // layer
         if(tmp.find("Layer") != std::string::npos) {
@@ -124,7 +124,7 @@ void Mapping::LoadMap(const char* path)
         }
 
         // apv
-        if(tmp.find("APV") == std::string::npos)
+        if(tmp.rfind("APV", 0) != 0)
             continue;
 
         APVInfo apv_info(tmp);
@@ -135,7 +135,10 @@ void Mapping::LoadMap(const char* path)
             std::cout<<"Mapping:: Error reading mapping file."
                 <<" Found duplicated apv entries in map file."
                 <<std::endl;
+            std::cout<<"duplicated address: "<<addr<<std::endl;
             std::cout<<apv_info;
+            std::cout<<" conflicted with: apv entry: "<<std::endl
+                <<apvs[addr]<<std::endl;
             exit(0);
         }
         apvs[addr] = apv_info;

@@ -1,6 +1,7 @@
 #include "Viewer.h"
 #include "InfoCenter.h"
 #include "APVStripMapping.h"
+#include "hardcode.h"
 
 #include <QGraphicsRectItem>
 #include <QSpinBox>
@@ -595,20 +596,31 @@ void Viewer::DrawGEMOnlineHits(int num)
     for(auto &i: event_data)
     {
         GEMAPV *apv = pGEMReplay -> GetGEMSystem() -> GetAPV(i.first);
+
         if( apv == nullptr)
         {
             std::cout<<__func__<<": Warning: apv "<<i.first<<" not initilized"
-                     <<std::endl
-                     <<"            make sure mapping file is correct."
-                     <<std::endl
-                     <<"            skipped current apv data."
-                     <<std::endl;
+                <<std::endl
+                <<"            make sure mapping file is correct."
+                <<std::endl
+                <<"            skipped current apv data."
+                <<std::endl;
             continue;
         }
 
         apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
         apv -> ZeroSuppression();
         apv -> CollectZeroSupHits();
+
+        // fill ghost apv data
+        GEMAPV *ghost_apv = pGEMReplay -> GetGEMSystem() -> GetGhostAPV(i.first);
+        if( ghost_apv != nullptr) {
+            ghost_apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
+            ghost_apv -> ZeroSuppression();
+            ghost_apv -> CollectZeroSupHits();
+        } else {
+            std::cout<<"Warning:: no ghost apv found."<<std::endl;
+        }
     }
 
     // organize online hits by layer

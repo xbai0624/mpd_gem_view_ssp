@@ -399,6 +399,20 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
         }
     };
 
+    // FIT Cylindrical uRWELL chambers
+    auto fit_cylindrical = [&]() {
+        if(type == Plane_X)
+        {
+            position = -0.5*(size/2 * layer_det_capacity - STRIP_PITCH) + STRIP_PITCH*plane_strip;
+            const double& x_offset = detector -> GetLayer() -> GetXOffset();
+            position += x_offset;
+        } else {
+            position = -0.5*(size/2 - STRIP_PITCH) + STRIP_PITCH*plane_strip;
+            const double& y_offset = detector -> GetLayer() -> GetYOffset();
+            position += y_offset;
+        }
+    };
+
     // re-organize using maps, this is to cut off the time spent on string comparison
     const std::unordered_map<std::string, std::function<void()>> get_position = {
         {"UVAXYGEM", xy},
@@ -408,7 +422,8 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
         {"UVAUVGEM", sbs_uv},
         {"MOLLERGEM", moller_uv},
         {"HALLDGEM", halld_xy},
-        {"PRADGEM", prad_xy}
+        {"PRADGEM", prad_xy},
+        {"FITCYLINDRICAL", fit_cylindrical}
     };
 
     // calculate strip position
@@ -434,12 +449,26 @@ void GEMPlane::AddStripHit(int strip, float charge, short maxtime, bool xtalk,
         int crate, int mpd, int adc, const std::vector<float> &_ts_adc)
 {
     std::string detector_type = GetDetector() -> GetType();
+
     if(detector_type == "PRADGEM") {
         // PRad floating strip removal
         // hard coded because it is specific to PRad GEM setting
         if((type == Plane_X) &&
                 ((strip < 16) || (strip > 1391)))
             return;
+    }
+
+    if(detector_type == "FITCYLINDRICAL") {
+        // for FIT Cylindrical detector, each APV connects to both U and V plane
+        // U plane is even strips, V plane is odd strips
+        if( (type == Plane_X) && strip % 2 != 0) return;
+        if( (type == Plane_Y) && strip % 2 == 0) return;
+
+        // after removing odd/even strips for V/U planes, the strip index must 
+        // be shrinked by 2 to make strip order consecutive
+
+        if( strip %2 == 0) strip = strip / 2;
+        else strip = strip / 2 + 1;
     }
 
     strip_hits.emplace_back(strip, charge, maxtime, GetStripPosition(strip),
@@ -471,41 +500,41 @@ void GEMPlane::FormClusters(GEMCluster *method)
     const std::string &detector_type = detector -> GetType();
 
     if(detector_type == "HALLDGEM") {
-	std::vector<StripHit> strip_hits_odd, strip_hits_even;
-	std::vector<StripCluster> strip_clusters_odd, strip_clusters_even;
+        std::vector<StripHit> strip_hits_odd, strip_hits_even;
+        std::vector<StripCluster> strip_clusters_odd, strip_clusters_even;
 
         // separate odd and even strips, treat them as two different planes
-	for(auto &i: strip_hits)
-	{
-	    StripHit h = i;
-	    if(h.strip % 2 == 0) {
-		h.strip = h.strip / 2;
-		strip_hits_even.push_back(h);
-	    }
-	    else {
-		h.strip = h.strip / 2;
-		strip_hits_odd.push_back(h);
-	    }
-	}
+        for(auto &i: strip_hits)
+        {
+            StripHit h = i;
+            if(h.strip % 2 == 0) {
+                h.strip = h.strip / 2;
+                strip_hits_even.push_back(h);
+            }
+            else {
+                h.strip = h.strip / 2;
+                strip_hits_odd.push_back(h);
+            }
+        }
 
         // group strips to clusters, separately for odd and even strips
-	method -> FormClusters(strip_hits_odd, strip_clusters_odd);
-	method -> FormClusters(strip_hits_even, strip_clusters_even);
+        method -> FormClusters(strip_hits_odd, strip_clusters_odd);
+        method -> FormClusters(strip_hits_even, strip_clusters_even);
 
-	// merge clusters from even and odd strips
-	strip_clusters.clear();
-	for(auto &i: strip_clusters_odd)
-	    strip_clusters.push_back(i);
-	for(auto &i: strip_clusters_even)
-	    strip_clusters.push_back(i);
+        // merge clusters from even and odd strips
+        strip_clusters.clear();
+        for(auto &i: strip_clusters_odd)
+            strip_clusters.push_back(i);
+        for(auto &i: strip_clusters_even)
+            strip_clusters.push_back(i);
     }
     else {
-	method->FormClusters(strip_hits, strip_clusters);
+        method->FormClusters(strip_hits, strip_clusters);
     }
 }
 
 void GEMPlane::PrintStatus()
 {
     std::cout<<"plane type: "<<GetType()<<" contains "
-	<<apv_list.size() << " apvs."<<std::endl;
+        <<apv_list.size() << " apvs."<<std::endl;
 }

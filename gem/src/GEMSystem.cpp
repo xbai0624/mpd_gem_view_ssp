@@ -363,14 +363,14 @@ void GEMSystem::ReadNoiseAndOffset(const std::string &path)
         //throw GEMException("GEM System", "cannot open pedestal data file " + path);
     }
 
-    GEMAPV *apv = nullptr;
+    GEMAPV *apv = nullptr, *ghost_apv = nullptr;
 
     while(c_parser.ParseLine())
     {
         ConfigValue first = c_parser.TakeFirst();
 
         if(first == "APV") { // a new APV
-            int crate_id, mpd, adc, slot_id;
+            int crate_id(-1), mpd(-1), adc(-1), slot_id(-1);  
             if(c_parser.NbofElements() == 3)
                 c_parser >> crate_id >> mpd >> adc;
             else if(c_parser.NbofElements() == 4)
@@ -380,6 +380,7 @@ void GEMSystem::ReadNoiseAndOffset(const std::string &path)
                          <<std::endl;
 
             apv = GetAPV(crate_id, mpd, adc);
+            ghost_apv = GetGhostAPV(APVAddress(crate_id, mpd, adc));
 
             if(apv == nullptr) {
                 std::cout << " GEM System Warning: Cannot find APV "
@@ -393,9 +394,8 @@ void GEMSystem::ReadNoiseAndOffset(const std::string &path)
 
             if(apv)
                 apv->UpdatePedestal(GEMAPV::Pedestal(offset, noise), first.Int());
-            // seems no need to break the program, if found pedestal for apvs not in mapping file, skip it
-            //else
-            //    throw GEMException("GEM System", "updating pedestal: apv not found");
+            if(ghost_apv)
+                ghost_apv->UpdatePedestal(GEMAPV::Pedestal(offset, noise), first.Int());
         }
     }
 }
@@ -418,11 +418,11 @@ void GEMSystem::ReadCommonMode(const std::string &path)
         //throw GEMException("GEM System", "cannot open pedestal data file " + path);
     }
 
-    GEMAPV *apv = nullptr;
+    GEMAPV *apv = nullptr, *ghost_apv = nullptr;
 
     while(c_parser.ParseLine())
     {
-        int crate_id, mpd, adc, slot_id;
+        int crate_id(-1), mpd(-1), adc(-1), slot_id(-1);
         float min, max;
         if(c_parser.NbofElements() == 5)
             c_parser >> crate_id >> mpd >> adc >> min >> max;
@@ -433,6 +433,7 @@ void GEMSystem::ReadCommonMode(const std::string &path)
                      <<std::endl;
  
         apv = GetAPV(crate_id, mpd, adc);
+        ghost_apv = GetGhostAPV(APVAddress(crate_id, mpd, adc));
 
         if(apv == nullptr) {
             std::cout << " GEM System Warning: Cannot find APV "
@@ -444,6 +445,8 @@ void GEMSystem::ReadCommonMode(const std::string &path)
         else {
             if(apv)
                 apv->UpdateCommonModeRange(min, max);
+            if(ghost_apv)
+                ghost_apv->UpdateCommonModeRange(min, max);
         }
     }
 }
@@ -627,14 +630,28 @@ const
     return GetAPV(addr.crate_id, addr.mpd_id, addr.adc_ch);
 }
 
-// fill raw data to a certain apv
-void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event, bool do_zeroSup)
+// find APV by its ChannelAddress
+GEMAPV *GEMSystem::GetGhostAPV(const APVAddress &apv_addr)
+const
 {
-    GEMAPV *apv = GetAPV(raw.addr);
+    MPDAddress mpd_addr(apv_addr.crate_id, apv_addr.mpd_id);
 
-    if(apv != nullptr) {
+    if ((mpd_slots.find(mpd_addr) != mpd_slots.end()) &&
+            (mpd_slots.at(mpd_addr) != nullptr)) {
 
-        apv->FillRawDataSRS(raw.buf, raw.size);
+        return mpd_slots.at(mpd_addr)->GetGhostAPV(apv_addr.adc_ch);
+    }
+
+    return nullptr;
+}
+
+// fill raw data to a certain apv - SRS
+void GEMSystem::FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw, EventData &event, bool do_zeroSup)
+{
+    auto process_apv = [&](GEMAPV *apv)
+    {
+        //apv->FillRawDataSRS(raw.buf, raw.size);
+        apv->FillRawDataSRS(raw);
 
         if(PedestalMode)
             apv->FillPedHist();
@@ -655,52 +672,29 @@ void GEMSystem::FillRawDataSRS(const GEMRawData &raw, EventData &event, bool do_
             __gem_locker.unlock();
 #endif
         }
-    }
-}
+    };
 
-// fill raw data to a certain apv, online cm not availabe
-void GEMSystem::FillRawDataSRS(const APVAddress &addr, const std::vector<int> &raw,
-        const APVDataType &flags, EventData &event, bool do_zeroSup)
-{
+    // normal APV
+    //GEMAPV *apv = GetAPV(raw.addr);
     GEMAPV *apv = GetAPV(addr);
 
-    if(apv != nullptr) 
-    {
-        apv->FillRawDataSRS(raw, flags);
-
-        if(PedestalMode)
-            apv->FillPedHist();
-        else {
-			if(do_zeroSup)
-				apv->ZeroSuppression();
-
-#ifdef MULTI_THREAD
-            __gem_locker.lock();
-#endif
-
-			if(do_zeroSup)
-				apv->CollectZeroSupHits(event.get_gem_data());
-			else
-				apv->CollectRawHits(event.get_gem_data());
-
-#ifdef MULTI_THREAD
-            __gem_locker.unlock();
-#endif
-        }
+    if(apv != nullptr) {
+        process_apv(apv);
     }
-    else 
-    {
-        std::cout<<__func__<<" waring:: APV "<<addr<<" not found."<<std::endl;
+
+    // ghost APV
+    GEMAPV *ghost_apv = GetGhostAPV(addr);
+    if(ghost_apv != nullptr) {
+        process_apv(ghost_apv);
     }
 }
+
 
 // fill raw data to a certain apv, online cm available
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
         const APVDataType &flags, const std::vector<int> &online_cm, EventData &event, bool do_zeroSup)
 {
-    GEMAPV *apv = GetAPV(addr);
-
-    if(apv != nullptr) 
+    auto process_apv = [&](GEMAPV *apv)
     {
         apv->FillRawDataMPD(raw, flags);
         apv->FillOnlineCommonMode(online_cm);
@@ -724,6 +718,13 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
             __gem_locker.unlock();
 #endif
         }
+    };
+
+    GEMAPV *apv = GetAPV(addr);
+
+    if(apv != nullptr) 
+    {
+        process_apv(apv);
     }
     else 
     {
@@ -735,9 +736,7 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
 void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &raw,
         const APVDataType &flags, EventData &event, bool do_zeroSup)
 {
-    GEMAPV *apv = GetAPV(addr);
-
-    if(apv != nullptr) 
+    auto process_apv = [&](GEMAPV* apv)
     {
         apv->FillRawDataMPD(raw, flags);
 
@@ -760,6 +759,13 @@ void GEMSystem::FillRawDataMPD(const APVAddress &addr, const std::vector<int> &r
             __gem_locker.unlock();
 #endif
         }
+    };
+
+    GEMAPV *apv = GetAPV(addr);
+
+    if(apv != nullptr) 
+    {
+        process_apv(apv);
     }
     else 
     {
@@ -1279,6 +1285,7 @@ void GEMSystem::buildAPV(std::list<ConfigValue> &apv_args)
     // if enabled, offset will be subtracted online, otherwise not
     bool pedestal_run = (Value<std::string>("VTP Pedestal Subtraction") == "yes" );
 
+    // trying to connect to MPD
     GEMAPV *new_apv = new GEMAPV(orient, det_pos, status, ts, cth, zth, ctth, pedestal_run);
     if(!mpd->AddAPV(new_apv, adc_ch)) { // failed to add APV to MPD
         delete new_apv;
@@ -1295,17 +1302,63 @@ void GEMSystem::buildAPV(std::list<ConfigValue> &apv_args)
         return;
     }
 
-    GEMPlane *pln = det->GetPlane(plane);
-    if(pln == nullptr) {
-        std::cout << " GEM System Warning: Cannot find plane " << plane
-                  << " in detector " << det_name
-                  << ", APV " << mpd_id << ", " << adc_ch
-                  << " is not connected to the detector plane. "
-                  << std::endl;
-        return;
-    }
+    std::string detector_type = layer -> GetGEMChamberType();
 
-    pln->ConnectAPV(new_apv, index);
+    if(detector_type == "FITCYLINDRICAL") {
+        // For FIT Cylindrical uRWELL detector, each APV connects to both X and Y Strips
+        // so for each APV, it needs to be added to both planes, when plane constructing
+        // strip positions, it can discard those channels that do not belong to it
+
+        auto plane_list = det -> GetPlaneList();
+        // in this situation, plane parameter in config doesn't matter anymore, but it
+        // must have two planes, you can give arbitray plane numbers, as long as you have
+        // 2 planes
+        if(plane_list.size() != 2) {
+            std::cout << " GEM System Warning:  detector must have 2 planes, "
+                << ", APV " << mpd_id << ", " << adc_ch
+                << " is not connected."
+                << std::endl;
+            return;
+        }
+
+        if(plane_list[0] == nullptr || plane_list[1] == nullptr)
+        {
+            std::cout<< " GEM System Warning: altough found 2 planes, "
+                << " but at least one plane is nullptr"
+                <<", APV "<<mpd_id << ", " << adc_ch
+                <<" is not connected."
+                <<std::endl;
+            return;
+        }
+
+        GEMAPV *ghost_apv = new GEMAPV(*new_apv);
+        // add ghost apv to MPD ghost_apv_list
+        if(!mpd->AddGhostAPV(ghost_apv, adc_ch))
+        {
+            delete ghost_apv;
+            std::cout<<" GEM System Warning: Failed to add ghost apv to MPD's ghost_apv_list"
+                <<std::endl;
+            return;
+        }
+        plane_list[0] -> ConnectAPV(new_apv, index);
+        // ghost APV usually have different plane index, the rest should be the same with new_apv
+        int strip_convert_[6] = {2, 1, 0, 5, 4, 3}; // this is specific to FIT Cylindrical detector
+        plane_list[1] -> ConnectAPV(ghost_apv, strip_convert_[index]);
+    }
+    else {
+        // for other type of detectors, where each APV only belongs to one plane
+        GEMPlane *pln = det->GetPlane(plane);
+        if(pln == nullptr) {
+            std::cout << " GEM System Warning: Cannot find plane " << plane
+                << " in detector " << det_name
+                << ", APV " << mpd_id << ", " << adc_ch
+                << " is not connected to the detector plane. "
+                << std::endl;
+            return;
+        }
+
+        pln->ConnectAPV(new_apv, index);
+    }
 
     // these two lines must after APV connected to a plane
     new_apv -> SetAPVName(apv_entry.apv_name);

@@ -556,9 +556,13 @@ inline void split_data(const uint32_t &data, float &val1, float &val2)
 // this is for SRS. In SRS, each 32-bit word contains two 16-bit words, each 
 // 16-bit word corresponds to one ADC value
 
-void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
+void GEMAPV::FillRawDataSRS(const std::vector<int> &buf)
+//void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
 {
-    if(2*size > buffer_size) {
+    uint32_t size = buf.size();
+
+    //if(2*size > buffer_size) {
+    if(size > buffer_size) {
         std::cerr << __PRETTY_FUNCTION__ << " Received " << size * 2 << " adc words, "
             << "but APV " << adc_ch << " in MPD " << mpd_id
             << " has only " << buffer_size << " channels" << std::endl;
@@ -568,33 +572,11 @@ void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
     // split 1 32-bit word into 2 16-bit ADC values/
     for(uint32_t i = 0; i < size; ++i)
     {
-        split_data(buf[i], raw_data[2*i], raw_data[2*i+1]);
+        //split_data(buf[i], raw_data[2*i], raw_data[2*i+1]);
+        raw_data[i] = static_cast<uint32_t>(buf[i]);
     }
 
     ts_begin = getTimeSampleStart();
-}
-////////////////////////////////////////////////////////////////////////////////
-// fill raw data
-// this is for SRS.
-
-void GEMAPV::FillRawDataSRS(const std::vector<int> &buf, const APVDataType &flags)
-{
-    if(buf.size() > buffer_size) {
-        std::cerr << __PRETTY_FUNCTION__ << " Received " << buf.size() << " adc words, "
-            << "but APV " << adc_ch << " in FEC " << mpd_id
-            << " has only " << buffer_size << " channels" << std::endl;
-        return;
-    }
-
-    for(uint32_t i = 0; i < buf.size(); ++i)
-    {
-        raw_data[i] = static_cast<float>(buf[i]);
-    }
-
-    ts_begin = getTimeSampleStart();
-
-    // set raw data flags
-    raw_data_flags = flags;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -840,7 +822,6 @@ void GEMAPV::ZeroSuppression()
             average += raw_data[DATA_INDEX(i, j)];
         }
         average /= time_samples;
-
 #ifdef INVERSE_POLARITY_VALID
         if(abs(average) > pedestal[i].noise * zerosup_thres)
 #else
