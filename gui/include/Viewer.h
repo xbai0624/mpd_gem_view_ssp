@@ -23,12 +23,15 @@
 #include <QString>
 #include <QLineEdit>
 #include <QTextEdit>
+#include <QPlainTextEdit>
+#include <QComboBox>
+#include <QSpinBox>
 
 #include <vector>
 #include <string>
 #include <deque>
 
-class Viewer : public QWidget
+class Viewer : public QMainWindow
 {
     Q_OBJECT
 
@@ -36,18 +39,29 @@ public:
     Viewer(QWidget *parent = 0);
     ~Viewer() {}
 
-    void InitGui();
-    void AddMenuBar();
+    void LoadMappingFile();
+
+    void InitGuiInterface();
+    void createMenuBar();
+
+    QWidget* createTopToolbar();
+
+    QWidget* createDetectorPanel();
+    QWidget* createRawFramesView(QWidget*);
+    QWidget* createOnlineHitsView(QWidget*);
+    QWidget* createDetector2DStripsView(QWidget*);
+
+    QWidget* createSettingsPanel();
+    QWidget* createPedestalCommonModePage();
+    QWidget* createMappingFilePage();
+    QWidget* createReplayPage();
+    QWidget* createAdvancedPage();
+
+    QWidget* createSystemLogPanel();
 
     // used to draw a schematic of detector apv setup
     // highly dependent on each setup, use is optional
     void InitComponentsSchematic();
-
-    void InitLayout();
-    void InitCtrlInterface();
-    void InitLeftTab();
-    void InitLeftView();
-    void InitRightView();
 
     // init detector analyzers
     void InitGEMAnalyzer();
@@ -60,16 +74,15 @@ public:
 
 public slots:
     void SetFile(const QString &);
-    void SetFileSplitMax(const QString &);
-    void SetFileSplitMin(const QString &);
+    void SetFileSplitMax(const int &);
+    void SetFileSplitMin(const int &);
     void SetRootFileOutputPath(const QString &);
     void SetPedestalOutputPath(const QString &);
-    void SetPedestalMaxEvents(const QString &);
+    void SetPedestalMaxEvents(const int &);
     void SetCommonModeOutputPath(const QString &);
     void SetPedestalInputPath(const QString &);
     void SetCommonModeInputPath(const QString &);
-    void ChoosePedestal();
-    void ChooseCommonMode();
+    void ReloadPedestal();
     void DrawEvent(int);
     void DrawGEMRawHistos(int);
     void DrawGEMOnlineHits(int);
@@ -81,35 +94,31 @@ public slots:
     void OpenOnlineAnalysisInterface();
     void SaveCurrentEvent();
 
+public:
+    template<typename T> void minimum_qt_unit_height(T b)
+    {
+        b -> setMinimumHeight(10);
+    }
+    template<typename T, typename... Args> void minimum_qt_unit_height(T b, Args... args) {
+        minimum_qt_unit_height(b);
+        minimum_qt_unit_height(args...);
+    }
+
 private:
-    // layout
-    QVBoxLayout *pMainLayout;
-    QHBoxLayout *pDrawingLayout;
-    QVBoxLayout *pLeftLayout;
-    QVBoxLayout *pRightLayout;
+    QComboBox *m_fileCombo; // file selector
+    QComboBox *m_viewCombo; // view selector
+    QSpinBox *m_eventSpin;  // event number
+    QLineEdit *m_pedOut; // pedestal path
+    QLineEdit *m_cmOut; // common mode path
+
+    QPlainTextEdit *m_logEdit;
 
     // contents to show
     ComponentsSchematic *componentsView;    // detector setup
-    QWidget *pDrawingArea;                  // whole drawing area (left + right)
-    QWidget *pLeft;                         // left area
-    QWidget *pRight;                        // right area
-    QTabWidget *pLeftTab;                   // tab for the left side area
     std::vector<HistoWidget*> vTabCanvas;   // tab contents, use self-implemented HistoWidgets
-    //QMainCanvas *pRightCanvas;              // right side canvas
-    QWidget *pRightCtrlInterface;           // the control interface on right side
     // online hits
     std::vector<HistoWidget*> vTabCanvasOnlineHits; // tab contents, for drawing online hits
     bool reload_pedestal_for_online = true;
-
-    // menu bar
-    QMenu *pMenu;
-    QMenuBar *pMenuBar;
-    QMenu *pOnlineAnalysis;
-    QAction *pOpenAnalysisInterface;
-    // open file (line input)
-    QLineEdit *file_indicator;
-    // print info on the gui
-    QTextEdit *pLogBox;
 
     // show detector 2d strips for eye-ball tracking
     Detector2DView *det_view;
@@ -123,13 +132,10 @@ private:
 
     // GEM analzyer
     GEMAnalyzer *pGEMAnalyzer;
-    // evio file to be analyzed
     std::string fFile = "gui/data/gem_cleanroom_1440.evio.0";
-    // pedestal output default path
     std::string fPedestalOutputPath = "database/gem_ped.dat";
     std::string fCommonModeOutputPath = "database/CommonModeRange.txt";
     uint32_t fPedestalMaxEvents = 5000;
-    // pedestal input (for data analysis) default path
     std::string fPedestalInputPath;
     std::string fCommonModeInputPath;
 
@@ -149,16 +155,6 @@ private:
 
     // a text parser
     ConfigObject txt_parser;
-
-public:
-    template<typename T> void minimum_qt_unit_height(T b)
-    {
-        b -> setMinimumHeight(10);
-    }
-    template<typename T, typename... Args> void minimum_qt_unit_height(T b, Args... args) {
-        minimum_qt_unit_height(b);
-        minimum_qt_unit_height(args...);
-    }
 };
 
 #endif

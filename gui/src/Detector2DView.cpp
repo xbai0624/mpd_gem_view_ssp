@@ -112,7 +112,8 @@ void Detector2DView::resizeEvent([[maybe_unused]] QResizeEvent *event)
 ////////////////////////////////////////////////////////////////////////////////
 // this function needs to be improved, there's a deep copy need to be removed
 
-void Detector2DView::FillEvent(std::pair<std::vector<int>, std::vector<int>> online_hits[][MaxChamberPerLayer])
+//void Detector2DView::FillEvent(std::pair<std::vector<int>, std::vector<int>> online_hits[][MaxChamberPerLayer])
+void Detector2DView::FillEvent(std::vector<std::vector<std::pair<std::vector<int>, std::vector<int>>>> online_hits)
 {
     auto &layers = apv_strip_mapping::Mapping::Instance() -> GetLayerMap();
 

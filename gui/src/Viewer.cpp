@@ -12,87 +12,183 @@
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QCoreApplication>
+#include <QTimer>
+#include <QSplitter>
+#include <QStackedWidget>
+#include <QGroupBox>
+#include <QToolBox>
+#include <QFormLayout>
+#include <QRadioButton>
+#include <QButtonGroup>
 
 #include <iostream>
 #include <fstream>
 #include <thread>
 
+#define APVS_PER_TAB_X 4
+#define APVS_PER_TAB_Y 4
 #define EYE_BALL_TRACKING
 
 ////////////////////////////////////////////////////////////////
 // ctor
 
-Viewer::Viewer(QWidget *parent) : QWidget(parent)
+Viewer::Viewer(QWidget *parent) : QMainWindow(parent)
+{
+    LoadMappingFile();
+    InitGuiInterface();
+    InitGEMAnalyzer();
+    resize(sizeHint());
+}
+
+////////////////////////////////////////////////////////////////
+// load mapping file for detector setup
+
+void Viewer::LoadMappingFile()
 {
     if(!txt_parser.ReadConfigFile("config/gem.conf")) {
         std::cout<<__func__<<" failed loading config file."<<std::endl;
         exit(1);
     }
-
-    InitGui();
-
-    InitGEMAnalyzer();
-
-    resize(sizeHint());
 }
-
 
 ////////////////////////////////////////////////////////////////
 // init gui
 
-void Viewer::InitGui()
+void Viewer::InitGuiInterface()
 {
     SetNumberOfTabs();
 
-    InitLayout();
-    AddMenuBar();
+    // menu bar
+    createMenuBar();
 
-    // need to init right first, b/c left requires a valid 'pRightCanvas' pointer
-    InitRightView();
-    InitLeftView();
+    // central widget
+    QWidget *central = new QWidget(this);
+    QVBoxLayout *vMain = new QVBoxLayout(central);
+    vMain -> setContentsMargins(8, 8, 8, 8);
+    vMain -> setSpacing(8);
 
-    // detector components layout
-    //InitComponentsSchematic(); 
-    
-    setWindowTitle("GEM Data Viewer");
+    // Top toolbar
+    QWidget *topToolbar = createTopToolbar();
+    vMain -> addWidget(topToolbar);
 
-    //connect(b, SIGNAL(clicked()), fCanvas1, SLOT(DrawCanvas()));
-    //connect(fCanvas1, SIGNAL(ItemSelected()), componentsView, SLOT(ItemSelected()));
-    //connect(fCanvas1, SIGNAL(ItemDeSelected()), componentsView, SLOT(ItemDeSelected()));
+    // central area: detector panel + settings panel
+    QSplitter *splitter = new QSplitter(Qt::Horizontal, central);
+    splitter -> addWidget(createDetectorPanel());
+    splitter -> addWidget(createSettingsPanel());
+    splitter -> setStretchFactor(0, 2);
+    splitter -> setStretchFactor(1, 2);
+
+    vMain -> addWidget(splitter, 1); // expanding
+
+    // system log
+    vMain -> addWidget(createSystemLogPanel());
+
+    setCentralWidget(central);
+    setWindowTitle(tr("GEM Data Viewer"));
+
+    setStyleSheet(R"(
+            QMainWindow {
+                 background: #FFFFEF;
+            }
+            QGroupBox {
+                 border: 1px solid #D0D3D8;
+                 border-radius: 6px;
+                 margin-top: 12px;
+                 background: #FFFFFF;
+            }
+            QGroupBox::title {
+                 subcontrol-origin: margin;
+                 left: 10px;
+            }
+            QToolBox::tab {
+                 background: #E8EAED;
+                 border-radius: 4px;
+                 padding: 0px, 0px;
+                 margin: 2px;
+            }
+            QPlainTextEdit {
+                background: #FFFFFF;
+                color: #000000;
+                border-radius: 0px;
+                max-height: 40px;
+            }
+            )");
 }
 
 ////////////////////////////////////////////////////////////////
-// init layout
+// set how many tabs for showing histograms -- use input from mapping
 
-void Viewer::InitLayout()
+void Viewer::SetNumberOfTabs()
 {
-    // main layout
-    pMainLayout = new QVBoxLayout(this);   // menubar + content
+    // for apv raw histos - show APV raw frames by MPD, each MPD takes a tab
+    //nTab = apv_strip_mapping::Mapping::Instance()->GetTotalMPDs();
 
-    // the whole drawing area
-    pDrawingArea = new QWidget(this);
+    // show fixed number of APVs per tab
+    int total_apvs = apv_strip_mapping::Mapping::Instance()->GetTotalNumberOfAPVs();
+    int apvs_per_tab = APVS_PER_TAB_X * APVS_PER_TAB_Y;
+    nTab = (total_apvs + apvs_per_tab - 1)/apvs_per_tab;
 
-    // content layout
-    pDrawingLayout = new QHBoxLayout(pDrawingArea);    // left content + right content
-
-    // left content
-    pLeft = new QWidget(pDrawingArea);
-    pLeftLayout = new QVBoxLayout(pLeft);       // left content
-
-    // right content
-    pRight = new QWidget(pDrawingArea);
-    pRightLayout = new QVBoxLayout(pRight);      // right content
-
-    pDrawingLayout -> addWidget(pLeft);
-    pDrawingLayout -> addWidget(pRight);
-
-    pMainLayout -> addWidget(pDrawingArea);
+    // for gem chamber online hits
+    int number_of_layers = apv_strip_mapping::Mapping::Instance()->GetTotalNumberOfLayers();
+    nTabOnlineHits = number_of_layers; // here assume each layer has 4 chambers max
 }
 
 ////////////////////////////////////////////////////////////////
-// this function is used to draw some illustrating shapes for 
+// top toolbar
+QWidget* Viewer::createTopToolbar()
+{
+    QWidget *w = new QWidget(this);
+    QHBoxLayout *h = new QHBoxLayout(w);
+
+    // file slector
+    QLabel *fileLabel = new QLabel(tr("File:"), w);
+    m_fileCombo = new QComboBox(w);
+    m_fileCombo -> setEditable(true);
+    m_fileCombo -> setMinimumWidth(400);
+
+    QPushButton *browseBtn = new QPushButton(tr("Browse..."), w);
+
+    // view selector
+    QLabel *viewLabel = new QLabel(tr("View:"), w);
+    m_viewCombo = new QComboBox(w);
+    m_viewCombo -> addItems({
+            tr("APV Raw Frames"),
+            tr("Online Hits"),
+            tr("Detector 2D Strips")});
+
+    // Event Selector
+    QLabel *evtLabel = new QLabel(tr("Event:"), w);
+    m_eventSpin = new QSpinBox(w);
+    m_eventSpin -> setRange(0, 999999);
+    m_eventSpin -> setValue(0);
+
+    // save event button
+    QPushButton *saveEvtBtn = new QPushButton(tr("Save Event"), w);
+
+    h -> addWidget(fileLabel);
+    h -> addWidget(m_fileCombo);
+    h -> addWidget(browseBtn);
+    h -> addSpacing(16);
+    h -> addWidget(viewLabel);
+    h -> addWidget(m_viewCombo);
+    h -> addStretch(1);
+    h -> addWidget(evtLabel);
+    h -> addWidget(m_eventSpin);
+    h -> addWidget(saveEvtBtn);
+
+    // signal-slot
+    connect(m_fileCombo, &QComboBox::currentTextChanged, this, &Viewer::SetFile);
+    connect(browseBtn, &QPushButton::clicked, this, &Viewer::OpenFile);
+    connect(m_eventSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::DrawEvent);
+    connect(saveEvtBtn, &QPushButton::pressed, this, &Viewer::SaveCurrentEvent);
+
+    return w;
+}
+
+////////////////////////////////////////////////////////////////
+// this function will draw some illustrating shapes for 
 // demonstrating the detector APV setup, each setup is different
-// whether use it or not depends on user's choice
+// depends on user's implementation
 
 void Viewer::InitComponentsSchematic()
 {
@@ -104,15 +200,15 @@ void Viewer::InitComponentsSchematic()
 ////////////////////////////////////////////////////////////////
 // add a menu bar
 
-void Viewer::AddMenuBar()
+void Viewer::createMenuBar()
 {
-    pMenuBar = new QMenuBar();
+    QMenuBar* pMenuBar = new QMenuBar();
 
     // file menu
-    pMenu = new QMenu("File");
-    pMenuBar -> addMenu(pMenu);
+    QMenu* pMenu = new QMenu("File");
     pMenu -> addAction("Save");
     pMenu -> addAction("Exit");
+    pMenuBar -> addMenu(pMenu);
 
     // view menu
     pMenuBar -> addMenu(new QMenu("View"));
@@ -120,284 +216,293 @@ void Viewer::AddMenuBar()
     pMenuBar -> addMenu(new QMenu("Edit"));
     // Format menu
     pMenuBar -> addMenu(new QMenu("Format"));
+
     // online analysis
-    pOnlineAnalysis = new QMenu("Online Analysis");
-    pOpenAnalysisInterface = new QAction("Interface", this);
+    QMenu* pOnlineAnalysis = new QMenu("Online Analysis");
+    QAction *pOpenAnalysisInterface = new QAction("Interface", this);
     pOnlineAnalysis -> addAction(pOpenAnalysisInterface);
     pMenuBar -> addMenu(pOnlineAnalysis);
+
     // Help Menu
     pMenuBar -> addMenu(new QMenu("Help"));
 
-    this->layout()->setMenuBar(pMenuBar);
+    connect(pOpenAnalysisInterface, &QAction::triggered, this, &Viewer::OpenOnlineAnalysisInterface);
+
+    this->setMenuBar(pMenuBar);
 }
 
 ////////////////////////////////////////////////////////////////
-// init left drawing area
-
-void Viewer::InitLeftView()
+// setup the tabs in main drawing area
+QWidget* Viewer::createDetectorPanel()
 {
-    InitLeftTab();
+    QGroupBox *box = new QGroupBox(tr("GEM Detector Data"), this);
+    QVBoxLayout *v = new QVBoxLayout(box);
+    v -> setContentsMargins(2, 2, 2, 2);
+    v -> setSpacing(2);
+
+    QStackedWidget *w = new QStackedWidget(box);
+    w -> addWidget(createRawFramesView(w));
+    w -> addWidget(createOnlineHitsView(w));
+    w -> addWidget(createDetector2DStripsView(w));
+
+    v -> addWidget(w, 1);
+
+    // signal-slot
+    connect(m_viewCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            w, &QStackedWidget::setCurrentIndex);
+
+    return box;
 }
 
 ////////////////////////////////////////////////////////////////
-// init right drawing area
+// setup the tabs in main drawing area
 
-void Viewer::InitRightView()
+QWidget* Viewer::createRawFramesView(QWidget *w)
 {
-    // right content (show selected apv)
-    //pRightCanvas = new QMainCanvas(pRight);
-    // right control interface
-    pRightCtrlInterface = new QWidget(pRight);
-    // fix the width in the right side layout
-    //pRight -> setFixedWidth(450);
-    pRight -> setMaximumWidth(450);
-
-    InitCtrlInterface();
-
-    // setup a printing log window
-    pLogBox = new QTextEdit(pRight);
-    pLogBox -> setTextColor(QColor("black"));
-    pLogBox -> textCursor().insertText("System Log:\n");
-    pLogBox -> setMinimumHeight(90);
-    pLogBox -> setEnabled(false);
-
-    pRightLayout -> addWidget(pRightCtrlInterface);
-    //pRightLayout -> addWidget(pRightCanvas);
-    pRightLayout -> addWidget(pLogBox);
-}
-
-
-////////////////////////////////////////////////////////////////
-// setup the control interface
-// TODO: function too long, need to split
-
-void Viewer::InitCtrlInterface()
-{
-    QVBoxLayout *layout = new QVBoxLayout(pRightCtrlInterface);
-
-    // a file path input window
-    QGridLayout *_layout1 = new QGridLayout();
-    QLabel *l1 = new QLabel("File:", pRightCtrlInterface);
-    file_indicator = new QLineEdit(pRightCtrlInterface);
-    QPushButton *bOpenFile = new QPushButton("Choose &File", pRightCtrlInterface);
-    file_indicator -> setText("gui/data/gem_cleanroom_1440.evio.0");
-    _layout1 -> addWidget(l1, 0, 0);
-    _layout1 -> addWidget(file_indicator, 0, 1);
-    _layout1 -> addWidget(bOpenFile, 0, 2);
-
-    // a event number input window
-    QLabel *l2 = new QLabel("Event Number: ", pRightCtrlInterface);
-    QSpinBox *event_number = new QSpinBox(pRightCtrlInterface);
-    event_number -> setRange(0, 9999);
-    event_number -> setObjectName("event_number");
-    QPushButton *btn_save_event = new QPushButton("Save Event to Disk", pRightCtrlInterface);
-    _layout1 -> addWidget(l2, 1, 0);
-    _layout1 -> addWidget(event_number, 1, 1);
-    _layout1 -> addWidget(btn_save_event, 1, 2);
-
-    // function modules for generating pedestals 
-    QGridLayout *_layout3 = new QGridLayout();
-    // 1) max event for pedestal
-    QLabel *l_num = new QLabel("Max events for pedestal: ", pRightCtrlInterface);
-    QLineEdit *le_num = new QLineEdit(pRightCtrlInterface);
-    le_num -> setText("5000");
-    // 2) pedestal output path
-    QLabel *l_path = new QLabel("Pedestal Text File Output Path:", pRightCtrlInterface);
-    QLineEdit *le_path = new QLineEdit(pRightCtrlInterface);
-    le_path -> setText("database/gem_ped_1440.dat");
-    le_path -> setObjectName("le_path");
-    // 3) common mode range save path
-    QLabel *l_commonMode = new QLabel("Commom Mode Range Table: ", pRightCtrlInterface);
-    QLineEdit *le_commonMode = new QLineEdit(pRightCtrlInterface);
-    le_commonMode -> setText("database/CommonModeRange_1440.txt");
-    le_commonMode -> setObjectName("le_commonMode");
-    //le_commonMode -> setEnabled(false);
-    // 4) generate
-    QLabel *l3 = new QLabel("Generate Pedestal/commonMode:", pRightCtrlInterface);
-    QPushButton *b = new QPushButton("&Generate", pRightCtrlInterface);
-    _layout3 -> addWidget(l_num, 0, 0);
-    _layout3 -> addWidget(le_num, 0, 1);
-    _layout3 -> addWidget(l_path, 1, 0);
-    _layout3 -> addWidget(le_path, 1, 1);
-    _layout3 -> addWidget(l_commonMode, 2, 0);
-    _layout3 -> addWidget(le_commonMode, 2, 1);
-    _layout3 -> addWidget(l3, 3, 0);
-    _layout3 -> addWidget(b, 3, 1);
-
-    // 5) set pedestal file and mapping file for replay
-    QGridLayout *_layout7 = new QGridLayout();
-    // pedestal
-    QLabel *l_pedestal_for_replay = new QLabel("Load Pedestal File From: ", pRightCtrlInterface);
-    QLineEdit *le_pedestal_for_replay = new QLineEdit(pRightCtrlInterface);
-    fPedestalInputPath = txt_parser.Value<std::string>("GEM Pedestal");
-    le_pedestal_for_replay -> setText(fPedestalInputPath.c_str());
-    le_pedestal_for_replay -> setObjectName("le_pedestal_for_replay");
-    QPushButton *btn_choose_pedestal = new QPushButton("Choose &Pedestal", pRightCtrlInterface);
-    // common mode
-    QLabel *l_common_mode_for_replay = new QLabel("Load Common Mode From:", pRightCtrlInterface);
-    QLineEdit *le_common_mode_for_replay = new QLineEdit(pRightCtrlInterface);
-    fCommonModeInputPath = txt_parser.Value<std::string>("GEM Common Mode");
-    le_common_mode_for_replay -> setText(fCommonModeInputPath.c_str());
-    le_common_mode_for_replay -> setObjectName("le_common_mode_for_replay");
-    QPushButton *btn_choose_common_mode = new QPushButton("Choose Common &Mode", pRightCtrlInterface);
-    // mapping
-    QLabel *l_mapping = new QLabel("Load Mapping File From:", pRightCtrlInterface);
-    QLineEdit *le_mapping = new QLineEdit(pRightCtrlInterface);
-    le_mapping -> setText(txt_parser.Value<std::string>("GEM Map").c_str());
-    QPushButton *btn_choose_mapping = new QPushButton("Choose &Mapping", pRightCtrlInterface);
-    btn_choose_mapping -> setEnabled(false);
-    _layout7 -> addWidget(l_pedestal_for_replay, 1, 0);
-    _layout7 -> addWidget(le_pedestal_for_replay, 1, 1);
-    _layout7 -> addWidget(btn_choose_pedestal, 1, 2);
-    _layout7 -> addWidget(l_common_mode_for_replay, 2, 0);
-    _layout7 -> addWidget(le_common_mode_for_replay, 2, 1);
-    _layout7 -> addWidget(btn_choose_common_mode, 2, 2);
-    _layout7 -> addWidget(l_mapping, 3, 0);
-    _layout7 -> addWidget(le_mapping, 3, 1);
-    _layout7 -> addWidget(btn_choose_mapping, 3, 2);
-
-    // set file split
-    QGridLayout *_layout6 = new QGridLayout();
-    QLabel *l_split = new QLabel("File Split Range for Replay: ", pRightCtrlInterface);
-    QLineEdit *le_split = new QLineEdit(pRightCtrlInterface);
-    le_split -> setText("-1");
-    QLineEdit *le_split_start = new QLineEdit(pRightCtrlInterface);
-    le_split_start -> setText("0");
-    _layout6 -> addWidget(l_split, 1, 0);
-    _layout6 -> addWidget(le_split_start, 1, 1);
-    _layout6 -> addWidget(le_split, 1, 2);
-
-    // function moudles for replaying evio file to hit root files
-    QGridLayout *_layout4 = new QGridLayout();
-    QLabel *l_replay = new QLabel("Replay Hit File Output Path:", pRightCtrlInterface);
-    QLineEdit *le_replay = new QLineEdit(pRightCtrlInterface);
-    le_replay -> setText("Rootfiles/hit_[gem_cleanrom]_[run].root");
-    le_replay -> setEnabled(false);
-    QLabel *l4 = new QLabel("Replay to Hit ROOT file: ", pRightCtrlInterface);
-    QPushButton *b4 = new QPushButton("GEM &Hit Replay", pRightCtrlInterface);
-    _layout4 -> addWidget(l_replay, 0, 0);
-    _layout4 -> addWidget(le_replay, 0, 1);
-    _layout4 -> addWidget(l4, 1, 0);
-    _layout4 -> addWidget(b4, 1, 1);
-
-    // function modules for clustering, and save to root files
-    QGridLayout *_layout5 = new QGridLayout();
-    QLabel *l_cluster_path = new QLabel("Cluster File Output Path:", pRightCtrlInterface);
-    QLineEdit *le_cluster_path = new QLineEdit(pRightCtrlInterface);
-    le_cluster_path -> setText("Rootfiles/cluster_[gem_cleanroom]_[run].root");
-    le_cluster_path -> setEnabled(false);
-    QLabel *l_cluster = new QLabel("Clustering Replay:", pRightCtrlInterface);
-    QPushButton *btn_cluster = new QPushButton("GEM &Cluster Replay", pRightCtrlInterface);
-    _layout5 -> addWidget(l_cluster_path, 1, 0);
-    _layout5 -> addWidget(le_cluster_path, 1, 1);
-    _layout5 -> addWidget(l_cluster, 2, 0);
-    _layout5 -> addWidget(btn_cluster, 2, 1);
-
-    minimum_qt_unit_height(l1, file_indicator, bOpenFile, l2, btn_save_event, event_number,
-            l_num, le_num, l_path, le_path, l_commonMode, le_commonMode, l3, b,
-            l_pedestal_for_replay, le_pedestal_for_replay, btn_choose_pedestal,
-            l_common_mode_for_replay, le_common_mode_for_replay, btn_choose_common_mode,
-            l_mapping, le_mapping, btn_choose_mapping,
-            l_split, le_split_start, le_split, l_replay, le_replay, l4, b4,
-            l_cluster_path, le_cluster_path, l_cluster, btn_cluster);
-
-    // add to overall layout
-    layout -> addLayout(_layout1);
-    layout -> addLayout(_layout3);
-    layout -> addLayout(_layout7);
-    layout -> addLayout(_layout6);
-    layout -> addLayout(_layout4);
-    layout -> addLayout(_layout5);
-
-    // connect
-    connect(file_indicator, SIGNAL(textChanged(const QString &)), this, SLOT(SetFile(const QString &)));
-    connect(event_number, SIGNAL(valueChanged(int)), this, SLOT(DrawEvent(int)));
-    connect(btn_save_event, SIGNAL(pressed()), this, SLOT(SaveCurrentEvent()));
-    connect(bOpenFile, SIGNAL(pressed()), this, SLOT(OpenFile()));
-    connect(b, SIGNAL(pressed()), this, SLOT(GeneratePedestal()));
-    connect(le_path, SIGNAL(textChanged(const QString &)), this, SLOT(SetPedestalOutputPath(const QString &)));
-    connect(le_commonMode, SIGNAL(textChanged(const QString &)), this, SLOT(SetCommonModeOutputPath(const QString &)));
-    connect(le_num, SIGNAL(textChanged(const QString &)), this, SLOT(SetPedestalMaxEvents(const QString &)));
-    connect(le_replay, SIGNAL(textChanged(const QString &)), this, SLOT(SetRootFileOutputPath(const QString &)));
-    //connect(le_split, &QLineEdit::returnPressed, this, [=](){SetFileSplitMax(le_split->text());});
-    //connect(le_split_start, &QLineEdit::returnPressed, this, [=](){SetFileSplitMin(le_split_start->text());});
-    connect(le_split, SIGNAL(textChanged(const QString &)), this, SLOT(SetFileSplitMax(const QString &)));
-    connect(le_split_start, SIGNAL(textChanged(const QString &)), this, SLOT(SetFileSplitMin(const QString &)));
-    connect(b4, SIGNAL(pressed()), this, SLOT(ReplayHit()));
-    connect(btn_cluster, SIGNAL(pressed()), this, SLOT(ReplayCluster()));
-    connect(btn_choose_pedestal, SIGNAL(pressed()), this, SLOT(ChoosePedestal()));
-    connect(btn_choose_common_mode, SIGNAL(pressed()), this, SLOT(ChooseCommonMode()));
-    connect(le_pedestal_for_replay, SIGNAL(textChanged(const QString &)), this, SLOT(SetPedestalInputPath(const QString &)));
-    connect(le_common_mode_for_replay, SIGNAL(textChanged(const QString &)), this, SLOT(SetCommonModeInputPath(const QString &)));
-    // connect online analysis
-    connect(pOpenAnalysisInterface, SIGNAL(triggered()), this, SLOT(OpenOnlineAnalysisInterface()));
-}
-
- 
-////////////////////////////////////////////////////////////////
-// setup the tabs in left drawing area
-
-void Viewer::InitLeftTab()
-{
-    pLeftTab = new QTabWidget(pLeft);
-
-    auto v_mpd_addr = apv_strip_mapping::Mapping::Instance()->GetMPDAddressVec();
+    QTabWidget* tabW = new QTabWidget(w);
 
     // for apv raw histos
     for(int i=0;i<nTab;i++) 
     {
-        QWidget *tabWidget = new QWidget(pLeftTab);
-        QVBoxLayout *tabWidgetLayout = new QVBoxLayout(tabWidget);
-        HistoWidget *c = new HistoWidget(tabWidget);
-        //c -> PassQMainCanvasPointer(pRightCanvas);
-        tabWidgetLayout -> addWidget(c);
+        QWidget *w = new QWidget(tabW);
+        QVBoxLayout *wLayout = new QVBoxLayout(w);
+        wLayout -> setContentsMargins(0, 0, 0, 0);
+        wLayout -> setSpacing(0);
+        HistoWidget *c = new HistoWidget(w);
+        c -> Divide(APVS_PER_TAB_X, APVS_PER_TAB_Y);
+        wLayout -> addWidget(c);
         vTabCanvas.push_back(c);
 
-        QString s = QString("slot %1 fiber %2").arg(v_mpd_addr[i].crate_id).arg(v_mpd_addr[i].mpd_id);
-        pLeftTab -> addTab(tabWidget, s);
+        QString s = QString("APV Raw Frames");
+        tabW -> addTab(w, s);
     }
+
+    return tabW;
+}
+
+////////////////////////////////////////////////////////////////
+// setup the tabs in left drawing area
+
+QWidget* Viewer::createOnlineHitsView(QWidget *w)
+{
+    QTabWidget* tabW = new QTabWidget(w);
 
     auto layer_id_vec = apv_strip_mapping::Mapping::Instance() -> GetLayerIDVec();
 
     // for gem chamber online hits
     for(int i=0; i<nTabOnlineHits; ++i)
     {
-        QWidget *tabWidget = new QWidget(pLeftTab);
-        QVBoxLayout *tabWidgetLayout = new QVBoxLayout(tabWidget);
-        HistoWidget *c = new HistoWidget(tabWidget);
+        QWidget *w = new QWidget(tabW);
+        QVBoxLayout *wLayout = new QVBoxLayout(w);
+        HistoWidget *c = new HistoWidget(w);
         c -> Divide(4, 2); // each layer has 4 chambers
-        //c -> PassQMainCanvasPointer(pRightCanvas);
-        tabWidgetLayout -> addWidget(c);
+        wLayout -> addWidget(c);
         vTabCanvasOnlineHits.push_back(c);
 
         QString s = QString("Online Hits Layer: %1").arg(layer_id_vec[i]);
-        pLeftTab -> addTab(tabWidget, s);
+        tabW -> addTab(w, s);
     }
 
-    pLeftLayout -> addWidget(pLeftTab);
+    return tabW;
+}
+
+////////////////////////////////////////////////////////////////
+// setup the tabs in left drawing area
+
+QWidget* Viewer::createDetector2DStripsView(QWidget *w)
+{
+    QTabWidget* tabW = new QTabWidget(w);
 
 #ifdef EYE_BALL_TRACKING
     // for eye-ball tracking (show detector 2d strips)
     det_view = new Detector2DView();
-    pLeftTab -> addTab(det_view, "Detector 2D Strips");
+    tabW -> addTab(det_view, "Detector 2D Strips");
 #endif
+
+    return tabW;
 }
 
 
 ////////////////////////////////////////////////////////////////
-// set how many tabs for showing histograms
-// rely on mapping
+// init right drawing area for analysis settings
 
-void Viewer::SetNumberOfTabs()
+QWidget* Viewer::createSettingsPanel()
 {
-    // for apv raw histos
-    nTab = apv_strip_mapping::Mapping::Instance()->GetTotalMPDs();
+    QGroupBox *box = new QGroupBox(tr("Settings"), this);
+    QVBoxLayout *v = new QVBoxLayout(box);
+    v -> setContentsMargins(8, 8, 8, 8);
+    v -> setSpacing(4);
 
-    // for gem chamber online hits
-    int number_of_layers = apv_strip_mapping::Mapping::Instance()->GetTotalNumberOfLayers();
-    nTabOnlineHits = number_of_layers; // here assume each layer has 4 chambers max
+    QToolBox *toolBox = new QToolBox(box);
+    toolBox -> addItem(createPedestalCommonModePage(), tr("Pedestal / Common Mode"));
+    toolBox -> addItem(createMappingFilePage(), tr("Mapping File"));
+    toolBox -> addItem(createReplayPage(), tr("Replay"));
+    toolBox -> addItem(createAdvancedPage(), tr("Advanced"));
+
+    v -> addWidget(toolBox, 1);
+    return box;
 }
 
+////////////////////////////////////////////////////////////////
+// set up common mode / pedestal
+
+QWidget* Viewer::createPedestalCommonModePage()
+{
+    QWidget *page = new QWidget(this);
+    QVBoxLayout *v = new QVBoxLayout(page);
+
+    QGroupBox *pedBox = new QGroupBox(tr("Pedestal"), page);
+    QFormLayout *pedForm = new QFormLayout(pedBox);
+    pedForm -> setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    QSpinBox *maxEvt = new QSpinBox(pedBox);
+    maxEvt -> setRange(0, 100000000);
+    maxEvt -> setValue(5000);
+    m_pedOut = new QLineEdit(pedBox);
+    m_pedOut -> setText(QString::fromStdString(txt_parser.Value<std::string>("GEM Pedestal")));
+    m_cmOut = new QLineEdit(pedBox);
+    m_cmOut -> setText(QString::fromStdString(txt_parser.Value<std::string>("GEM Common Mode")));
+
+    QWidget *btnRow = new QWidget(pedBox);
+    QHBoxLayout *h1 = new QHBoxLayout(btnRow);
+    h1 -> setContentsMargins(0, 0, 0, 0);
+    h1 -> setSpacing(4);
+    QPushButton *genPed = new QPushButton(tr("Generate"), btnRow);
+    QPushButton *loadPed = new QPushButton(tr("Load"), btnRow);
+    h1 -> addWidget(genPed);
+    h1 -> addWidget(loadPed);
+    h1 -> addStretch(1);
+
+    pedForm -> addRow(tr("Max Events:"), maxEvt);
+    pedForm -> addRow(tr("Pedestal:"), m_pedOut);
+    pedForm -> addRow(tr("CommonMode:"), m_cmOut);
+    pedForm -> addRow(QString(), btnRow);
+
+    v -> addWidget(pedBox);
+    v -> addStretch(1);
+
+    // signal-slot
+    connect(genPed, &QPushButton::pressed, this, &Viewer::GeneratePedestal);
+    connect(loadPed, &QPushButton::pressed, this, &Viewer::ReloadPedestal);
+    connect(m_pedOut, &QLineEdit::textChanged, this, &Viewer::SetPedestalOutputPath);
+    connect(m_cmOut, &QLineEdit::textChanged, this, &Viewer::SetCommonModeOutputPath);
+    connect(maxEvt, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::SetPedestalMaxEvents);
+
+    return page;
+}
+
+////////////////////////////////////////////////////////////////
+// set up mapping file
+
+QWidget* Viewer::createMappingFilePage()
+{
+    QWidget *page = new QWidget(this);
+    QFormLayout *form = new QFormLayout(page);
+    form -> setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    QLineEdit *mapEdit = new QLineEdit(page);
+    mapEdit -> setText(QString::fromStdString(txt_parser.Value<std::string>("GEM Map")));
+    QPushButton *btn = new QPushButton(tr("Choose..."), page);
+
+    form -> addRow(tr("Mapping File:"), mapEdit);
+    form -> addRow(QString(), btn);
+
+    // signal-slot
+
+    return page;
+}
+
+////////////////////////////////////////////////////////////////
+// set up root replay
+
+QWidget* Viewer::createReplayPage()
+{
+    QWidget *page = new QWidget(this);
+    QFormLayout *form = new QFormLayout(page);
+    form -> setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    QLineEdit *hitOut = new QLineEdit(page);
+    hitOut -> setPlaceholderText("Rootfiles/hit_[prefix]_[run].root");
+    QLineEdit *clusterOut = new QLineEdit(page);
+    clusterOut -> setPlaceholderText("Rootfiles/cluster_[prefix]_[run].root");
+
+    QPushButton *hitReplayBtn = new QPushButton(tr("Run Hit Replay"), page);
+    QPushButton *clusterReplayBtn = new QPushButton(tr("Run Cluster Replay"), page);
+
+    QSpinBox *splitFrom = new QSpinBox(page);
+    QSpinBox *splitTo = new QSpinBox(page);
+    splitFrom -> setRange(0, 1000000);
+    splitTo -> setRange(-1, 1000000);
+    splitTo -> setValue(-1);
+
+    form -> addRow(tr("Hit Output"), hitOut);
+    form -> addRow(tr("Cluster Output"), clusterOut);
+    form -> addRow(tr("File Split From"), splitFrom);
+    form -> addRow(tr("File Split To"), splitTo);
+    form -> addRow(QString(), hitReplayBtn);
+    form -> addRow(QString(), clusterReplayBtn);
+
+    connect(hitOut, &QLineEdit::textChanged, this, &Viewer::SetRootFileOutputPath);
+    //connect(clusterOut, &QLineEdit::textChanged, this, &Viewer::SetRootFileOutputPath);
+    connect(splitFrom, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::SetFileSplitMin);
+    connect(splitTo, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::SetFileSplitMax);
+    connect(hitReplayBtn, &QPushButton::pressed, this, &Viewer::ReplayHit);
+    connect(clusterReplayBtn, &QPushButton::pressed, this, &Viewer::ReplayCluster);
+
+    return page;
+}
+
+////////////////////////////////////////////////////////////////
+// set up advanced viewer setting
+
+QWidget* Viewer::createAdvancedPage()
+{
+    QWidget *page = new QWidget(this);
+    QFormLayout *form = new QFormLayout(page);
+    form -> setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+
+    QGroupBox *box = new QGroupBox(tr("GEM Data Viewer Mode"), page);
+    QVBoxLayout *v = new QVBoxLayout(box);
+    v -> setContentsMargins(8, 8, 8, 8);
+    
+    QRadioButton* cb_offline = new QRadioButton("Offline Mode", box);
+    QRadioButton* cb_online = new QRadioButton("Online Mode", box);
+    QButtonGroup* group = new QButtonGroup(box);
+    group -> addButton(cb_offline);
+    group -> addButton(cb_online);
+    group -> setExclusive(true);
+    cb_offline -> setChecked(true);
+
+    v -> addWidget(cb_offline);
+    v -> addWidget(cb_online);
+
+    form -> addRow(box);
+
+    // signal-slot
+
+    return page;
+}
+
+////////////////////////////////////////////////////////////////
+// setup the control interface
+
+QWidget* Viewer::createSystemLogPanel()
+{
+    QGroupBox *box = new QGroupBox(tr("System Log"), this);
+    QVBoxLayout *v = new QVBoxLayout(box);
+    v -> setContentsMargins(8, 8, 8, 8);
+
+    m_logEdit = new QPlainTextEdit(box);
+    m_logEdit -> setReadOnly(true);
+    m_logEdit -> setWordWrapMode(QTextOption::NoWrap);
+    m_logEdit -> setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+
+    v -> addWidget(m_logEdit);
+
+    m_logEdit -> appendPlainText("[info] GEM Data Viewer started.");
+
+    return box;
+}
 
 ////////////////////////////////////////////////////////////////
 // set file to analyzer
@@ -432,6 +537,10 @@ void Viewer::SetFile([[maybe_unused]] const QString & s)
 
 void Viewer::InitGEMAnalyzer()
 {
+    // setup pedestal before initializing analyzer
+    SetPedestalInputPath(QString::fromStdString(txt_parser.Value<std::string>("GEM Pedestal")));
+    SetCommonModeInputPath(QString::fromStdString(txt_parser.Value<std::string>("GEM Common Mode")));
+
     pGEMAnalyzer = new GEMAnalyzer();
     pGEMAnalyzer -> SetFile(fFile.c_str());
     pGEMAnalyzer -> Init();
@@ -506,9 +615,8 @@ void Viewer::DrawGEMRawHistos(int num)
 
     // print a log 
     std::string ss("total apv in current event : ");
-    ss = ss + std::to_string(mData.size()) + "\n";
-    pLogBox -> textCursor().insertText(ss.c_str());
-    pLogBox -> verticalScrollBar()->setValue(pLogBox->verticalScrollBar()->maximum());
+    ss = ss + std::to_string(mData.size());
+    m_logEdit -> appendPlainText(ss.c_str());
 
     // dispath by mpd id
     // a helper
@@ -523,8 +631,8 @@ void Viewer::DrawGEMRawHistos(int num)
         }
         return -1;
     };
-    std::vector<std::vector<int>> vH[nTab];
-    std::vector<APVAddress> vAddr[nTab];
+    std::vector<std::vector<std::vector<int>>> vH(nTab);
+    std::vector<std::vector<APVAddress>> vAddr(nTab);
     for(auto &i: mData) {
         MPDAddress mpd_addr(i.first.crate_id, i.first.mpd_id);
         int index = find_index(mpd_addr);
@@ -538,7 +646,7 @@ void Viewer::DrawGEMRawHistos(int num)
     for(int i=0;i<nTab;i++) 
     {
         vTabCanvas[i] -> Clear();
-        vTabCanvas[i] -> DrawCanvas(vH[i], vAddr[i], 4, 4);
+        vTabCanvas[i] -> DrawCanvas(vH[i], vAddr[i], APVS_PER_TAB_X, APVS_PER_TAB_Y);
         vTabCanvas[i] -> Refresh();
     }
 
@@ -558,9 +666,10 @@ void Viewer::DrawGEMRawHistos(int num)
 void Viewer::DrawGEMOnlineHits(int num)
 {
     if(reload_pedestal_for_online) {
-        std::cout<<"loading pedestal for online analysis from: \""
-                 <<fPedestalInputPath
-                 <<"\" and \""<<fCommonModeInputPath<<"\""<<std::endl;
+        QString s = QString("[info] loading pedestal for online analysis from : ")
+                    + QString::fromStdString(fPedestalInputPath) + QString(" and ")
+                    + QString::fromStdString(fCommonModeInputPath);
+        m_logEdit -> appendPlainText(s);
         pGEMReplay -> GetGEMSystem() -> ReadPedestalFile(fPedestalInputPath, fCommonModeInputPath);
         reload_pedestal_for_online = false;
     }
@@ -619,7 +728,7 @@ void Viewer::DrawGEMOnlineHits(int num)
             ghost_apv -> ZeroSuppression();
             ghost_apv -> CollectZeroSupHits();
         } else {
-            std::cout<<"Warning:: no ghost apv found."<<std::endl;
+            m_logEdit -> appendPlainText("[info] no ghost apv used.");
         }
     }
 
@@ -628,7 +737,11 @@ void Viewer::DrawGEMOnlineHits(int num)
 
     // online hits contents
     // (x_hits, y_hits)[layer][chamber]
-    std::pair<std::vector<int>, std::vector<int>> online_hits[layerID.size()][4];
+    using Hits2D = std::pair<std::vector<int>, std::vector<int>>;
+    std::vector<std::vector<Hits2D>> online_hits(
+            layerID.size(), std::vector<Hits2D>(4)
+            );
+    //std::pair<std::vector<int>, std::vector<int>> online_hits[layerID.size()][4];
 
     // get all gem detectors
     std::vector<GEMDetector*> detectorList = 
@@ -768,6 +881,8 @@ void Viewer::SaveCurrentEvent()
         for(auto &j: i.second)
             f<<j<<std::endl;
     }
+
+    m_logEdit -> appendPlainText("[info] event saved to: " + QString::fromStdString(file_name));
 }
 
 
@@ -785,23 +900,25 @@ bool Viewer::FileExist(const char* path)
 
 void Viewer::OpenFile()
 {
-    QString filename = QFileDialog::getOpenFileName(
-            this,
-            "Open Document",
-            //QDir::currentPath(),
-            "/home/daq/coda/data",
-            "All files (*.*) ;; evio files (*.evio)");
+    QString filename =  QFileDialog::getOpenFileName(
+            this, tr("Open EVIO file"), QString(),
+            tr("EVIO files (*.evio*);;All files (*)"));
+    if(!filename.isEmpty()) {
+        int idx = m_fileCombo -> findText(filename);
+        if(idx < 0) {
+            m_fileCombo -> insertItem(0, filename);
+            idx = 0;
+        }
+        m_fileCombo -> setCurrentIndex(idx);
+    }
 
     fFile = filename.toStdString();
 
     if(fFile.size() <= 0) 
         return;
 
-    file_indicator -> setText(filename);
-
     // reset event counter to 0
-    pRightCtrlInterface -> findChild<QSpinBox*>(QString("event_number"))
-        -> setValue(0);
+    m_eventSpin -> setValue(0);
     event_number_checked = 0;
 
     // update pedstal output path
@@ -819,10 +936,8 @@ void Viewer::ParsePedestalsOutputPathFromEvioFile()
     fCommonModeOutputPath = "database/CommonModeRange_" + std::to_string(run_number)
         + ".txt";
 
-    pRightCtrlInterface -> findChild<QLineEdit*>(QString("le_path"))
-        -> setText(fPedestalOutputPath.c_str());
-    pRightCtrlInterface -> findChild<QLineEdit*>(QString("le_commonMode"))
-        -> setText(fCommonModeOutputPath.c_str());
+    m_pedOut -> setText(fPedestalOutputPath.c_str());
+    m_cmOut -> setText(fCommonModeOutputPath.c_str());
 }
 
 ////////////////////////////////////////////////////////////////
@@ -864,55 +979,18 @@ void Viewer::SetCommonModeInputPath(const QString &s)
 }
 
 ////////////////////////////////////////////////////////////////
-// choose pedestal file for data analysis
+// reload pedestal and common mode
 
-void Viewer::ChoosePedestal()
+void Viewer::ReloadPedestal()
 {
-    QString filename = QFileDialog::getOpenFileName(
-            this,
-            "Open Document",
-            QDir::currentPath(),
-            "All files (*.*) ;; evio files (*.evio)");
-
-    if(filename.size() <= 0)
-        return;
-
-    fPedestalInputPath = filename.toStdString();
-
     // reset online pedestal
     reload_pedestal_for_online = true;
 
     if(fPedestalInputPath.size() <= 0)
         fPedestalInputPath = "database/gem_ped.dat";
 
-    pRightCtrlInterface -> findChild<QLineEdit*>(QString("le_pedestal_for_replay"))
-            -> setText(filename);
-}
-
-////////////////////////////////////////////////////////////////
-// choose common mode file for data analysis
-
-void Viewer::ChooseCommonMode()
-{
-    QString filename = QFileDialog::getOpenFileName(
-            this,
-            "Open Document",
-            QDir::currentPath(),
-            "All files (*.*) ;; evio files (*.evio)");
-
-    if(filename.size() <= 0)
-        return;
-
-    fCommonModeInputPath = filename.toStdString();
-
-    // reset online pedestal
-    reload_pedestal_for_online = true;
-
     if(fCommonModeInputPath.size() <= 0)
         fCommonModeInputPath = "database/CommonModeRange.txt";
-
-    pRightCtrlInterface -> findChild<QLineEdit*>(QString("le_common_mode_for_replay"))
-            -> setText(filename);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -926,58 +1004,39 @@ void Viewer::SetRootFileOutputPath(const QString &s)
 ////////////////////////////////////////////////////////////////
 // set input file split max [min, max]
 
-void Viewer::SetFileSplitMax(const QString &s)
+void Viewer::SetFileSplitMax(const int &s)
 {
-    std::string ss = s.toStdString();
-    int i = -1;
-    try {
-        i = std::stoi(ss);
-    } catch(...) {
-        std::cout<<"ERROR: connot convert "<<ss<<" to an integer for max split."<<std::endl;
-        std::cout<<"       using default: "<< i<<std::endl;
-    }
-
-    fFileSplitEnd = i;
-    std::cout<<"INFO:: setting maximum file split: "<<fFileSplitEnd<<std::endl;
+    fFileSplitEnd = s;
+    m_logEdit -> appendPlainText("[info] setting maximum file split: " + QString::number(fFileSplitEnd));
 }
 
 ////////////////////////////////////////////////////////////////
 // set input file split min [min, max]
 
-void Viewer::SetFileSplitMin(const QString &s)
+void Viewer::SetFileSplitMin(const int &s)
 {
-    std::string ss = s.toStdString();
-    int i = 0;
-    try {
-        i = std::stoi(ss);
-    } catch(...) {
-        std::cout<<"ERROR: connot convert "<<ss<<" to an integer for min split."<<std::endl;
-        std::cout<<"       using default: "<<i<<std::endl;
+    if( s < 0) {
+        m_logEdit -> appendPlainText("[info] Replay Evio File Split start Number Invalid. Start Number not changed.");
+        return;
     }
-
-    fFileSplitStart = i;
-    std::cout<<"INFO:: setting minimum file split: "<<fFileSplitStart<<std::endl;
+    fFileSplitStart = s;
+    m_logEdit -> appendPlainText("[info] setting minimum file split: " + QString::number(fFileSplitStart));
 }
 
 ////////////////////////////////////////////////////////////////
 // set pedestal max events
 
-void Viewer::SetPedestalMaxEvents(const QString & s)
+void Viewer::SetPedestalMaxEvents(const int & s)
 {
-    std::string ss = s.toStdString();
-    int i = 0;
-    try {
-        i = std::stoi(ss);
-    } catch(...) {
-    }
-    if (i <= 0) {
+    if (s <= 0) {
         std::cout<<"Warning: max events for generating pedestal is invalid"
             <<std::endl;
         std::cout<<"     using default 5000."<<std::endl;
         return;
     }
-    fPedestalMaxEvents = i;
-    std::cout<<"INFO: max events for generating pedestals: "<<fPedestalMaxEvents<<std::endl;
+    fPedestalMaxEvents = s;
+    m_logEdit -> appendPlainText("[info] max events for generating pedestals: " 
+            + QString::number(fPedestalMaxEvents));
 }
 
 
@@ -995,11 +1054,9 @@ void Viewer::GeneratePedestal_obsolete()
     if(reply != QMessageBox::Yes)
         return;
 
-    pLogBox -> setTextColor(QColor("blue"));
-    pLogBox -> textCursor().insertText("\ngenerating pedestal/commonMode for file: \"");
-    pLogBox -> textCursor().insertText(fFile.c_str());
-    pLogBox -> textCursor().insertText("\"\nthis might take a while...\n");
-    pLogBox -> verticalScrollBar()->setValue(pLogBox->verticalScrollBar()->maximum());
+    m_logEdit -> appendPlainText("[info] generating pedestal/commonMode for file:");
+    m_logEdit -> appendPlainText(fFile.c_str());
+    m_logEdit -> appendPlainText("[info] this might take a while...");
     QCoreApplication::processEvents();
 
     //pGEMAnalyzer -> GeneratePedestal(fPedestalOutputPath.c_str());
@@ -1015,9 +1072,6 @@ void Viewer::GeneratePedestal_obsolete()
             this,
             tr("MPD GEM Viewer"),
             tr("Pedestal/CommonMode Done!") );
-
-    pLogBox -> setTextColor(QColor("black"));
-    pLogBox -> textCursor().insertText("Done.\n");
 }
 
 ////////////////////////////////////////////////////////////////
@@ -1034,11 +1088,9 @@ void Viewer::GeneratePedestal()
     if(reply != QMessageBox::Yes)
         return;
 
-    pLogBox -> setTextColor(QColor("blue"));
-    pLogBox -> textCursor().insertText("\ngenerating pedestal/commonMode for file: \"");
-    pLogBox -> textCursor().insertText(fFile.c_str());
-    pLogBox -> textCursor().insertText("\"\nthis might take a while...\n");
-    pLogBox -> verticalScrollBar()->setValue(pLogBox->verticalScrollBar()->maximum());
+    m_logEdit -> appendPlainText("[info] Generating pedestal/commonMode for file : ");
+    m_logEdit -> appendPlainText(fFile.c_str());
+    m_logEdit -> appendPlainText("[info] this might take a while...");
     QCoreApplication::processEvents();
 
     pGEMReplay -> SetInputFile(fFile);
@@ -1067,9 +1119,6 @@ void Viewer::GeneratePedestal()
             .arg(fPedestalOutputPath.c_str())
             .arg(fCommonModeOutputPath.c_str())
             );
-
-    pLogBox -> setTextColor(QColor("black"));
-    pLogBox -> textCursor().insertText("Done.\n");
 }
 
 ////////////////////////////////////////////////////////////////
@@ -1086,11 +1135,9 @@ void Viewer::ReplayHit()
     if(reply != QMessageBox::Yes)
         return;
 
-    pLogBox -> setTextColor(QColor("blue"));
-    pLogBox -> textCursor().insertText("\nReplaying for file: \"");
-    pLogBox -> textCursor().insertText(fFile.c_str());
-    pLogBox -> textCursor().insertText("\"\nthis might take a while...\n");
-    pLogBox -> verticalScrollBar()->setValue(pLogBox->verticalScrollBar()->maximum());
+    m_logEdit -> appendPlainText("[info] Replaying for file: ");
+    m_logEdit -> appendPlainText(fFile.c_str());
+    m_logEdit -> appendPlainText("[info] this might take a while...");
     QCoreApplication::processEvents();
 
     pGEMReplay -> SetInputFile(fFile);
@@ -1112,9 +1159,6 @@ void Viewer::ReplayHit()
             this,
             tr("GEM Data Viewer"),
             tr("Replay Done!") );
-
-    pLogBox -> setTextColor(QColor("black"));
-    pLogBox -> textCursor().insertText("Done.\n");
 }
 
 
@@ -1132,11 +1176,9 @@ void Viewer::ReplayCluster()
     if(reply != QMessageBox::Yes)
         return;
 
-    pLogBox -> setTextColor(QColor("blue"));
-    pLogBox -> textCursor().insertText("\nReplaying for file: \"");
-    pLogBox -> textCursor().insertText(fFile.c_str());
-    pLogBox -> textCursor().insertText("\"\nthis might take a while...\n");
-    pLogBox -> verticalScrollBar()->setValue(pLogBox->verticalScrollBar()->maximum());
+    m_logEdit -> appendPlainText("[info] Replaying for file: ");
+    m_logEdit -> appendPlainText(fFile.c_str());
+    m_logEdit -> appendPlainText("[info] this might take a while...");
     QCoreApplication::processEvents();
 
     pGEMReplay -> SetInputFile(fFile);
@@ -1158,9 +1200,6 @@ void Viewer::ReplayCluster()
             this,
             tr("GEM Data Viewer"),
             tr("Replay Done!") );
-
-    pLogBox -> setTextColor(QColor("black"));
-    pLogBox -> textCursor().insertText("Done.\n");
 }
 
 void Viewer::OpenOnlineAnalysisInterface()

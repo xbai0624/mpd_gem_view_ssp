@@ -251,7 +251,7 @@ void HistoItem::drawAxis(QPainter *painter, double data_x1, double data_x2, doub
             int font_height = fm.height();
 
             painter -> drawText(drawing_range.x() + (i-data_x1)*ratio - font_width / 2,
-                    drawing_range.y() + drawing_range.height() + font_height * 1.5,
+                    drawing_range.y() + drawing_range.height() + font_height * 1.2,
                     s);
         }
     }
@@ -449,6 +449,6 @@ void HistoItem::drawTitle(QPainter *painter)
     painter -> setPen(pen1);
  
     painter -> drawText(drawing_range.x() + drawing_range.width()/2 - font_width/2,
-            drawing_range.y() - font_height/2 - 5, // 5 pixel to give it some margin
+            drawing_range.y() - font_height/2 - 2, // 2 pixel to give it some margin
             _title);
 }

@@ -91,7 +91,8 @@ public:
     void InitView();
 
     void ReDistributePaintingArea();
-    void FillEvent(std::pair<std::vector<int>, std::vector<int>>[][MaxChamberPerLayer]);
+    //void FillEvent(std::pair<std::vector<int>, std::vector<int>>[][MaxChamberPerLayer]);
+    void FillEvent(std::vector<std::vector<std::pair<std::vector<int>, std::vector<int>>>> online_hits);
 
 protected:
     // the parameter for this function must be QResizeEvent

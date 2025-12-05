@@ -516,7 +516,8 @@ namespace quality_check_histos
 
 	std::pair<double, double> convert_uv_to_xy_fit_cylindrical(const double &u, const double &v)
 	{
-        return std::make_pair(u, v);
+        //return std::make_pair(u, v);
+
 		// FIT Cylindircal strip angle is 45 degree, for both U and V strips
 		double angle = 45 * 3.1415926 / 180.;
 		double x = 0, y = 0; 

@@ -23,7 +23,8 @@ int main(int argc, char* argv[])
     ConfigArgs arg_parser;
     arg_parser.AddHelps({"-h", "--help"});
     arg_parser.AddPositional("raw_data", "raw data in evio format");
-    arg_parser.AddArgs<std::string>({"--output_root_path"}, "output_root_path", "output data file in root format", "");
+    arg_parser.AddArgs<std::string>({"--output_root_path"}, "output_root_path", "output data file path in root format", "");
+    arg_parser.AddArgs<std::string>({"--output_root_filename"}, "output_root_filename", "output data file name in root format", "");
     arg_parser.AddArg<int>("-n", "nev", "number of events to process (< 0 means all)", -1);
     arg_parser.AddArg<int>("-s", "start_event", "start analysis from event number (default to 0)", 0);
     arg_parser.AddArg<bool>("-c", "c_evio_to_root", "convert evio to root files (no zero sup)", false);
