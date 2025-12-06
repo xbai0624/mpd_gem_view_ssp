@@ -86,6 +86,12 @@ int main(int argc, char* argv[])
     if(args["output_root_path"].String().size() > 0)
         gem_data_handler -> SetOutputPath(args["output_root_path"].String().c_str());
     gem_data_handler -> SetupReplay(args["raw_data"].String(), 0, -1, args["pedestal_file"].String(), args["common_mode_file"].String());
+    if(args["output_root_filename"].String().size() > 0) {
+        if(args["replay_hit"].Bool())
+            gem_data_handler -> SetHitRootFileName(args["output_root_filename"].String().c_str());
+        else if(args["replay_cluster"].Bool())
+            gem_data_handler -> SetClusterRootFileName(args["output_root_filename"].String().c_str());
+    }
 
     // -: tracking
     tracking_dev::TrackingDataHandler *tracking_data_handler = new tracking_dev::TrackingDataHandler();

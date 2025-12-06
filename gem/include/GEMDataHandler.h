@@ -97,6 +97,8 @@ public:
     void EnableOutputRootTree() {root_tree_enabled = true;}
     void DisableOutputRootTree(){root_tree_enabled = false;}
     void SetMaxPedestalEvents(const int &s);
+    void SetClusterRootFileName(const std::string &n) {replay_cluster_output_file = n;}
+    void SetHitRootFileName(const std::string &n) {replay_hit_output_file = n;}
 
     GEMRootHitTree * GetHitTree() {return root_hit_tree;}
     GEMRootClusterTree *GetClusterTree() {return root_cluster_tree;}

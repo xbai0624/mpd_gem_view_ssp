@@ -173,8 +173,6 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
     if(row != fRow || col != fCol)
     {
         Divide(row, col);
-        ReDistributePaintingArea();
-        ReInitHistoItems();
     }
 
     assert(static_cast<int>(data.size()) <= fRow * fCol);

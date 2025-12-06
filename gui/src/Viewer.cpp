@@ -25,8 +25,9 @@
 #include <fstream>
 #include <thread>
 
-#define APVS_PER_TAB_X 4
-#define APVS_PER_TAB_Y 4
+//#define SHOW_APV_BY_MPD
+#define APVS_PER_TAB_X 6
+#define APVS_PER_TAB_Y 6
 #define EYE_BALL_TRACKING
 
 ////////////////////////////////////////////////////////////////
@@ -75,8 +76,8 @@ void Viewer::InitGuiInterface()
     QSplitter *splitter = new QSplitter(Qt::Horizontal, central);
     splitter -> addWidget(createDetectorPanel());
     splitter -> addWidget(createSettingsPanel());
-    splitter -> setStretchFactor(0, 2);
-    splitter -> setStretchFactor(1, 2);
+    splitter -> setStretchFactor(0, 4);
+    splitter -> setStretchFactor(1, 3);
 
     vMain -> addWidget(splitter, 1); // expanding
 
@@ -121,12 +122,14 @@ void Viewer::InitGuiInterface()
 void Viewer::SetNumberOfTabs()
 {
     // for apv raw histos - show APV raw frames by MPD, each MPD takes a tab
-    //nTab = apv_strip_mapping::Mapping::Instance()->GetTotalMPDs();
-
+#ifdef SHOW_APV_BY_MPD
+    nTab = apv_strip_mapping::Mapping::Instance()->GetTotalMPDs();
+#else
     // show fixed number of APVs per tab
     int total_apvs = apv_strip_mapping::Mapping::Instance()->GetTotalNumberOfAPVs();
     int apvs_per_tab = APVS_PER_TAB_X * APVS_PER_TAB_Y;
     nTab = (total_apvs + apvs_per_tab - 1)/apvs_per_tab;
+#endif
 
     // for gem chamber online hits
     int number_of_layers = apv_strip_mapping::Mapping::Instance()->GetTotalNumberOfLayers();
@@ -273,7 +276,7 @@ QWidget* Viewer::createRawFramesView(QWidget *w)
         wLayout -> addWidget(c);
         vTabCanvas.push_back(c);
 
-        QString s = QString("APV Raw Frames");
+        QString s = QString("APV Raw Frames:") + QString::number(i);
         tabW -> addTab(w, s);
     }
 
@@ -294,6 +297,8 @@ QWidget* Viewer::createOnlineHitsView(QWidget *w)
     {
         QWidget *w = new QWidget(tabW);
         QVBoxLayout *wLayout = new QVBoxLayout(w);
+        wLayout -> setContentsMargins(0, 0, 0, 0);
+        wLayout -> setSpacing(0);
         HistoWidget *c = new HistoWidget(w);
         c -> Divide(4, 2); // each layer has 4 chambers
         wLayout -> addWidget(c);
@@ -408,6 +413,9 @@ QWidget* Viewer::createMappingFilePage()
     form -> addRow(QString(), btn);
 
     // signal-slot
+    connect(btn, &QPushButton::pressed, this, [this]() {
+            m_logEdit->appendPlainText("[info] mapping file should be set in the config file: config/gem.conf");
+            });
 
     return page;
 }
@@ -496,6 +504,10 @@ QWidget* Viewer::createSystemLogPanel()
     m_logEdit -> setReadOnly(true);
     m_logEdit -> setWordWrapMode(QTextOption::NoWrap);
     m_logEdit -> setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+    m_logEdit -> setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_logEdit -> setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_logEdit -> setLineWrapMode(QPlainTextEdit::WidgetWidth);
+    m_logEdit -> setWordWrapMode(QTextOption::WrapAnywhere);
 
     v -> addWidget(m_logEdit);
 
@@ -525,7 +537,7 @@ void Viewer::SetFile([[maybe_unused]] const QString & s)
         return;
     }
 
-    std::cout<<"Openning file: "<<fFile<<std::endl;
+    m_logEdit -> appendPlainText("[info] Openning file: " + s);
 
     pGEMAnalyzer -> CloseFile();
     pGEMAnalyzer -> SetFile(s.toStdString().c_str());
@@ -618,6 +630,9 @@ void Viewer::DrawGEMRawHistos(int num)
     ss = ss + std::to_string(mData.size());
     m_logEdit -> appendPlainText(ss.c_str());
 
+    std::vector<std::vector<std::vector<int>>> vH(nTab);
+    std::vector<std::vector<APVAddress>> vAddr(nTab);
+#ifdef SHOW_APV_BY_MPD
     // dispath by mpd id
     // a helper
     auto find_index = [&](const MPDAddress &addr) -> int 
@@ -631,8 +646,6 @@ void Viewer::DrawGEMRawHistos(int num)
         }
         return -1;
     };
-    std::vector<std::vector<std::vector<int>>> vH(nTab);
-    std::vector<std::vector<APVAddress>> vAddr(nTab);
     for(auto &i: mData) {
         MPDAddress mpd_addr(i.first.crate_id, i.first.mpd_id);
         int index = find_index(mpd_addr);
@@ -641,6 +654,17 @@ void Viewer::DrawGEMRawHistos(int num)
             vAddr[index].push_back(i.first);
         }
     }
+#else
+    // dispatch by APV counts
+    int apv_count = 0;
+    int napvs_per_tab = APVS_PER_TAB_X * APVS_PER_TAB_Y;
+    for(auto &i: mData) {
+        int index = apv_count / napvs_per_tab;
+        vH[index].push_back(i.second);
+        vAddr[index].push_back(i.first);
+        apv_count++;
+    }
+#endif
 
     // draw tab main canvas
     for(int i=0;i<nTab;i++) 
@@ -727,8 +751,6 @@ void Viewer::DrawGEMOnlineHits(int num)
             ghost_apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
             ghost_apv -> ZeroSuppression();
             ghost_apv -> CollectZeroSupHits();
-        } else {
-            m_logEdit -> appendPlainText("[info] no ghost apv used.");
         }
     }
 
@@ -858,7 +880,6 @@ void Viewer::SaveCurrentEvent()
 {
     std::string file_name = "./Rootfiles/event_" + 
         std::to_string(current_event_number) + ".txt";
-    std::cout<<file_name<<std::endl;
 
     std::map<APVAddress, std::vector<int>> _event;
     if(current_event_number == event_number_checked)
@@ -1029,9 +1050,7 @@ void Viewer::SetFileSplitMin(const int &s)
 void Viewer::SetPedestalMaxEvents(const int & s)
 {
     if (s <= 0) {
-        std::cout<<"Warning: max events for generating pedestal is invalid"
-            <<std::endl;
-        std::cout<<"     using default 5000."<<std::endl;
+        m_logEdit -> appendPlainText("[Warning] max events for generating pedestal is invalid, using default 5000.");
         return;
     }
     fPedestalMaxEvents = s;

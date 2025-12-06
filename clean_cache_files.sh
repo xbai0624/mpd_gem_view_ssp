@@ -14,5 +14,12 @@ do
     rm -rf $i/obj/*.o
 done
 
+echo "rm -rf gem/lib/*"
+rm -rf gem/lib/*
+echo "rm -rf tracking_dev/lib/*"
+rm -rf tracking_dev/lib/*
+echo "rm .DS_Store"
+rm .DS_Store
+
 echo "rm -rf Makefile"
 rm -rf Makefile
