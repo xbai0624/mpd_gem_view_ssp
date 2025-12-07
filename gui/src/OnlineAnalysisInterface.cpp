@@ -4,7 +4,7 @@
 
 OnlineAnalysisInterface::OnlineAnalysisInterface(QWidget *parent) : QMainWindow(parent)
 {
-    resize(1200, 800);
+    resize(900, 600);
     setWindowTitle("Online Analysis");
 
     AddMenuBar();

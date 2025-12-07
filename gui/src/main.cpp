@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
     TApplication root_app("root qt", &argc, argv);
 
     Viewer *view = new Viewer();
-    view->resize(1100, 750);
+    view->resize(1200, 750);
     view->show();
 
     QObject::connect(qApp, SIGNAL(lastWindowClosed()), qApp, SLOT(quit()));

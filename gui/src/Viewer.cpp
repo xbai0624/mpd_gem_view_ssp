@@ -758,7 +758,7 @@ void Viewer::DrawGEMOnlineHits(int num)
     auto & layerID = apv_strip_mapping::Mapping::Instance() -> GetLayerIDVec();
 
     // online hits contents
-    // (x_hits, y_hits)[layer][chamber]
+    // (x_hits, y_hits)[layer][chamber] -- default 4 chambers per layer
     using Hits2D = std::pair<std::vector<int>, std::vector<int>>;
     std::vector<std::vector<Hits2D>> online_hits(
             layerID.size(), std::vector<Hits2D>(4)
