@@ -10,6 +10,7 @@
 #include "tracking_struct.h"
 #include "Tracking.h"
 #include "MollerROStripDesign.hpp"
+#include "Cuts.h"
 #include <vector>
 #include <utility>
 #include <TFile.h>
@@ -22,7 +23,6 @@ namespace quality_check_histos
     // global variables
     static histos::HistoManager<> histM;
     static GEMSystem *gem_sys;
-    static Cuts *tracking_cuts;
     static tracking_dev::TrackingDataHandler *tracking_data_handler;
     static tracking_dev::Tracking *tracking;
     static std::vector<tracking_dev::AbstractDetector*> fDet;
@@ -70,7 +70,6 @@ namespace quality_check_histos
         gem_sys = sys;
         tracking_data_handler = handle;
         tracking = tracking_data_handler -> GetTrackingHandle();
-        tracking_cuts = tracking -> GetTrackingCuts();
         NDetector_Implemented = tracking_data_handler -> GetNumberofDetectors();
         fDet.resize(NDetector_Implemented);
         for(int i=0; i<NDetector_Implemented; i++)
@@ -374,7 +373,7 @@ namespace quality_check_histos
 		if(found_track) {
 			for(auto &det: fDet) {
 				// look for the closest 2d hit
-				float search_radius = tracking_cuts->__get("effective search radius").val<float>();
+				float search_radius = Cuts::Instance().__get("effective search radius").val<float>();
 				size_t total_2d_hits = det -> Get2DHitCounts();
 
 				// since each 2D hit might have different z position due to rotation

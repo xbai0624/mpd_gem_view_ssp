@@ -1,6 +1,7 @@
 #include "Tracking.h"
 #include "TrackingUtility.h"
 #include "AbstractDetector.h"
+#include "Cuts.h"
 #include <iostream>
 #include <algorithm>
 
@@ -11,7 +12,6 @@ namespace tracking_dev {
 Tracking::Tracking()
 {
     tracking_utility = new TrackingUtility();
-    tracking_cuts = new Cuts();
 }
 
 Tracking::~Tracking()
@@ -33,15 +33,15 @@ void Tracking::AddDetector(int index, AbstractDetector* det)
 
 void Tracking::CompleteSetup()
 {
-    minimum_hits_on_track = (tracking_cuts -> __get("minimum hits on track")).val<int>();
-    chi2_cut = (tracking_cuts -> __get("track max chi2")).val<float>();
-    abort_quantity = (tracking_cuts -> __get("abort tracking quantity")).val<int>();
-    max_track_save_quantity = (tracking_cuts -> __get("save max track quantity")).val<int>();
+    minimum_hits_on_track = (Cuts::Instance().__get("minimum hits on track")).val<int>();
+    chi2_cut = (Cuts::Instance().__get("track max chi2")).val<float>();
+    abort_quantity = (Cuts::Instance().__get("abort tracking quantity")).val<int>();
+    max_track_save_quantity = (Cuts::Instance().__get("save max track quantity")).val<int>();
 
-    k_min_xz = (tracking_cuts -> __get("track x-z slope range")).arr<double>()[0];
-    k_max_xz = (tracking_cuts -> __get("track x-z slope range")).arr<double>()[1];
-    k_min_yz = (tracking_cuts -> __get("track y-z slope range")).arr<double>()[0];
-    k_max_yz = (tracking_cuts -> __get("track y-z slope range")).arr<double>()[1];
+    k_min_xz = (Cuts::Instance().__get("track x-z slope range")).arr<double>()[0];
+    k_max_xz = (Cuts::Instance().__get("track x-z slope range")).arr<double>()[1];
+    k_min_yz = (Cuts::Instance().__get("track y-z slope range")).arr<double>()[0];
+    k_max_yz = (Cuts::Instance().__get("track y-z slope range")).arr<double>()[1];
 
     initLayerGroups();
     //PrintLayerGroups();

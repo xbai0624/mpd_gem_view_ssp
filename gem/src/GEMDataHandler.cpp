@@ -700,10 +700,10 @@ std::string GEMDataHandler::ParseOutputFileName(const std::string &input, const 
     std::string res;
     size_t pos_start = 0;
     if( input.find("evio") != std::string::npos) {
-        pos_start = input.find("evio");
+        pos_start = input.find(".evio");
     }
     else if(input.find("dat") != std::string::npos) {
-        pos_start = input.find("dat");
+        pos_start = input.find(".dat");
     }
     else {
         std::cout<<__func__<<" Warning: only evio/dat files are accepted: "<<input

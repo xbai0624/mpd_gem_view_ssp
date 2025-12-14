@@ -626,8 +626,8 @@ void Viewer::DrawGEMRawHistos(int num)
     }
 
     // print a log 
-    std::string ss("total apv in current event : ");
-    ss = ss + std::to_string(mData.size());
+    std::string ss("[info] total number of APVs in event ");
+    ss = ss + std::to_string(m_eventSpin->value()) + " : " + std::to_string(mData.size());
     m_logEdit -> appendPlainText(ss.c_str());
 
     std::vector<std::vector<std::vector<int>>> vH(nTab);

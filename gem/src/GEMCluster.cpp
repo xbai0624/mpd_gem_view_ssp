@@ -60,11 +60,8 @@ void GEMCluster::Configure([[maybe_unused]]const std::string &path)
     std::string dist_str = Value<std::string>("Characteristic Distance");
     charac_dists = ConfigParser::stofs(dist_str, ",", " \t");
 
-    gem_cuts = new Cuts();
-    //gem_cuts -> Print();
-
-    min_cluster_hits = gem_cuts -> __get("min cluster size").val<int>();
-    max_cluster_hits = gem_cuts -> __get("max cluster size").val<int>();
+    min_cluster_hits = Cuts::Instance().__get("min cluster size").val<int>();
+    max_cluster_hits = Cuts::Instance().__get("max cluster size").val<int>();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -100,11 +97,11 @@ bool GEMCluster::IsGoodStrip(const StripHit &hit) const
 {
 #ifdef USE_GEM_CUT
     // time bin cut
-    if(!gem_cuts -> max_time_bin(hit))
+    if(!Cuts::Instance().max_time_bin(hit))
         return false;
 
     // strip avg time cut
-    if(!gem_cuts -> strip_mean_time(hit))
+    if(!Cuts::Instance().strip_mean_time(hit))
         return false;
 #endif
     return true;
@@ -321,13 +318,13 @@ bool GEMCluster::IsGoodCluster([[maybe_unused]]const StripCluster &cluster) cons
        (cluster.hits.size() > max_cluster_hits))
         return false;
 
-    if(!(gem_cuts -> seed_strip_min_peak_adc(cluster)))
+    if(!(Cuts::Instance().seed_strip_min_peak_adc(cluster)))
         return false;
 
-    if(!(gem_cuts -> seed_strip_min_sum_adc(cluster)))
+    if(!(Cuts::Instance().seed_strip_min_sum_adc(cluster)))
         return false;
 
-    if(!(gem_cuts -> cluster_strip_time_agreement(cluster)))
+    if(!(Cuts::Instance().cluster_strip_time_agreement(cluster)))
         return false;
 #endif
     // not a cross talk cluster
@@ -389,10 +386,10 @@ const
         for(auto &yc : y_cluster)
         {
 #ifdef USE_GEM_CUT
-            if(!(gem_cuts -> cluster_adc_assymetry(xc, yc)))
+            if(!(Cuts::Instance().cluster_adc_assymetry(xc, yc)))
                 continue;
 
-            if(!(gem_cuts -> cluster_time_assymetry(xc, yc)))
+            if(!(Cuts::Instance().cluster_time_assymetry(xc, yc)))
                 continue;
 #endif
             container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0

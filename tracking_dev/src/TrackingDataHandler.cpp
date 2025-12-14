@@ -2,6 +2,7 @@
 #include "AbstractDetector.h"
 #include "Tracking.h"
 #include "GEMPlane.h"
+#include "Cuts.h"
 
 namespace tracking_dev
 {
@@ -41,8 +42,6 @@ namespace tracking_dev
         common_mode_file = txt_parser.Value<std::string>("GEM Common Mode");
 
         coord_system = new CoordSystem();
-
-        gem_cuts = new Cuts();
     }
 
     void TrackingDataHandler::SetEvioFile(const char* p)
@@ -83,8 +82,8 @@ namespace tracking_dev
             fDet[i] = new AbstractDetector();
             fDet[i] -> SetOrigin(origin);
 
-            auto v = gem_cuts -> __get("grid width").arr<double>();
-            double s = gem_cuts -> __get("grid shift").val<double>();
+            auto v = Cuts::Instance().__get("grid width").arr<double>();
+            double s = Cuts::Instance().__get("grid shift").val<double>();
             fDet[i] -> SetGridWidth(v[0], v[1]);
             fDet[i] -> SetGridShift(s);
 
@@ -154,7 +153,7 @@ namespace tracking_dev
         // xinzhan: instead of skip its data, if this gem is not part of the tracking system
         //          then it won't be passed to Tracking handle, so it is fine to add back the
         //          data in here (we need its data for tracker based residue distribution study)
-        //if(!gem_cuts -> is_tracking_layer(layer))
+        //if(!Cuts::Instance().is_tracking_layer(layer))
         //    return;
 
         double z_det = det -> GetZPosition();

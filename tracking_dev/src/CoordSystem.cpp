@@ -1,4 +1,5 @@
 #include "CoordSystem.h"
+#include "Cuts.h"
 #include <cmath>
 
 namespace tracking_dev {
@@ -13,9 +14,7 @@ namespace tracking_dev {
 
     void CoordSystem::Init()
     {
-        gem_cuts = new Cuts();
-
-        auto gem_setup = gem_cuts -> __get_block_data();
+        auto gem_setup = Cuts::Instance().__get_block_data();
         for(auto &i: gem_setup)
         {
             int layer = i.second.layer_id;

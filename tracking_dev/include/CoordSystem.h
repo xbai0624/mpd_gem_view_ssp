@@ -2,7 +2,6 @@
 #define COORD_SYSTEM_H
 
 #include "tracking_struct.h"
-#include "Cuts.h"
 
 namespace tracking_dev
 {
@@ -13,7 +12,6 @@ namespace tracking_dev
         ~CoordSystem();
 
         void Init();
-        void PassCutsHandle(Cuts *c){gem_cuts = c;}
 
         void Rotate(point_t &p, const point_t &rot);
         void Translate(point_t &p, const point_t &t);
@@ -26,11 +24,8 @@ namespace tracking_dev
         point_t GetLayerPosition(int i){return position_gem.at(i);}
         point_t GetLayerDimension(int i){return dimension_gem.at(i);}
         bool IsInTrackerSystem(int i){return tracker_config_gem.at(i);}
-        Cuts* GetCutsHandle(){return gem_cuts;}
 
     private:
-        Cuts *gem_cuts;
-
         std::unordered_map<int, point_t> offset_gem;
         std::unordered_map<int, point_t> angle_gem;
         std::unordered_map<int, point_t> position_gem;

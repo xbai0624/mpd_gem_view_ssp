@@ -19,12 +19,16 @@
 #include "GEMDetector.h"
 #include "GEMDetectorLayer.h"
 #include "GEMCluster.h"
+#include "Cuts.h"
+
+#define USE_GEM_CUT
 
 ////////////////////////////////////////////////////////////////////////////////
 // constructor
 
 GEMPlane::GEMPlane(GEMDetector *det)
-: detector(det), name("Undefined"), type(Plane_X), size(0.), orient(0)
+: detector(det), name("Undefined"), type(Plane_X), size(0.), orient(0),
+  direction(1)
 {
     // place holder
 }
@@ -37,7 +41,6 @@ GEMPlane::GEMPlane(const std::string &n, const int &t, const float &s,
 : detector(det), name(n), size(s), orient(o), direction(d)
 {
     type = (Type)t;
-
     apv_list.resize(c, nullptr);
 }
 
@@ -101,6 +104,7 @@ GEMPlane &GEMPlane::operator =(GEMPlane &&rhs)
 
     strip_hits = std::move(rhs.strip_hits);
     strip_clusters = std::move(rhs.strip_clusters);
+
     return *this;
 }
 
@@ -475,6 +479,11 @@ void GEMPlane::AddStripHit(int strip, float charge, short maxtime, bool xtalk,
             xtalk, crate, mpd, adc);
 
     strip_hits.back().ts_adc = _ts_adc;
+
+#ifdef USE_GEM_CUT
+    if(!Cuts::Instance().is_concave_shape(strip_hits.back()))
+        strip_hits.pop_back();
+#endif
 }
 
 

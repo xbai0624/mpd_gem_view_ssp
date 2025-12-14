@@ -14,8 +14,12 @@ struct StripCluster;
 class Cuts : public ConfigObject
 {
 public:
-    Cuts(){Init();}
-    ~Cuts();
+    static Cuts& Instance();
+
+    Cuts(const Cuts&) = delete;
+    Cuts& operator=(const Cuts&) = delete;
+    Cuts(Cuts&&) = delete;
+    Cuts& operator=(Cuts&&) = delete;
 
     // members
     void SetFile(const char* path);
@@ -63,6 +67,7 @@ public:
     bool strip_mean_time(const StripHit &) const;
     bool reject_max_first_timebin(const StripHit &) const;
     bool reject_max_last_timebin(const StripHit &) const;
+    bool is_concave_shape(const StripHit &) const;
 
     // cuts on clusters
     bool seed_strip_min_peak_adc(const StripCluster &) const;
@@ -107,6 +112,8 @@ public:
     const std::unordered_map<std::string, block_t> & __get_block_data() const {return m_block;}
 
 private:
+    Cuts();
+    ~Cuts();
     std::string path;
 
     std::string tokens = " ,;:@()\'\"\r";

@@ -4,8 +4,6 @@
 #include "GEMStruct.h"
 #include "ConfigObject.h"
 
-class Cuts;
-
 class GEMCluster : public ConfigObject
 {
 public:
@@ -48,9 +46,6 @@ protected:
 
     // cross talk characteristic distances
     std::vector<float> charac_dists;
-
-    // 
-    Cuts *gem_cuts;
 };
 
 #endif

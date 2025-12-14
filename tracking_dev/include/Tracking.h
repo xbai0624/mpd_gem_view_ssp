@@ -6,7 +6,6 @@
 #include <map>
 #include <iomanip>
 #include "tracking_struct.h"
-#include "Cuts.h"
 
 namespace tracking_dev {
 
@@ -57,7 +56,6 @@ public:
     const std::vector<int> & GetAllHitModule() const {return v_hit_module;}
 
     TrackingUtility* GetTrackingUtility() {return tracking_utility;}
-    Cuts* GetTrackingCuts(){return tracking_cuts;}
 
 private:
     void initHitStatus();
@@ -106,7 +104,6 @@ private:
 
 private:
     TrackingUtility *tracking_utility;
-    Cuts *tracking_cuts;
 
     std::unordered_map<int, AbstractDetector*> detector; // layer_id <-> detector
     std::vector<int> layer_index; // vector of layer_id
