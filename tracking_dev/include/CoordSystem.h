@@ -1,6 +1,7 @@
 #ifndef COORD_SYSTEM_H
 #define COORD_SYSTEM_H
 
+#include <unordered_map>
 #include "tracking_struct.h"
 
 namespace tracking_dev
