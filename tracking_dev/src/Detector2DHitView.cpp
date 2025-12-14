@@ -1,4 +1,4 @@
-#include "Detector2DView.h"
+#include "Detector2DHitView.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -8,12 +8,12 @@
 
 namespace tracking_dev {
 
-Detector2DView::Detector2DView(QWidget* parent) : QWidget(parent),
+Detector2DHitView::Detector2DHitView(QWidget* parent) : QWidget(parent),
     scene(new QGraphicsScene(this)), view(new QGraphicsView(scene))
 {
 }
 
-void Detector2DView::InitView()
+void Detector2DHitView::InitView()
 {
     //view->setStyleSheet("background:transparent");
     for(auto &l: det)
@@ -27,7 +27,7 @@ void Detector2DView::InitView()
     layout -> addWidget(view);
 }
 
-void Detector2DView::ReDistributePaintingArea()
+void Detector2DHitView::ReDistributePaintingArea()
 {
     // need to minus 20 to allow space for vertical and horizontal scroll bars
     int sceneRectWidth = width() - 20 > 0 ? width() - 20 : 100;
@@ -54,24 +54,24 @@ void Detector2DView::ReDistributePaintingArea()
     }
 }
 
-void Detector2DView::resizeEvent([[maybe_unused]] QResizeEvent *event)
+void Detector2DHitView::resizeEvent([[maybe_unused]] QResizeEvent *event)
 {
     ReDistributePaintingArea();
 }
 
-void Detector2DView::AddDetector(Detector2DItem *item)
+void Detector2DHitView::AddDetector(Detector2DHitItem *item)
 {
     size_t s = det.size();
     det[s] = item;
 }
 
-void Detector2DView::Refresh()
+void Detector2DHitView::Refresh()
 {
     for(auto &i: det)
         i.second -> update();
 }
 
-void Detector2DView::BringUpPreviousEvent(int prev_event_number)
+void Detector2DHitView::BringUpPreviousEvent(int prev_event_number)
 {
     for(auto &i: det)
         i.second -> SetCounter(prev_event_number);

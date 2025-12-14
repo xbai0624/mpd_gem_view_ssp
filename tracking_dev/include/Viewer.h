@@ -16,8 +16,8 @@ class TRandom;
 namespace tracking_dev {
 
 class AbstractDetector;
-class Detector2DItem;
-class Detector2DView;
+class Detector2DHitItem;
+class Detector2DHitView;
 class Tracking;
 class TrackingDataHandler;
 
@@ -58,8 +58,8 @@ public:
 private:
         AbstractDetector *fDet[1000]; // max 1000 detector
 
-        Detector2DItem *fDet2DItem[1000]; // max 1000 detector
-        Detector2DView *fDet2DView;
+        Detector2DHitItem *fDet2DItem[1000]; // max 1000 detector
+        Detector2DHitView *fDet2DView;
         QSpinBox *btn_next;
         QPushButton *btn_50K;
         QPushButton *btn_open_file;

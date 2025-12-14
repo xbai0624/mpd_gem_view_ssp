@@ -20,11 +20,11 @@ namespace tracking_dev{
 #define CACHE_EVENT_SIZE 100
 class AbstractDetector;
 
-class Detector2DItem : public QGraphicsItem
+class Detector2DHitItem : public QGraphicsItem
 {
 public:
-    Detector2DItem();
-    ~Detector2DItem();
+    Detector2DHitItem();
+    ~Detector2DHitItem();
 
     // memebers
     QRectF boundingRect() const;

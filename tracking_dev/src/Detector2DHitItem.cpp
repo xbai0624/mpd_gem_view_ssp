@@ -1,4 +1,4 @@
-#include "Detector2DItem.h"
+#include "Detector2DHitItem.h"
 #include "AbstractDetector.h"
 #include <iostream>
 #include <cmath>
@@ -8,7 +8,7 @@ namespace tracking_dev {
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
 
-Detector2DItem::Detector2DItem()
+Detector2DHitItem::Detector2DHitItem()
 {
     // default bounding rect
     _boundingRect.setRect(0, 0, 50, 50);
@@ -17,14 +17,14 @@ Detector2DItem::Detector2DItem()
 ////////////////////////////////////////////////////////////////////////////////
 // dtor
 
-Detector2DItem::~Detector2DItem()
+Detector2DHitItem::~Detector2DHitItem()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // bounding rect
 
-QRectF Detector2DItem::boundingRect() const
+QRectF Detector2DHitItem::boundingRect() const
 {
     return _boundingRect;
 }
@@ -32,7 +32,7 @@ QRectF Detector2DItem::boundingRect() const
 ////////////////////////////////////////////////////////////////////////////////
 // paint
 
-void Detector2DItem::paint(QPainter *painter,
+void Detector2DHitItem::paint(QPainter *painter,
         [[maybe_unused]] const QStyleOptionGraphicsItem *option,
         [[maybe_unused]] QWidget *widget)
 {
@@ -51,7 +51,7 @@ void Detector2DItem::paint(QPainter *painter,
 ////////////////////////////////////////////////////////////////////////////////
 // resize event
 
-void Detector2DItem::resizeEvent()
+void Detector2DHitItem::resizeEvent()
 {
     QPainter painter;
     paint(&painter);
@@ -60,7 +60,7 @@ void Detector2DItem::resizeEvent()
 ////////////////////////////////////////////////////////////////////////////////
 // set bounding rect
 
-void Detector2DItem::SetBoundingRect(const QRectF &f)
+void Detector2DHitItem::SetBoundingRect(const QRectF &f)
 {
     prepareGeometryChange(); // only needed when bounding rect changes
 
@@ -70,7 +70,7 @@ void Detector2DItem::SetBoundingRect(const QRectF &f)
 ////////////////////////////////////////////////////////////////////////////////
 // update range: update the drawing area range
 
-void Detector2DItem::UpdateDrawingRange()
+void Detector2DHitItem::UpdateDrawingRange()
 {
     QRectF default_range = boundingRect();
 
@@ -89,7 +89,7 @@ void Detector2DItem::UpdateDrawingRange()
 ////////////////////////////////////////////////////////////////////////////////
 // draw a frame around the canvas area
 
-void Detector2DItem::DrawAxis(QPainter *painter)
+void Detector2DHitItem::DrawAxis(QPainter *painter)
 {
     QPen pen(Qt::black, 1);
     painter -> setPen(pen);
@@ -111,7 +111,7 @@ void Detector2DItem::DrawAxis(QPainter *painter)
 ////////////////////////////////////////////////////////////////////////////////
 // draw detector grids
 
-void Detector2DItem::DrawGrids(QPainter *painter)
+void Detector2DHitItem::DrawGrids(QPainter *painter)
 {
     QPen pen(Qt::lightGray, 1);
     //painter -> setPen(pen);
@@ -135,7 +135,7 @@ void Detector2DItem::DrawGrids(QPainter *painter)
 ////////////////////////////////////////////////////////////////////////////////
 // draw contents
 
-void Detector2DItem::DrawEventContent(QPainter *painter)
+void Detector2DHitItem::DrawEventContent(QPainter *painter)
 {
     QPen linepen(Qt::black);
     linepen.setCapStyle(Qt::RoundCap);
@@ -204,7 +204,7 @@ void Detector2DItem::DrawEventContent(QPainter *painter)
 ////////////////////////////////////////////////////////////////////////////////
 // clear
 
-void Detector2DItem::Clear()
+void Detector2DHitItem::Clear()
 {
     _title = "";
 }
@@ -212,7 +212,7 @@ void Detector2DItem::Clear()
 ////////////////////////////////////////////////////////////////////////////////
 // set detector title
 
-void Detector2DItem::SetTitle(const std::string &s)
+void Detector2DHitItem::SetTitle(const std::string &s)
 {
     _title = QString(s.c_str());
 }
@@ -220,7 +220,7 @@ void Detector2DItem::SetTitle(const std::string &s)
 ////////////////////////////////////////////////////////////////////////////////
 // set detector x/y strip index range
 
-void Detector2DItem::SetDataRange(int x_min, int x_max, int y_min, int y_max)
+void Detector2DHitItem::SetDataRange(int x_min, int x_max, int y_min, int y_max)
 {
     data_x_min = x_min;
     data_x_max = x_max;
@@ -231,7 +231,7 @@ void Detector2DItem::SetDataRange(int x_min, int x_max, int y_min, int y_max)
 ////////////////////////////////////////////////////////////////////////////////
 // pass detector handle
 
-void Detector2DItem::PassDetectorHandle(AbstractDetector *fD)
+void Detector2DHitItem::PassDetectorHandle(AbstractDetector *fD)
 {
     detector = fD;
 
@@ -244,7 +244,7 @@ void Detector2DItem::PassDetectorHandle(AbstractDetector *fD)
 ////////////////////////////////////////////////////////////////////////////////
 // update the event for drawing
 
-void Detector2DItem::UpdateEventContent()
+void Detector2DHitItem::UpdateEventContent()
 {
     global_hits.clear();
     real_hits.clear();
@@ -309,7 +309,7 @@ void Detector2DItem::UpdateEventContent()
 ////////////////////////////////////////////////////////////////////////////////
 // setup a event counter for drawing back events
 
-void Detector2DItem::SetCounter(int i)
+void Detector2DHitItem::SetCounter(int i)
 {
     counter = i;
 }

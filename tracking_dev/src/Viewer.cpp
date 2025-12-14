@@ -1,7 +1,7 @@
 #include "Viewer.h"
 #include "AbstractDetector.h"
-#include "Detector2DItem.h"
-#include "Detector2DView.h"
+#include "Detector2DHitItem.h"
+#include "Detector2DHitView.h"
 #include "Tracking.h"
 #include "TrackingDataHandler.h"
 #include "TrackingUtility.h"
@@ -72,7 +72,7 @@ void Viewer::InitToyDetectorSetup()
 
 void Viewer::InitGui()
 {
-    fDet2DView = new Detector2DView(this);
+    fDet2DView = new Detector2DHitView(this);
 
 #ifdef USE_SIM_DATA
     NDetector_Implemented = NDET_SIM;
@@ -82,7 +82,7 @@ void Viewer::InitGui()
 
     for(int i=0; i<NDetector_Implemented; i++)
     {
-        fDet2DItem[i] = new Detector2DItem();
+        fDet2DItem[i] = new Detector2DHitItem();
 
 #ifdef USE_SIM_DATA
         fDet2DItem[i] -> PassDetectorHandle(fDet[i]);

@@ -63,8 +63,8 @@ DEFINES += QT_DEPRECATED_WARNINGS #MULTI_THREAD
 # Input path
 HEADERS += include/AbstractDetector.h \
            include/CoordSystem.h \
-           include/Detector2DItem.h \
-           include/Detector2DView.h \
+           include/Detector2DHitItem.h \
+           include/Detector2DHitView.h \
            include/histos.hpp \
            include/Tracking.h \
            include/tracking_struct.h \
@@ -77,8 +77,8 @@ HEADERS += include/AbstractDetector.h \
 # source path
 SOURCES += src/AbstractDetector.cpp \
            src/CoordSystem.cpp \
-           src/Detector2DItem.cpp \
-           src/Detector2DView.cpp \
+           src/Detector2DHitItem.cpp \
+           src/Detector2DHitView.cpp \
            src/main.cpp \
            src/Tracking.cpp \
            src/tracking_struct.cpp \

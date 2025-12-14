@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Detector2DView is an integrated widget, this widget has a QGraphicsView    //
+// Detector2DHitView is an integrated widget, this widget has a QGraphicsView    //
 // and a QGraphicsScene member, it organizes QGraphicsItem into any layout    //
 // one would like to have.                                                    //
 //                                                                            //
@@ -12,7 +12,7 @@
 #ifndef DETECTOR_2D_VIEW_H
 #define DETECTOR_2D_VIEW_H
 
-#include "Detector2DItem.h"
+#include "Detector2DHitItem.h"
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -27,12 +27,12 @@ namespace tracking_dev {
 ////////////////////////////////////////////////////////////////////////////////
 // main data struct
 
-class Detector2DView : public QWidget
+class Detector2DHitView : public QWidget
 {
 public:
-    Detector2DView(QWidget* parent = nullptr);
+    Detector2DHitView(QWidget* parent = nullptr);
 
-    void AddDetector(Detector2DItem *detector);
+    void AddDetector(Detector2DHitItem *detector);
     void InitView();
 
     void ReDistributePaintingArea();
@@ -50,7 +50,7 @@ private:
     QGraphicsView *view; 
 
     // detectors
-    std::map<size_t, Detector2DItem*> det;
+    std::map<size_t, Detector2DHitItem*> det;
 };
 
 };
