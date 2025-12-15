@@ -42,7 +42,7 @@ void Cuts::Init()
     txt_parser.Configure("config/gem.conf");
     std::string path = txt_parser.Value<std::string>("GEM Tracking Config");
 
-    std::cout<<"loading tracking config from : "<<path<<std::endl;
+    std::cout<<"Cuts:: Loading tracking config from : "<<path<<std::endl;
  
     SetFile(path.c_str());
     LoadFile();
