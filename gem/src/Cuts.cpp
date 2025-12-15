@@ -335,9 +335,6 @@ bool Cuts::is_concave_shape(const StripHit &hit) const
     int max_bin = __get_max_timebin(hit);
     int n_ts = (int)hit.ts_adc.size() - 1;
 
-    if(max_bin == 0 || max_bin == n_ts)
-        return false;
-
     for(int i= 0; i<max_bin; ++i)
         if(hit.ts_adc[i] >= hit.ts_adc[i+1])
             return false;
@@ -347,8 +344,9 @@ bool Cuts::is_concave_shape(const StripHit &hit) const
             return false;
 
     // local concavity at peak (discrete f'' < 0)
-    if(hit.ts_adc[max_bin-1] + hit.ts_adc[max_bin+1] >= 2 * hit.ts_adc[max_bin])
-        return false;
+    if(max_bin > 0 && max_bin < n_ts)
+        if(hit.ts_adc[max_bin-1] + hit.ts_adc[max_bin+1] >= 2 * hit.ts_adc[max_bin])
+            return false;
 
     return true;
 }
