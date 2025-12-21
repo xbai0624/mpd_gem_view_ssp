@@ -79,6 +79,7 @@ HEADERS += include/QRootCanvas.h \
            include/ColorBar.h \
            include/PixelPads.h \
            include/OnlineAnalysisInterface.h \
+           experiment_setup/PRadSetup.h \
 
 SOURCES += src/main.cpp \
            src/QRootCanvas.cpp \
@@ -95,3 +96,4 @@ SOURCES += src/main.cpp \
            src/PixelPads.cpp \
            src/InfoCenter.cpp \
            src/OnlineAnalysisInterface.cpp \
+           experiment_setup/PRadSetup.cpp \

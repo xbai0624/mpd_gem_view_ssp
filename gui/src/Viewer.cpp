@@ -2,6 +2,7 @@
 #include "InfoCenter.h"
 #include "APVStripMapping.h"
 #include "hardcode.h"
+#include "experiment_setup/PRadSetup.h"
 
 #include <QGraphicsRectItem>
 #include <QSpinBox>
@@ -29,6 +30,7 @@
 #define APVS_PER_TAB_X 6
 #define APVS_PER_TAB_Y 6
 #define EYE_BALL_TRACKING
+#define SHOW_PRAD_SETUP
 
 ////////////////////////////////////////////////////////////////
 // ctor
@@ -36,8 +38,8 @@
 Viewer::Viewer(QWidget *parent) : QMainWindow(parent)
 {
     LoadMappingFile();
-    InitGuiInterface();
     InitGEMAnalyzer();
+    InitGuiInterface();
     resize(sizeHint());
 }
 
@@ -189,18 +191,6 @@ QWidget* Viewer::createTopToolbar()
 }
 
 ////////////////////////////////////////////////////////////////
-// this function will draw some illustrating shapes for 
-// demonstrating the detector APV setup, each setup is different
-// depends on user's implementation
-
-void Viewer::InitComponentsSchematic()
-{
-    componentsView = new ComponentsSchematic(this);
-    componentsView->resize(800, 400);
-    componentsView -> setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Ignored));
-}
-
-////////////////////////////////////////////////////////////////
 // add a menu bar
 
 void Viewer::createMenuBar()
@@ -339,6 +329,9 @@ QWidget* Viewer::createSettingsPanel()
     v -> setSpacing(4);
 
     QToolBox *toolBox = new QToolBox(box);
+#ifdef SHOW_PRAD_SETUP
+    toolBox -> addItem(createPRadSetupPage(), tr("PRad GEM Setup"));
+#endif
     toolBox -> addItem(createPedestalCommonModePage(), tr("Pedestal / Common Mode"));
     toolBox -> addItem(createMappingFilePage(), tr("Mapping File"));
     toolBox -> addItem(createReplayPage(), tr("Replay"));
@@ -346,6 +339,27 @@ QWidget* Viewer::createSettingsPanel()
 
     v -> addWidget(toolBox, 1);
     return box;
+}
+
+////////////////////////////////////////////////////////////////
+// set up common mode / pedestal
+QWidget* Viewer::createPRadSetupPage()
+{
+    QWidget *page = new QWidget(this);
+    QHBoxLayout *v = new QHBoxLayout(page);
+    v -> setContentsMargins(0, 0, 0, 0);
+    v -> setSpacing(20);
+
+    PRadSetup *layer1 = new PRadSetup(page, 1);
+    //PRadSetup *layer2 = new PRadSetup(page, 2);
+    v -> addWidget(layer1);
+    //v -> addWidget(layer2);
+
+    // connect signals
+    connect(this, &Viewer::onlineHitsDrawn, layer1, &PRadSetup::DrawEventHits2D);
+    //connect(this, &Viewer::onlineHitsDrawn, layer2, &PRadSetup::DrawEventHits2D);
+ 
+    return page;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -812,6 +826,7 @@ void Viewer::DrawGEMOnlineHits(int num)
         if(chamber_pos <0 || chamber_pos > 3)
             continue;
 
+        Prepare2DGeoHits(i);
         GEMPlane *pln_x = i -> GetPlane(GEMPlane::Plane_X);
         GEMPlane *pln_y = i -> GetPlane(GEMPlane::Plane_Y);
         std::vector<int> x_online_hits, y_online_hits;
@@ -870,6 +885,9 @@ void Viewer::DrawGEMOnlineHits(int num)
     // draw eye-ball tracking GEM 2D strips
     det_view -> FillEvent(online_hits);
 #endif
+
+    // emit a signal when done
+    emit onlineHitsDrawn(detector_2d_geo_hits);
 }
 
 
@@ -1225,4 +1243,57 @@ void Viewer::OpenOnlineAnalysisInterface()
 {
     winOnlineInterface = new OnlineAnalysisInterface();
     winOnlineInterface -> show();
+}
+
+void Viewer::Prepare2DGeoHits(GEMDetector *det)
+{
+    // for online 2d hits drawing, match clusters according to ADC, only keep coords (x, y) for simplicity
+    GEMCluster *cluster_method = pGEMReplay -> GetGEMSystem() -> GetClusterMethod();
+
+    // extract new hits for detector plane
+    auto get_plane_hits = [&](GEMPlane *pln) -> std::vector<std::pair<double, double>>
+    {
+        std::vector<std::pair<double, double>> res;
+        if(pln == nullptr) {
+            return res;
+        }
+        pln -> FormClusters(cluster_method);
+        auto strip_clusters = pln -> GetStripClusters();
+
+        for(auto &i: strip_clusters) {
+            res.emplace_back(i.peak_charge, i.position);
+        }
+
+        // clear strip clusters -- not needed for online anymore
+        pln -> ClearStripClusters();
+
+        // sort according to ADC, bigger ones appear first
+        std::sort(res.begin(), res.end(),
+                [](const auto &a, const auto &b)  {
+                return a.first > b.first;
+                });
+
+        return res;
+    };
+
+    QVector<QPointF> res;
+    if(det == nullptr) {
+        std::cout<<"detector is nullptr."<<std::endl;
+    }
+
+    auto x_hits = get_plane_hits(det -> GetPlane(GEMPlane::Plane_X));
+    auto y_hits = get_plane_hits(det -> GetPlane(GEMPlane::Plane_Y));
+
+    // match according to ADC
+    size_t N = x_hits.size() > y_hits.size() ? y_hits.size() : x_hits.size();
+
+    for(size_t i=0; i<N; i++) {
+        // .second is position; .first is adc
+        double x = x_hits[i].second, y = y_hits[i].second;
+        res.emplace_back(x, y);
+    }
+
+    int id = det -> GetDetID();
+
+    detector_2d_geo_hits[id] = res;
 }

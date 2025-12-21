@@ -2,7 +2,6 @@
 #define VIEWER_H
 
 //#include "QMainCanvas.h"
-#include "ComponentsSchematic.h"
 #include "GEMAnalyzer.h"
 #include "GEMReplay.h"
 #include "APVStripMapping.h"
@@ -52,16 +51,13 @@ public:
     QWidget* createDetector2DStripsView(QWidget*);
 
     QWidget* createSettingsPanel();
+    QWidget* createPRadSetupPage();
     QWidget* createPedestalCommonModePage();
     QWidget* createMappingFilePage();
     QWidget* createReplayPage();
     QWidget* createAdvancedPage();
 
     QWidget* createSystemLogPanel();
-
-    // used to draw a schematic of detector apv setup
-    // highly dependent on each setup, use is optional
-    void InitComponentsSchematic();
 
     // init detector analyzers
     void InitGEMAnalyzer();
@@ -93,6 +89,10 @@ public slots:
     void ReplayCluster();
     void OpenOnlineAnalysisInterface();
     void SaveCurrentEvent();
+    void Prepare2DGeoHits(GEMDetector *);
+
+signals:
+    void onlineHitsDrawn(const QMap<int, QVector<QPointF>>&);
 
 public:
     template<typename T> void minimum_qt_unit_height(T b)
@@ -110,11 +110,9 @@ private:
     QSpinBox *m_eventSpin;  // event number
     QLineEdit *m_pedOut; // pedestal path
     QLineEdit *m_cmOut; // common mode path
-
     QPlainTextEdit *m_logEdit;
 
     // contents to show
-    ComponentsSchematic *componentsView;    // detector setup
     std::vector<HistoWidget*> vTabCanvas;   // tab contents, use self-implemented HistoWidgets
     // online hits
     std::vector<HistoWidget*> vTabCanvasOnlineHits; // tab contents, for drawing online hits
@@ -152,6 +150,7 @@ private:
     size_t max_cache_events = 500;
     std::deque<std::map<APVAddress, std::vector<int>>> event_cache;
     std::deque<std::map<APVAddress, APVDataType>> event_flag_cache;
+    QMap<int, QVector<QPointF>> detector_2d_geo_hits;
 
     // a text parser
     ConfigObject txt_parser;

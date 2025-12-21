@@ -47,6 +47,7 @@ public:
     void CollectAPVHits();
     float GetStripPosition(const int &plane_strip) const;
     void FormClusters(GEMCluster *method);
+    void ClearStripClusters();
 
     // set parameter
     void SetDetector(GEMDetector *det, bool force_set = false);
