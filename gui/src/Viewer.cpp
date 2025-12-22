@@ -351,9 +351,9 @@ QWidget* Viewer::createPRadSetupPage()
     v -> setSpacing(20);
 
     PRadSetup *layer1 = new PRadSetup(page, 1);
-    //PRadSetup *layer2 = new PRadSetup(page, 2);
+    PRadSetup *layer2 = new PRadSetup(page, 2);
     v -> addWidget(layer1);
-    //v -> addWidget(layer2);
+    v -> addWidget(layer2);
 
     // connect signals
     connect(this, &Viewer::onlineHitsDrawn, layer1, &PRadSetup::DrawEventHits2D);

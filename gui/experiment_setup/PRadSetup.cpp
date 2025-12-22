@@ -341,9 +341,6 @@ void PRadSetup::DrawEventHits2D(const QMap<int, QVector<QPointF>> &data)
     // draw current event
     for(auto &i: Hits2D)
         scene -> addItem(i);
-
-    view -> viewport() -> update();
-    scene -> update();
 }
 
 void PRadSetup::PassData(const QMap<int, QVector<QPointF>> &data)
@@ -357,16 +354,28 @@ void PRadSetup::PassData(const QMap<int, QVector<QPointF>> &data)
 
     auto coord_transform = [&](const QPointF &hit, bool left_chamber) -> std::pair<double, double>
     {
-            double x = hit.x(), y = hit.y();
+        double x = hit.x(), y = hit.y();
 
-            if(left_chamber) {
-                x = det_w/2 + x;
-                y = det_h/2 + y;
-            }
-            else {
-                x = det_w/2 - x;
-                y = det_h/2 - y;
-            }
+        // for eel setup
+        if(left_chamber) {
+            x = (det_w/4 + x);
+            y = det_h/2 + y;
+        }
+        else {
+            x = (det_w - overlap_d) - (det_w/4 + x);
+            y = det_h/2 - y;
+        }
+        return std::pair<double, double>(x, y); // for eel setup
+
+        // for PRad2 setup
+        if(left_chamber) {
+            x = det_w/4 + x;
+            y = det_h/2 + y;
+        }
+        else {
+            x = det_w/4 - x;
+            y = det_h/2 - y;
+        }
 
         return std::pair<double, double>(x, y);
     };
@@ -391,7 +400,7 @@ void PRadSetup::PassData(const QMap<int, QVector<QPointF>> &data)
             auto pts = coord_transform(p, is_left);
             //std::cout<<"detector id: "<<det_id<<"   ("<<pts.first<<", "<<pts.second<<")"<<std::endl;
 
-            auto *h = new QGraphicsEllipseItem(0, 0, 10, 10);
+            auto *h = new QGraphicsEllipseItem(0, 0, 40, 40);
             if(is_left) {
                 h -> setBrush(Qt::red);
                 h -> setPen(QPen(Qt::red, 8));
