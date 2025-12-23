@@ -357,7 +357,7 @@ QWidget* Viewer::createPRadSetupPage()
 
     // connect signals
     connect(this, &Viewer::onlineHitsDrawn, layer1, &PRadSetup::DrawEventHits2D);
-    //connect(this, &Viewer::onlineHitsDrawn, layer2, &PRadSetup::DrawEventHits2D);
+    connect(this, &Viewer::onlineHitsDrawn, layer2, &PRadSetup::DrawEventHits2D);
  
     return page;
 }
@@ -674,6 +674,11 @@ void Viewer::DrawGEMRawHistos(int num)
     int napvs_per_tab = APVS_PER_TAB_X * APVS_PER_TAB_Y;
     for(auto &i: mData) {
         int index = apv_count / napvs_per_tab;
+        if(index >= nTab) {
+            m_logEdit -> appendPlainText("[error]: number of APVs in data exceeded the maximum allowed in mapping file.");
+            m_logEdit -> appendPlainText("[error]:        ------- mapping file is wrong.");
+            continue;
+        }
         vH[index].push_back(i.second);
         vAddr[index].push_back(i.first);
         apv_count++;

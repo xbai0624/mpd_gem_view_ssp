@@ -7,10 +7,12 @@ TARGET = lib/epics
 target.path += ./lib
 INSTALLS += target
 
-CONFIG += c++17
-CONFIG += release
 QMAKE_CXXFLAGS -= -std=gnu++1y
+QMAKE_CXXFLAGS -= -std=c++1y
 QMAKE_CXXFLAGS += -std=c++17
+QMAKE_CXXFLAGS += -g
+QMAKE_CFLAGS   += -g
+QMAKE_LFLAGS   += -g
 
 INCLUDEPATH += ./include ../gem/include ../gem/third_party
 

@@ -5,13 +5,17 @@
 TEMPLATE = app
 TARGET = ../bin/data_viewer
 
+QT += core gui widgets
+
 ######################################################################
 # compiler configs
 
-QMAKE_CXXFLAGS -= -std=gnu++1z
+QMAKE_CXXFLAGS -= -std=gnu++1y
+QMAKE_CXXFLAGS -= -std=c++1y
 QMAKE_CXXFLAGS += -std=c++17
-CONFIG += c++17 release
-QT += core gui widgets
+QMAKE_CXXFLAGS += -g
+QMAKE_CFLAGS   += -g
+QMAKE_LFLAGS   += -g
 
 ######################################################################
 # headers
