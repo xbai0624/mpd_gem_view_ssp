@@ -14,6 +14,9 @@ do
     rm -rf $i/obj/*.o
 done
 
+echo "rm -rf tracking_dev/Makefile.tracking_dev_app"
+rm -rf tracking_dev/Makefile.tracking_dev_app
+
 echo "rm -rf gem/lib/*"
 rm -rf gem/lib/*
 echo "rm -rf tracking_dev/lib/*"
