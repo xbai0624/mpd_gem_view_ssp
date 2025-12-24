@@ -17,7 +17,7 @@ namespace tracking_dev {
         auto gem_setup = Cuts::Instance().__get_block_data();
         for(auto &i: gem_setup)
         {
-            int layer = i.second.layer_id;
+            int module_id = i.second.module_id;
 
             // offset
             point_t offset(
@@ -25,7 +25,7 @@ namespace tracking_dev {
                     i.second.offset.at(1),
                     i.second.offset.at(2)
                     );
-            offset_gem[layer] = offset;
+            offset_gem[module_id] = offset;
 
             // tilt angle
             point_t angle(
@@ -33,7 +33,7 @@ namespace tracking_dev {
                     i.second.tilt_angle.at(1),
                     i.second.tilt_angle.at(2)
                     );
-            angle_gem[layer] = angle;
+            angle_gem[module_id] = angle;
 
             // size
             point_t dim(
@@ -41,7 +41,7 @@ namespace tracking_dev {
                     i.second.dimension.at(1),
                     i.second.dimension.at(2)
                     );
-            dimension_gem[layer] = dim;
+            dimension_gem[module_id] = dim;
 
             // position
             point_t pos(
@@ -49,10 +49,10 @@ namespace tracking_dev {
                     i.second.position.at(1),
                     i.second.position.at(2)
                     );
-            position_gem[layer] = pos;
+            position_gem[module_id] = pos;
 
             // is in tracker system or not
-            tracker_config_gem[layer] = i.second.is_tracker;
+            tracker_config_gem[module_id] = i.second.is_tracker;
         }
     }
 
@@ -96,8 +96,8 @@ namespace tracking_dev {
         Translate(p, t);
     }
 
-    void CoordSystem::Transform(point_t &p, int ilayer)
+    void CoordSystem::Transform(point_t &p, int det_id)
     {
-        Transform(p, angle_gem[ilayer], offset_gem[ilayer]);
+        Transform(p, angle_gem[det_id], offset_gem[det_id]);
     }
 };

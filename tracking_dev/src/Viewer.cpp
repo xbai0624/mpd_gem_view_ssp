@@ -20,7 +20,7 @@
 
 namespace tracking_dev {
 
-#define USE_SIM_DATA
+//#define USE_SIM_DATA
 
 Viewer::Viewer(QWidget *parent) : QWidget(parent)
 {
@@ -78,20 +78,29 @@ void Viewer::InitGui()
     NDetector_Implemented = NDET_SIM;
 #else
     NDetector_Implemented = tracking_data_handler -> GetNumberofDetectors();
+    const std::vector<int> & detector_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
+    if((int)detector_module_ids.size() != NDetector_Implemented) {
+        std::cout<<"Tracking Viewer [ERROR]: tracking detector module_id vector doesn't equal actual tracking detectors."
+            <<std::endl<<"                        check your gem_tracking.conf config file."<<std::endl;
+        exit(0);
+    }
 #endif
 
     for(int i=0; i<NDetector_Implemented; i++)
     {
         fDet2DItem[i] = new Detector2DHitItem();
+        int title_index = i;
 
 #ifdef USE_SIM_DATA
         fDet2DItem[i] -> PassDetectorHandle(fDet[i]);
 #else
-        fDet[i] = tracking_data_handler->GetDetector(i);
+        int det_id = detector_module_ids[i];
+        title_index = det_id;
+        fDet[i] = tracking_data_handler->GetDetector(det_id);
         fDet2DItem[i] -> PassDetectorHandle(fDet[i]);
 #endif
 
-        std::string title = std::string("layer ") + std::to_string(i)
+        std::string title = std::string("GEM Module ") + std::to_string(title_index)
             + std::string(", z = ") + std::to_string((int)fDet[i]->GetZPosition())
             + std::string(" mm");
         fDet2DItem[i] -> SetTitle(title.c_str());

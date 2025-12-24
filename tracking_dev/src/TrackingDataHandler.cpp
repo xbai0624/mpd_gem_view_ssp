@@ -69,15 +69,12 @@ namespace tracking_dev
         tracking = new Tracking();
         detector_list = gem_sys -> GetDetectorList();
 
-        unsigned int nDET = detector_list.size();
-        fDet.resize(nDET, nullptr);
-
         for(auto &det: detector_list)
         {
-            int i = det -> GetLayerID();
+            int i = det -> GetDetID();
 
-            point_t dimension = coord_system -> GetLayerDimension(i);
-            point_t origin = coord_system -> GetLayerPosition(i);
+            point_t dimension = coord_system -> GetDetectorDimension(i);
+            point_t origin = coord_system -> GetDetectorPosition(i);
 
             fDet[i] = new AbstractDetector();
             fDet[i] -> SetOrigin(origin);
@@ -93,9 +90,20 @@ namespace tracking_dev
             bool is_tracker = coord_system -> IsInTrackerSystem(i);
             if(is_tracker)
                 tracking -> AddDetector(i, fDet[i]);
+
+            vDetModuleIDs.push_back(i);
         }
 
         tracking -> CompleteSetup();
+    }
+
+    AbstractDetector* TrackingDataHandler::GetDetector(int i) const
+    {
+        // find detector by detector module_id
+        auto it = fDet.find(i);
+
+        if(it == fDet.end()) return nullptr;
+        return it->second;
     }
 
     void TrackingDataHandler::Configure()
@@ -147,13 +155,14 @@ namespace tracking_dev
     void TrackingDataHandler::TransferDetector(GEMDetector* gem_det, AbstractDetector *det)
     {
         const std::vector<GEMHit> & detector_2d_hits = gem_det -> GetHits();
-        int layer = gem_det -> GetLayerID();
+        int module_id = gem_det -> GetDetID();
+        int layer_id = gem_det -> GetLayerID();
 
         // if this gem is not part of the tracking system, then skip its data
         // xinzhan: instead of skip its data, if this gem is not part of the tracking system
         //          then it won't be passed to Tracking handle, so it is fine to add back the
         //          data in here (we need its data for tracker based residue distribution study)
-        //if(!Cuts::Instance().is_tracking_layer(layer))
+        //if(!Cuts::Instance().is_tracking_detector(layer))
         //    return;
 
         double z_det = det -> GetZPosition();
@@ -163,14 +172,10 @@ namespace tracking_dev
             point_t p(i.x, i.y, z_det, i.x_charge, i.y_charge, i.x_peak, i.y_peak, 
                     i.x_max_timebin, i.y_max_timebin, i.x_size, i.y_size);
 
-            // currently use layer id as module id, this works for now since one layer
-            // has only one module; for the future, module_id should be read
-            // from mapping file, which is easy to implement, since we already have
-            // gem_det pointer here: module_id = gem_det -> GetModuleID();
-            p.module_id = layer;
-            p.layer_id = layer;
+            p.module_id = module_id;
+            p.layer_id = layer_id;
 
-            coord_system -> Transform(p, layer);
+            coord_system -> Transform(p, module_id);
             det -> AddHit(p);
         }
     }

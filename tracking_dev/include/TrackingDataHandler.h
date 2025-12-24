@@ -38,7 +38,8 @@ namespace tracking_dev {
         // getters
         void GetCurrentEvent();
         unsigned int GetNumberofDetectors(){return detector_list.size();}
-        AbstractDetector* GetDetector(int i){return fDet[i];}
+        const std::vector<int>& GetDetectorModuleIDs() const {return vDetModuleIDs;}
+        AbstractDetector* GetDetector(int i) const;
         bool IsOnlineMode(){return is_online_mode;}
         GEMSystem * GetGEMSystem(){return gem_sys;}
         CoordSystem *GetCoordSystem(){return coord_system;}
@@ -61,7 +62,9 @@ namespace tracking_dev {
 
         // 
         Tracking *tracking;
-        std::vector<AbstractDetector*> fDet;
+        //format is: <detector_module_id, detector_pointer> fDet
+        std::unordered_map<int, AbstractDetector*> fDet;
+        std::vector<int> vDetModuleIDs;
         std::vector<GEMDetector*> detector_list;
 
         //

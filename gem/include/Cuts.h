@@ -90,11 +90,12 @@ public:
     bool track_chi2(const std::vector<StripCluster> &);
 
     // check if a layer participate in tracking
-    bool is_tracking_layer(const int &layer) const;
+    bool is_tracking_detector(const int &det_id) const;
 
 public:
     struct block_t {
         std::string module_name;
+        int module_id;
         int layer_id;
         std::vector<double> position;
         std::vector<double> dimension;
@@ -126,7 +127,7 @@ private:
 
     // block entries : within '{' and '}'
     std::unordered_map<std::string, block_t> m_block;
-    std::unordered_map<int, bool> m_tracking_layer_switch;
+    std::unordered_map<int, bool> m_tracking_detector_switch;
 };
 
 #endif

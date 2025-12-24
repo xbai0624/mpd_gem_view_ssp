@@ -20,10 +20,10 @@ namespace tracking_dev
         void Transform(point_t &p, int ilayer);
 
         // getters
-        point_t GetLayerOffset(int i){return offset_gem.at(i);}
-        point_t GetLayerTiltAngle(int i){return angle_gem.at(i);}
-        point_t GetLayerPosition(int i){return position_gem.at(i);}
-        point_t GetLayerDimension(int i){return dimension_gem.at(i);}
+        point_t GetDetectorOffset(int i){return offset_gem.at(i);}
+        point_t GetDetectorTiltAngle(int i){return angle_gem.at(i);}
+        point_t GetDetectorPosition(int i){return position_gem.at(i);}
+        point_t GetDetectorDimension(int i){return dimension_gem.at(i);}
         bool IsInTrackerSystem(int i){return tracker_config_gem.at(i);}
 
     private:

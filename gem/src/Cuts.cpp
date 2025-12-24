@@ -93,6 +93,9 @@ void Cuts::Print()
         std::cout<<std::setfill(' ')<<std::setw(16)<<"module_name:"
                  <<std::setfill(' ')<<std::setw(16)<<b.module_name
                  <<std::endl;
+        std::cout<<std::setfill(' ')<<std::setw(16)<<"module_id:"
+                 <<std::setfill(' ')<<std::setw(16)<<b.module_id
+                 <<std::endl;
         std::cout<<std::setfill(' ')<<std::setw(16)<<"layer_id:"
                  <<std::setfill(' ')<<std::setw(16)<<b.layer_id
                  <<std::endl;
@@ -447,16 +450,16 @@ bool Cuts::track_chi2([[maybe_unused]]const std::vector<StripCluster> &vc)
     return true;
 }
 
-bool Cuts::is_tracking_layer(const int &layer) const
+bool Cuts::is_tracking_detector(const int &det_id) const
 {
 	// if a layer not found, default it to participate tracking
-	if(m_tracking_layer_switch.find(layer) == m_tracking_layer_switch.end())
+	if(m_tracking_detector_switch.find(det_id) == m_tracking_detector_switch.end())
 	{
-		std::cout<<"Cuts::Warning: layer "<<layer<<" tracking config not found. Default to true."
+		std::cout<<"Cuts::Warning: detector "<<det_id<<" tracking config not found. Default to true."
 			<<std::endl;
 		return true;
 	}
-	if(!m_tracking_layer_switch.at(layer))
+	if(!m_tracking_detector_switch.at(det_id))
 		return false;
 	return true;
 }
@@ -609,6 +612,7 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
     if(sss < 1) return;
 
     block_t block_data;
+    block_data.module_id = tmp.at("module id").val<int>();
     block_data.layer_id = tmp.at("layer id").val<int>();
     block_data.position.clear();
     block_data.position = tmp.at("position").arr<double>();
@@ -626,12 +630,12 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
     m_block[key] = block_data;
 
     // tracking layer config
-    if(m_tracking_layer_switch.find(block_data.layer_id) != m_tracking_layer_switch.end())
+    if(m_tracking_detector_switch.find(block_data.module_id) != m_tracking_detector_switch.end())
     {
-	    if(m_tracking_layer_switch.at(block_data.layer_id) != block_data.is_tracker)
+	    if(m_tracking_detector_switch.at(block_data.module_id) != block_data.is_tracker)
 	    {
-		    std::cout<<"Cut::Error: conflicting tracking config found for layer: "
-			    <<block_data.layer_id<<std::endl;
+		    std::cout<<"Cut::Error: conflicting tracking config found for detector: "
+			    <<block_data.module_id<<std::endl;
 		    std::cout<<"            please check your config/gem_tracking.conf file."
 			    <<std::endl;
 		    exit(0);
@@ -639,7 +643,7 @@ void Cuts::__parse_block(const std::vector<std::string> &block)
     }
     else
     {
-	    m_tracking_layer_switch[block_data.layer_id] = block_data.is_tracker;
+	    m_tracking_detector_switch[block_data.module_id] = block_data.is_tracker;
     }
 }
 
