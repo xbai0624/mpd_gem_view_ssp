@@ -339,6 +339,7 @@ void Viewer::ProcessTrackingResult()
     // get offset
     const std::vector<int> & layer_index = tracking -> GetBestTrackLayerIndex();
     const std::vector<int> & hit_index = tracking -> GetBestTrackHitIndex();
+ 
     for(unsigned int i=0; i<layer_index.size(); i++)
     {
         int layer = layer_index[i];

@@ -71,7 +71,7 @@ namespace tracking_dev
 
         for(auto &det: detector_list)
         {
-            int i = det -> GetDetID();
+            int i = det -> GetDetID(); // detector module id
 
             point_t dimension = coord_system -> GetDetectorDimension(i);
             point_t origin = coord_system -> GetDetectorPosition(i);
@@ -147,7 +147,7 @@ namespace tracking_dev
         unsigned int N = detector_list.size();
         for(unsigned int i=0; i<N; i++)
         {
-            int layer_id_ = detector_list[i] -> GetLayerID();
+            int layer_id_ = detector_list[i] -> GetDetID();
             TransferDetector(detector_list[i], fDet[layer_id_]);
         }
     }
