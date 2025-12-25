@@ -421,7 +421,7 @@ void Viewer::Replay50K()
             t1 = Time::now();
             fsec fs_ = t1 - t0;
 
-            std::cout<<"\r"<<event_counter<<" time used: "<<fs_.count() <<" s"<<std::flush;
+            std::cout<<"\r"<<event_counter<<" events, time used: "<<fs_.count() <<" s"<<std::flush;
             t0 = t1;
         }
 
