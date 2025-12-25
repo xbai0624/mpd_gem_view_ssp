@@ -1,5 +1,5 @@
 #include "Viewer.h"
-#include "AbstractDetector.h"
+#include "VirtualDetector.h"
 #include "Detector2DHitItem.h"
 #include "Detector2DHitView.h"
 #include "Tracking.h"
@@ -58,11 +58,12 @@ void Viewer::InitToyDetectorSetup()
         //point_t origin(0, 0, (double)i*30);
         point_t origin(0, 0, z_origin[i]);
 
-        fDet[i] = new AbstractDetector();
+        fDet[i] = new VirtualDetector();
         fDet[i] -> SetOrigin(origin);
         fDet[i] -> SetDimension(dimension);
 
-        tracking -> AddDetector(i, fDet[i]);
+        layer_ids.push_back(i);
+        tracking -> AddLayer(i, fDet[i]);
     }
 
     tracking -> CompleteSetup();
@@ -77,35 +78,28 @@ void Viewer::InitGui()
 #ifdef USE_SIM_DATA
     NDetector_Implemented = NDET_SIM;
 #else
-    NDetector_Implemented = tracking_data_handler -> GetNumberofDetectors();
-    const std::vector<int> & detector_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
-    if((int)detector_module_ids.size() != NDetector_Implemented) {
-        std::cout<<"Tracking Viewer [ERROR]: tracking detector module_id vector doesn't equal actual tracking detectors."
-            <<std::endl<<"                        check your gem_tracking.conf config file."<<std::endl;
-        exit(0);
-    }
+    NDetector_Implemented = tracking_data_handler -> GetNumberofLayers();
+    layer_ids = tracking_data_handler -> GetLayerIDs();
 #endif
 
     for(int i=0; i<NDetector_Implemented; i++)
     {
-        fDet2DItem[i] = new Detector2DHitItem();
-        int title_index = i;
+        int layer_id = layer_ids[i];
+        fDet2DItem[layer_id] = new Detector2DHitItem();
 
 #ifdef USE_SIM_DATA
-        fDet2DItem[i] -> PassDetectorHandle(fDet[i]);
+        fDet2DItem[layer_id] -> PassDetectorHandle(fDet[layer_id]);
 #else
-        int det_id = detector_module_ids[i];
-        title_index = det_id;
-        fDet[i] = tracking_data_handler->GetDetector(det_id);
-        fDet2DItem[i] -> PassDetectorHandle(fDet[i]);
+        fDet[layer_id] = tracking_data_handler->GetLayer(layer_id);
+        fDet2DItem[layer_id] -> PassDetectorHandle(fDet[layer_id]);
 #endif
 
-        std::string title = std::string("GEM Module ") + std::to_string(title_index)
-            + std::string(", z = ") + std::to_string((int)fDet[i]->GetZPosition())
+        std::string title = std::string("GEM Layer ") + std::to_string(layer_id)
+            + std::string(", z = ") + std::to_string((int)fDet[layer_id]->GetZPosition())
             + std::string(" mm");
-        fDet2DItem[i] -> SetTitle(title.c_str());
+        fDet2DItem[layer_id] -> SetTitle(title.c_str());
 
-        fDet2DView -> AddDetector(fDet2DItem[i]);
+        fDet2DView -> AddDetector(fDet2DItem[layer_id]);
     }
     fDet2DView -> InitView();
 
@@ -299,7 +293,7 @@ void Viewer::DrawEvent(int event_number)
 
     std::cout<<"event number: "<<event_number<<std::endl;
     for(int i=0; i<NDetector_Implemented; i++)
-        std::cout<<" : det_"<<i<<" counts = "<<fDet[i] -> Get2DHitCounts();
+        std::cout<<" : det_"<<i<<" counts = "<<fDet[layer_ids[i]] -> Get2DHitCounts();
     std::cout<<std::endl;
 
     fEventNumber++;
@@ -339,7 +333,7 @@ void Viewer::ProcessTrackingResult()
     // get offset
     const std::vector<int> & layer_index = tracking -> GetBestTrackLayerIndex();
     const std::vector<int> & hit_index = tracking -> GetBestTrackHitIndex();
- 
+
     for(unsigned int i=0; i<layer_index.size(); i++)
     {
         int layer = layer_index[i];
@@ -358,8 +352,8 @@ void Viewer::ProcessTrackingResult()
 
     for(int i=0; i<NDetector_Implemented; i++)
     {
-        point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, fDet[i]->GetZPosition());
-        fDet[i] -> AddFittedHits(p);
+        point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, fDet[layer_ids[i]]->GetZPosition());
+        fDet[layer_ids[i]] -> AddFittedHits(p);
     }
 
     int n_good_track_candidates = tracking -> GetNGoodTrackCandidates();
@@ -473,8 +467,8 @@ void Viewer::FillEventHistos()
 {
     for(int i=0; i<NDetector_Implemented; i++)
     {
-        const std::vector<point_t> & real_hits = fDet[i] -> GetRealHits();
-        const std::vector<point_t> & fitted_hits = fDet[i] -> GetFittedHits();
+        const std::vector<point_t> & real_hits = fDet[layer_ids[i]] -> GetRealHits();
+        const std::vector<point_t> & fitted_hits = fDet[layer_ids[i]] -> GetFittedHits();
 
         for(unsigned int hitid=0; hitid<real_hits.size(); hitid++){
             hist_m.histo_1d<float>(Form("h_x_offset_gem%d", i)) -> Fill(real_hits[hitid].x - fitted_hits[hitid].x);
@@ -493,7 +487,7 @@ void Viewer::ShowGridHitStat()
 {
     for(int i=0; i<NDetector_Implemented; i++) {
         std::cout<<"detector : "<<i<<std::endl;
-        fDet[i] -> ShowGridHitStat();
+        fDet[layer_ids[i]] -> ShowGridHitStat();
     }
 }
 

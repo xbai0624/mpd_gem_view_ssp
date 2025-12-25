@@ -1,5 +1,5 @@
-#ifndef ABSTRACT_DETECTOR_H
-#define ABSTRACT_DETECTOR_H
+#ifndef VIRTUAL_DETECTOR_H
+#define VIRTUAL_DETECTOR_H
 
 #include "tracking_struct.h"
 #include <vector>
@@ -7,11 +7,11 @@
 
 namespace tracking_dev {
 
-class AbstractDetector
+class VirtualDetector
 {
 public:
-    AbstractDetector();
-    ~AbstractDetector();
+    VirtualDetector();
+    ~VirtualDetector();
 
     void SetOrigin(const point_t &p);
     void SetXAxis(const point_t &p);

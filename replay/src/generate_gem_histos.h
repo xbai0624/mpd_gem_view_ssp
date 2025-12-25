@@ -6,7 +6,7 @@
 #include "GEMDetector.h"
 #include "GEMPlane.h"
 #include "TrackingDataHandler.h"
-#include "AbstractDetector.h"
+#include "VirtualDetector.h"
 #include "tracking_struct.h"
 #include "Tracking.h"
 #include "MollerROStripDesign.hpp"
@@ -25,7 +25,7 @@ namespace quality_check_histos
     static GEMSystem *gem_sys;
     static tracking_dev::TrackingDataHandler *tracking_data_handler;
     static tracking_dev::Tracking *tracking;
-    static std::vector<tracking_dev::AbstractDetector*> fDet;
+    static std::vector<tracking_dev::VirtualDetector*> fDet;
     static std::string output_file_name;
 
     static int NDetector_Implemented = 0;

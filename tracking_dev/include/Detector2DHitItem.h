@@ -18,7 +18,7 @@
 namespace tracking_dev{
 
 #define CACHE_EVENT_SIZE 100
-class AbstractDetector;
+class VirtualDetector;
 
 class Detector2DHitItem : public QGraphicsItem
 {
@@ -37,7 +37,7 @@ public:
     void SetTitle(const std::string &s);
 
     // pass detector pointer to be plotted
-    void PassDetectorHandle(AbstractDetector *fD);
+    void PassDetectorHandle(VirtualDetector *fD);
 
     void SetDataRange(int x_min, int x_max, int y_min, int y_max);
     void SetCounter(int i);
@@ -80,7 +80,7 @@ private:
     // drawing area margin - distance away from bounding rect
     float margin_x, margin_y;
 
-    AbstractDetector *detector;
+    VirtualDetector *detector;
 
     // current event to draw
     std::vector<QPointF> global_hits;

@@ -10,7 +10,7 @@
 namespace tracking_dev {
 
     class Tracking;
-    class AbstractDetector;
+    class VirtualDetector;
 
     class TrackingDataHandler
     {
@@ -26,7 +26,8 @@ namespace tracking_dev {
         void NextEvent();
         void ClearPrevEvent();
         void PackageEventData();
-        void TransferDetector(GEMDetector *, AbstractDetector*);
+        void TransferDetector(GEMDetector *, VirtualDetector*);
+        void CombineDetHitsToLayer();
 
         // setters
         void SetGEMSystem(GEMSystem *s) {gem_sys = s;}
@@ -38,8 +39,11 @@ namespace tracking_dev {
         // getters
         void GetCurrentEvent();
         unsigned int GetNumberofDetectors(){return detector_list.size();}
+        unsigned int GetNumberofLayers(){return vLayerIDs.size();}
         const std::vector<int>& GetDetectorModuleIDs() const {return vDetModuleIDs;}
-        AbstractDetector* GetDetector(int i) const;
+        const std::vector<int>& GetLayerIDs() const {return vLayerIDs;}
+        VirtualDetector* GetDetector(int i) const;
+        VirtualDetector* GetLayer(int i) const;
         bool IsOnlineMode(){return is_online_mode;}
         GEMSystem * GetGEMSystem(){return gem_sys;}
         CoordSystem *GetCoordSystem(){return coord_system;}
@@ -63,8 +67,12 @@ namespace tracking_dev {
         // 
         Tracking *tracking;
         //format is: <detector_module_id, detector_pointer> fDet
-        std::unordered_map<int, AbstractDetector*> fDet;
+        std::unordered_map<int, VirtualDetector*> fDet;
+        // layer consists of multiple detectors
+        std::unordered_map<int, VirtualDetector*> fLayer;
+
         std::vector<int> vDetModuleIDs;
+        std::vector<int> vLayerIDs;
         std::vector<GEMDetector*> detector_list;
 
         //

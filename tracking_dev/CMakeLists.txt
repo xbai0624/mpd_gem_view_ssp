@@ -28,7 +28,7 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Gui Core)
 
 
 set(libsrcs
-    src/AbstractDetector.cpp
+    src/VirtualDetector.cpp
     src/Tracking.cpp
     src/tracking_struct.cpp
     src/TrackingUtility.cpp
@@ -50,7 +50,7 @@ set(libheaders
     include/TrackingDataHandler.h
     include/histos.hpp
     include/CoordSystem.h
-    include/AbstractDetector.h
+    include/VirtualDetector.h
     )
 
 set(exeheaders

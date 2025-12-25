@@ -10,7 +10,7 @@
 namespace tracking_dev {
 
     class TrackingUtility;
-    class AbstractDetector;
+    class VirtualDetector;
 
 #define LARGE_VALUE 999999999.
 
@@ -20,7 +20,7 @@ public:
     Tracking();
     ~Tracking();
 
-    void AddDetector(int index, AbstractDetector*);
+    void AddLayer(int index, VirtualDetector*);
     void CompleteSetup();
     void FindTracks();
     void ClearPreviousEvent();
@@ -105,7 +105,7 @@ private:
 private:
     TrackingUtility *tracking_utility;
 
-    std::unordered_map<int, AbstractDetector*> detector; // layer_id <-> detector
+    std::unordered_map<int, VirtualDetector*> detector; // layer_id <-> detector
     std::vector<int> layer_index; // vector of layer_id
 
     std::unordered_map<int, std::vector<bool>> hit_used; // layer_index <-> detector hit status

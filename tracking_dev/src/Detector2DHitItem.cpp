@@ -1,5 +1,5 @@
 #include "Detector2DHitItem.h"
-#include "AbstractDetector.h"
+#include "VirtualDetector.h"
 #include <iostream>
 #include <cmath>
 
@@ -231,7 +231,7 @@ void Detector2DHitItem::SetDataRange(int x_min, int x_max, int y_min, int y_max)
 ////////////////////////////////////////////////////////////////////////////////
 // pass detector handle
 
-void Detector2DHitItem::PassDetectorHandle(AbstractDetector *fD)
+void Detector2DHitItem::PassDetectorHandle(VirtualDetector *fD)
 {
     detector = fD;
 

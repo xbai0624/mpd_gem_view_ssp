@@ -8,7 +8,7 @@
 #include "TrackingDataHandler.h"
 #include "Tracking.h"
 #include "TrackingUtility.h"
-#include "AbstractDetector.h"
+#include "VirtualDetector.h"
 
 #define GENERATE_GEM_HISTOS_CXX
 #include "generate_gem_histos.h"

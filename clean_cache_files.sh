@@ -26,3 +26,6 @@ rm .DS_Store
 
 echo "rm -rf Makefile"
 rm -rf Makefile
+
+echo "rm -rf bin/*"
+rm -rf bin/*

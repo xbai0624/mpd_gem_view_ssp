@@ -15,7 +15,7 @@ class TRandom;
 
 namespace tracking_dev {
 
-class AbstractDetector;
+class VirtualDetector;
 class Detector2DHitItem;
 class Detector2DHitView;
 class Tracking;
@@ -56,9 +56,14 @@ public:
         void LoadFermiData();
 
 private:
-        AbstractDetector *fDet[1000]; // max 1000 detector
+        //VirtualDetector *fDet[1000]; // max 1000 detector
+        // <layer_id, detector_pointer*>
+        std::unordered_map<int, VirtualDetector*> fDet;
 
-        Detector2DHitItem *fDet2DItem[1000]; // max 1000 detector
+        //Detector2DHitItem *fDet2DItem[1000]; // max 1000 detector
+        // <layer_id, detector_pointer*>
+        std::unordered_map<int, Detector2DHitItem*> fDet2DItem;
+
         Detector2DHitView *fDet2DView;
         QSpinBox *btn_next;
         QPushButton *btn_50K;
@@ -79,6 +84,7 @@ private:
         std::string evio_file;
 
         int NDetector_Implemented = 0;
+        std::vector<int> layer_ids;
 
         // for toy model
         double fXOffset[NDET_SIM] = {0};

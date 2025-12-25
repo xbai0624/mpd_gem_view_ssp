@@ -1,6 +1,6 @@
 #include "Tracking.h"
 #include "TrackingUtility.h"
-#include "AbstractDetector.h"
+#include "VirtualDetector.h"
 #include "Cuts.h"
 #include <iostream>
 #include <algorithm>
@@ -18,7 +18,7 @@ Tracking::~Tracking()
 {
 }
 
-void Tracking::AddDetector(int index, AbstractDetector* det)
+void Tracking::AddLayer(int index, VirtualDetector* det)
 {
     if(detector.find(index) != detector.end())
     {
