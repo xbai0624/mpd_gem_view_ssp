@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include <ostream>
-
+#include <cstdint> // needed for compatibility with linux
 ////////////////////////////////////////////////////////////////
 // slot address for MPD
 
