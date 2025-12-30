@@ -19,6 +19,7 @@ public:
     void SetZAxis(const point_t &p);
     void SetDimension(const point_t &p);
     void SetLayerID(const int i) {layer_id = i;}
+    void SetDetModuleID(const int i) {det_module_id = i;}
 
     void AddLocalHit(const point_t &p);
     void AddGlobalHit(const point_t &p);
@@ -36,6 +37,7 @@ public:
     const point_t &GetZAxis() const;
     const point_t &GetDimension() const;
     int GetLayerID() const {return layer_id;}
+    int GetDetModuleID() const {return det_module_id;}
     const std::vector<point_t> &GetLocalHits() const;
     const std::vector<point_t> &GetGlobalHits() const;
     const std::vector<point_t> &GetHits() const {return global_hits;}
@@ -70,6 +72,7 @@ private:
     point_t y_axis;
     point_t dimension; // total length, not half length
     int layer_id;
+    int det_module_id;
 
     // local hits is only used for detector raw signal check
     std::vector<point_t> local_hits;

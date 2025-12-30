@@ -7,7 +7,7 @@
 
 namespace tracking_dev {
 
-//#define USE_GRID
+#define USE_GRID
 
 Tracking::Tracking()
 {

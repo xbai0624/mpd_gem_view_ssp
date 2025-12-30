@@ -1295,7 +1295,7 @@ void Viewer::Prepare2DGeoHits(GEMDetector *det)
     for(size_t i=0; i<N; i++) {
         // .second is position; .first is adc
         double x = x_hits[i].second, y = y_hits[i].second;
-        res.emplace_back(x, y);
+        res.push_back(QPointF(x, y));
     }
 
     int id = det -> GetDetID();

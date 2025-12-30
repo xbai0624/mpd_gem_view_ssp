@@ -44,6 +44,8 @@ namespace tracking_dev {
         const std::vector<int>& GetLayerIDs() const {return vLayerIDs;}
         VirtualDetector* GetDetector(int i) const;
         VirtualDetector* GetLayer(int i) const;
+        std::unordered_map<int, VirtualDetector*> &GetDetectorList() {return fDet;}
+        std::unordered_map<int, VirtualDetector*> &GetLayerList() {return fLayer;}
         bool IsOnlineMode(){return is_online_mode;}
         GEMSystem * GetGEMSystem(){return gem_sys;}
         CoordSystem *GetCoordSystem(){return coord_system;}

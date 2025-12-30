@@ -35,13 +35,10 @@ struct point_t
         x_size(x_s), y_size(y_s), module_id(0), layer_id(0)
     {}
 
-    point_t(const point_t &_p):
-        x(_p.x), y(_p.y), z(_p.z), x_charge(_p.x_charge),
-        y_charge(_p.y_charge), x_peak(_p.x_peak), y_peak(_p.y_peak),
-        x_max_timebin(_p.x_max_timebin), y_max_timebin(_p.y_max_timebin),
-        x_size(_p.x_size), y_size(_p.y_size), module_id(_p.module_id),
-        layer_id(_p.layer_id)
-    {}
+    point_t(const point_t &_p) = default;
+    point_t(point_t &&) = default;
+    point_t & operator=(const point_t &) = default;
+    point_t & operator=(point_t &&) = default;
 
     point_t unit() const {
         double r = sqrt(x*x + y*y + z*z);
@@ -50,18 +47,6 @@ struct point_t
             return point_t(0, 0, 0);
 
         return point_t(x/r, y/r, z/r);
-    }
-
-    point_t &operator=(const point_t &p) {
-        if(this == &p)
-            return *this;
-
-        x=p.x; y=p.y; z=p.z; x_charge = p.x_charge;
-        y_charge = p.y_charge; x_peak = p.x_peak;
-        y_peak = p.y_peak; x_size = p.x_size; y_size = p.y_size;
-        module_id = p.module_id; layer_id = p.layer_id;
-
-        return *this;
     }
 
     point_t operator-(const point_t &p) const {

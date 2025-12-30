@@ -87,6 +87,7 @@ namespace tracking_dev
             fDet[mod_id] -> SetOrigin(origin);
 
             fDet[mod_id] -> SetDimension(dimension);
+            fDet[mod_id] -> SetDetModuleID(mod_id);
             fDet[mod_id] -> SetLayerID(layer_id);
 
             bool is_tracker = coord_system -> IsInTrackerSystem(mod_id);
@@ -146,6 +147,7 @@ namespace tracking_dev
             fLayer[i] -> SetOrigin(point_t(0, 0, dim.z));
             fLayer[i] -> SetDimension(dim);
             fLayer[i] -> SetLayerID(i);
+            // for layer virtual detectors, it does not have a physical detector module ID
             vLayerIDs.push_back(i);
 
             auto v = Cuts::Instance().__get("grid width").arr<double>();
@@ -171,7 +173,7 @@ namespace tracking_dev
 
     VirtualDetector* TrackingDataHandler::GetLayer(int i) const
     {
-        // find detector by detector module_id
+        // find layer by layer_id
         auto it = fLayer.find(i);
 
         if(it == fLayer.end()) return nullptr;

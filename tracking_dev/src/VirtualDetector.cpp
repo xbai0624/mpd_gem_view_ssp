@@ -5,10 +5,12 @@ namespace tracking_dev {
 
 VirtualDetector::VirtualDetector() : origin(point_t(0, 0, 0)),
     z_axis(point_t(0, 0, 1.)), x_axis(point_t(1, 0, 0)), 
-    y_axis(point_t(0, 1., 0)), dimension(point_t(1, 1, 1))
+    y_axis(point_t(0, 1., 0)), dimension(point_t(1, 1, 1)),
+    layer_id(-9999), det_module_id(-9999)
 {
     local_hits.clear(); global_hits.clear();
     real_hits.clear(); fitted_hits.clear(); background_hits.clear();
+    grids.clear(); grid_chosen.clear(); vhits_by_grid.clear();
 }
 
 VirtualDetector::~VirtualDetector()
