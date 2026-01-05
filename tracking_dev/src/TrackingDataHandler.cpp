@@ -74,6 +74,11 @@ namespace tracking_dev
         detector_list = gem_sys -> GetDetectorList();
         std::unordered_map<int, bool> layer_id_set;
 
+        // detector grids
+        double xw = Cuts::Instance().__get("grid width").arr<double>()[0];
+        double yw = Cuts::Instance().__get("grid width").arr<double>()[1];
+        double s = Cuts::Instance().__get("grid shift").val<double>();
+
         // detector
         for(auto &det: detector_list)
         {
@@ -86,7 +91,10 @@ namespace tracking_dev
             fDet[mod_id] = new VirtualDetector();
             fDet[mod_id] -> SetOrigin(origin);
 
+            fDet[mod_id] -> SetGridWidth(xw, yw);
+            fDet[mod_id] -> SetGridShift(s);
             fDet[mod_id] -> SetDimension(dimension);
+
             fDet[mod_id] -> SetDetModuleID(mod_id);
             fDet[mod_id] -> SetLayerID(layer_id);
 
@@ -145,6 +153,8 @@ namespace tracking_dev
             auto dim = deduct_layer_dimension(i);
             fLayer[i] = new VirtualDetector();
             fLayer[i] -> SetOrigin(point_t(0, 0, dim.z));
+            fLayer[i] -> SetGridWidth(xw, yw);
+            fLayer[i] -> SetGridShift(s);
             fLayer[i] -> SetDimension(dim);
             fLayer[i] -> SetLayerID(i);
             // for layer virtual detectors, it does not have a physical detector module ID

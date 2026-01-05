@@ -10,7 +10,7 @@ namespace log_tracks {
 
 inline void open_tracks_text_file()
 {
-    std::fstream f("tracks.txt", std::ios::out | std::ios::trunc);
+    std::fstream f("log_tracks.txt", std::ios::out | std::ios::trunc);
     if(!f.is_open()) {
         std::cout<<"ERROR: cannot open text file tracks.txt to write tracks."<<std::endl;
         exit(1);
@@ -24,7 +24,7 @@ inline void open_tracks_text_file()
 
 inline void append_track(const std::vector<tracking_dev::point_t> & track)
 {
-    std::fstream f("tracks.txt", std::ios::out | std::ios::app);
+    std::fstream f("log_tracks.txt", std::ios::out | std::ios::app);
     if(!f.is_open()){
         std::cout<<"ERROR: cannot open text file tracks.txt to write tracks."<<std::endl;
         exit(1);

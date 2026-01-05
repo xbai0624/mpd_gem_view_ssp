@@ -314,4 +314,14 @@ void Detector2DHitItem::SetCounter(int i)
     counter = i;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// setup detector grids
+
+void Detector2DHitItem::SetGrids(double xw, double yw, double s)
+{
+    grid_xwidth = xw;
+    grid_ywidth = yw;
+    grid_shift = s;
+}
+
 };

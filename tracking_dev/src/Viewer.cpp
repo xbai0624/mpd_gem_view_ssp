@@ -5,6 +5,7 @@
 #include "Tracking.h"
 #include "TrackingDataHandler.h"
 #include "TrackingUtility.h"
+#include "Cuts.h"
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
@@ -52,6 +53,11 @@ void Viewer::InitToyDetectorSetup()
 
     double z_origin[NDET_SIM] = {0, 100, 1020, 1120};
 
+    // detector grids
+    double xw = Cuts::Instance().__get("grid width").arr<double>()[0];
+    double yw = Cuts::Instance().__get("grid width").arr<double>()[1];
+    double s = Cuts::Instance().__get("grid shift").val<double>();
+
     for(int i=0; i<NDET_SIM; i++)
     {
         point_t dimension(100, 100, 0.1);
@@ -60,6 +66,8 @@ void Viewer::InitToyDetectorSetup()
 
         fDet[i] = new VirtualDetector();
         fDet[i] -> SetOrigin(origin);
+        fDet[i] -> SetGridWidth(xw, yw);
+        fDet[i] -> SetGridShift(s);
         fDet[i] -> SetDimension(dimension);
 
         layer_ids.push_back(i);

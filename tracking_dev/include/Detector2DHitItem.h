@@ -35,6 +35,7 @@ public:
     // setters
     void SetBoundingRect(const QRectF &f);
     void SetTitle(const std::string &s);
+    void SetGrids(double xwidth=17.2, double ywidth=17.2, double shift=0.4);
 
     // pass detector pointer to be plotted
     void PassDetectorHandle(VirtualDetector *fD);
@@ -81,6 +82,9 @@ private:
     float margin_x, margin_y;
 
     VirtualDetector *detector;
+    double grid_xwidth = 17.2; // mm
+    double grid_ywidth = 17.2; // mm
+    double grid_shift = 0.4; // mm
 
     // current event to draw
     std::vector<QPointF> global_hits;
