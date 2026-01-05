@@ -10,6 +10,7 @@
 #include "tracking_struct.h"
 #include "Tracking.h"
 #include "MollerROStripDesign.hpp"
+#include "log_tracks.hpp"
 #include "Cuts.h"
 #include <vector>
 #include <utility>
@@ -17,6 +18,8 @@
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TMath.h>
+
+#define WRITE_TRACKS_TO_DISK
 
 namespace quality_check_histos
 {
@@ -74,6 +77,9 @@ namespace quality_check_histos
         fDet = tracking_data_handler -> GetDetectorList();
 
         histM.init();
+#ifdef WRITE_TRACKS_TO_DISK
+        log_tracks::open_tracks_text_file();
+#endif
     }
 
     void set_output_name(std::string name)
@@ -266,6 +272,9 @@ namespace quality_check_histos
 		// part 1)
 		// get inclusive residue
         const std::vector<tracking_dev::point_t>& hits_on_best_track = tracking -> GetVHitsOnBestTrack();
+#ifdef WRITE_TRACKS_TO_DISK
+        log_tracks::append_track(hits_on_best_track);
+#endif
 
 		for(auto &it: hits_on_best_track)
 		{

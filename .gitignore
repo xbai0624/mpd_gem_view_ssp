@@ -94,3 +94,5 @@ database/gem_ped*.dat
 
 gui/include/HistoItem.h_bkp
 gui/src/HistoItem.cpp_bkp
+
+tracks.txt
