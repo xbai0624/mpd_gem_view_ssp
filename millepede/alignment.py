@@ -1,7 +1,7 @@
 from core import pede
 from core.text_parser import vec3_t
 
-def load_tracks(path = """../tracks.txt"""):
+def load_tracks(path = """../log_tracks.txt"""):
     res = []
     with open(path) as f:
         lines = f.readlines()
@@ -14,7 +14,7 @@ def load_tracks(path = """../tracks.txt"""):
 
 pede.N_on_T = 3
 pede.nBatch = 40
-pede.NITER = 100
+pede.NITER = 30
 pede.total_tracks = load_tracks()
 pede.method = "gmres"
 

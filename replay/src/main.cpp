@@ -220,15 +220,14 @@ void fill_tracking_result(tracking_dev::TrackingDataHandler *tracking_data_handl
     gem_tree->fBestTrackHitLayer = tracking -> GetBestTrackLayerIndex();
     tracking_dev::point_t pt(xt, yt, 0);
     tracking_dev::point_t dir(xp, yp, 1.);
-    const std::vector<int> &hit_index = tracking -> GetBestTrackHitIndex();
+    const std::vector<tracking_dev::point_t> &vhits = tracking -> GetVHitsOnBestTrack();
 
-    for(unsigned int i=0; i<gem_tree->fBestTrackHitLayer.size(); i++)
+    for(auto &_hit: vhits)
     {
-        int layer = gem_tree->fBestTrackHitLayer[i];
-        int hit_id = hit_index[i];
+        int mod_id = _hit.module_id;
 
-        tracking_dev::point_t p_local = (tracking_data_handler -> GetDetector(layer)) -> Get2DHit(hit_id);
-        double z = (tracking_data_handler -> GetDetector(layer)) -> GetZPosition();
+        tracking_dev::point_t p_local = _hit;
+        double z = (tracking_data_handler -> GetDetector(mod_id)) -> GetZPosition();
         tracking_dev::point_t p_projected = (tracking -> GetTrackingUtility()) -> projected_point(pt, dir, z);
 
         (gem_tree->fBestTrackHitXprojected).push_back(p_projected.x);
