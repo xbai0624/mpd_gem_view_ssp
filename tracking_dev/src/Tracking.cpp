@@ -241,7 +241,7 @@ void Tracking::nextLayerGroup_gridway(const std::vector<int> &group)
     int E = (int)detector.at(end_layer) -> Get2DHitCounts();
 
     // if possible combinations in outter layers already passed max quantity, abort tracking
-    if(S * E > abort_quantity) return;
+    if(S * E > abort_quantity || S * E <= 0) return;
 
     for(int start_layer_hit_index=0; start_layer_hit_index<S; start_layer_hit_index++)
     {
@@ -269,7 +269,7 @@ void Tracking::scanCandidate_gridway(const int &start_layer, const int &start_la
     for(auto &i: middle_layers)
         possible_track_combinations *= (hit_index_by_layer.at(i).size());
 
-    if(possible_track_combinations > abort_quantity)
+    if(possible_track_combinations > abort_quantity || possible_track_combinations <= 0)
         return;
 
     std::vector<int> layer_combo{start_layer, end_layer};
