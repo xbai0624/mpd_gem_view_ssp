@@ -16,7 +16,7 @@
 #define PROGRESS_COUNT 1000
 
 void fill_tracking_result(tracking_dev::TrackingDataHandler *tracking_data_handler,
-	tracking_dev::Tracking *tracking, GEMRootClusterTree *gem_tree);
+        tracking_dev::Tracking *tracking, GEMRootClusterTree *gem_tree);
 
 int main(int argc, char* argv[])
 {
@@ -148,7 +148,12 @@ int main(int argc, char* argv[])
 
         // raw cluster/hit process
         gem_data_handler -> ProcessEvent(pBuf, fBufLen, event_counter);
+        gem_data_handler -> EndofThisEvent(event_counter);
 
+        // fill data quality check histos
+        quality_check_histos::fill_gem_histos(event_counter - start_event);
+
+        // fill tracking results
         if(is_tracking_on) {
             // tracking only works on clustering mode
             if(args["replay_cluster"].Bool()) {
@@ -161,12 +166,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        gem_data_handler -> EndofThisEvent(event_counter);
-
         event_counter++;
-        // fill data quality check histos
-        quality_check_histos::fill_gem_histos(event_counter - start_event);
-
         if(max_event > 0 && event_counter > max_event)
             break;
     }

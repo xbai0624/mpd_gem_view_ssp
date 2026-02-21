@@ -477,8 +477,8 @@ namespace histos
         void __format_canvas(TCanvas *c)
         {
             c->SetTitle(""); // no title
-            //c->SetGridx();
-            //c->SetGridy();
+                             //c->SetGridx();
+                             //c->SetGridy();
             c->SetBottomMargin(0.12);
             c->SetLeftMargin(0.12);
             c->SetRightMargin(0.05);

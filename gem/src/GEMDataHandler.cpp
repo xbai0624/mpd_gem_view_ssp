@@ -94,6 +94,200 @@ GEMDataHandler &GEMDataHandler::operator=(GEMDataHandler &&rhs)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// open evio file
+
+bool GEMDataHandler::OpenEvioFile(const std::string &path)
+{
+    // open evio file
+    if(evio_reader != nullptr) {
+        evio_reader->CloseFile();
+    } else {
+        evio_reader = new EvioFileReader();
+    }
+
+    evio_reader -> SetFile(path.c_str());
+
+    // open evio file
+    bool status = evio_reader -> OpenFile();
+
+    return status;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setup event parser and register raw decoders for it
+
+void GEMDataHandler::RegisterRawDecoders()
+{
+    // setup event parser
+    if(event_parser != nullptr)
+        event_parser -> Reset();
+    else
+        event_parser = new EventParser();
+
+#ifdef USE_VME
+    std::cout<<__PRETTY_FUNCTION__<<" INFO: VME mode."<<std::endl;
+    if(mpd_vme_decoder == nullptr) {
+        mpd_vme_decoder = new MPDVMERawEventDecoder();
+
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_VME), mpd_vme_decoder);
+    }
+#elif defined(USE_SRS)
+    std::cout<<__PRETTY_FUNCTION__<<" INFO: SRS mode."<<std::endl;
+    if(srs_decoder == nullptr)
+    {
+        srs_decoder = new SRSRawEventDecoder();
+
+        // in srs, each fec has a different tag, they all use the same decoder
+        for(auto &i: Fec_Bank_Tag)
+            event_parser -> RegisterRawDecoder(static_cast<int>(i), srs_decoder);
+    }
+#else
+    std::cout<<__PRETTY_FUNCTION__<<" INFO: SSP/VTP mode."<<std::endl;
+    if(mpd_ssp_decoder == nullptr) {
+        mpd_ssp_decoder = new MPDSSPRawEventDecoder();
+
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), mpd_ssp_decoder);
+    }
+#endif
+
+    // all needs trigger decoder
+    if(trigger_decoder == nullptr)
+    {
+        trigger_decoder = new TriggerDecoder();
+        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// setup replay output file names
+
+void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, [[maybe_unused]]int split_end,
+        const std::string &_pedestal_input, const std::string &_common_mode_input,
+        const std::string &_pedestal_output, const std::string &_commonMode_output)
+{
+    if(replayMode)
+    {
+        std::cout<<"INFO::Loading pedestal from : "<<_pedestal_input<<std::endl;
+        std::cout<<"INFO::Loading common mode from : "<<_common_mode_input<<std::endl;
+        gem_sys -> ReadPedestalFile(_pedestal_input, _common_mode_input);
+
+        // parse output path
+        std::string _prefix = "hit_" + std::to_string(split_start);
+        replay_hit_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
+        _prefix = "cluster_" + std::to_string(split_start);
+        replay_cluster_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
+        std::cout<<"Replay started..."<<std::endl;
+    }
+
+    if(pedestalMode)
+    {
+        std::cout<<"Pedestal started..."<<std::endl;
+        if(_pedestal_output.size() > 0) pedestal_output_file = _pedestal_output;
+        else std::cout<<"Warning: no pedestal output path specified, using default."<<std::endl;
+        if(_commonMode_output.size() > 0) commonMode_output_file = _commonMode_output;
+        else std::cout<<"Warning: no common mode output path specified, using default."<<std::endl;
+    }
+
+    if(onlineMode)
+        std::cout<<"Online started..."<<std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// replay the raw data file, do zero suppression and save it to root format
+
+void GEMDataHandler::Replay(const std::string &r_path, int split_start, int split_end,
+        const std::string &_pedestal_input, const std::string &_common_mode_input,
+        const std::string &_pedestal_output, const std::string &_commonMode_output)
+{
+    Reset();
+    // get time start
+    std::cout<<std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    // set mode before work starts
+    SetMode();
+
+    SetupReplay(r_path, split_start, split_end, _pedestal_input, _common_mode_input,
+            _pedestal_output, _commonMode_output);
+
+    int count = ReadFromSplitEvio(r_path, split_start, split_end);
+
+    Write();
+
+    // get time end
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    int _t = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    std::cout<<"Replayed "<<count<<" events";
+    std::cout<<" in "<< _t/60 <<" minutes "<<_t%60 <<" seconds"<<std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// read from splitted evio file
+
+int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start, 
+        int split_end, bool verbose)
+{
+    if(split_end < 0)
+    {
+        // default input, no split
+        return ReadFromEvio(path.c_str(), -1, verbose);
+    } else {
+        int count = 0;
+        for(int i=split_start;i<split_end;i++) {
+            // parse all input files
+            size_t pos = 0;
+            if(path.find("evio") != std::string::npos) {
+                pos = path.find("evio") + 4;
+            }
+            else if(path.find("dat") != std::string::npos) {
+                pos = path.find("dat") + 3;
+            }
+            else 
+            {
+                std::cout<<__func__<<" Error: only evio/dat files are accepted."
+                    <<path << std::endl;
+                return count;
+            }
+            std::string split_path = path.substr(0, pos);
+            split_path = split_path + "." + std::to_string(i);
+            count += ReadFromEvio(split_path.c_str(), -1, verbose);
+        }
+        return count;
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// read from single evio file
+
+int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int split, 
+        [[maybe_unused]]bool verbose)
+{
+    // open evio file
+    bool status = OpenEvioFile(path);
+
+    // failed openning file
+    if(!status) {
+        std::cout<<"Skipped file: "<<path<<std::endl;
+        return 0;
+    }
+
+    RegisterRawDecoders();
+
+    // parse event
+    int count = 0;
+    while(DecodeEvent(count) == S_SUCCESS)
+    {
+        if(pedestalMode)
+        {
+            if(fEventNumber > fMaxPedestalEvents && fMaxPedestalEvents > 0)
+                break;
+        }
+    }
+
+    return count;
+} 
+
+////////////////////////////////////////////////////////////////////////////////
 // decode
 
 int GEMDataHandler::DecodeEvent(int &count)
@@ -180,14 +374,14 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
 #ifdef USE_SRS
                     FeedDataSRS(apvs[i], decoded_data.at(apvs[i]));
 #else
-                    FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]),
-                            decoded_online_cm.at(apvs[i]));
+                FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]),
+                        decoded_online_cm.at(apvs[i]));
 #endif
                 else
 #ifdef USE_SRS
                     FeedDataSRS(apvs[i], decoded_data.at(apvs[i]));
 #else
-                    FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]));
+                FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]));
 #endif
             }
         }
@@ -216,210 +410,16 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
 #ifdef USE_SRS
             FeedDataSRS(i.first, i.second);
 #else
-            FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first), decoded_online_cm.at(i.first));
+        FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first), decoded_online_cm.at(i.first));
 #endif
         else
 #ifdef USE_SRS
             FeedDataSRS(i.first, i.second);
 #else
-            FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first));
+        FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first));
 #endif
     }
 #endif
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// open evio file
-
-bool GEMDataHandler::OpenEvioFile(const std::string &path)
-{
-    // open evio file
-    if(evio_reader != nullptr) {
-        evio_reader->CloseFile();
-    } else {
-        evio_reader = new EvioFileReader();
-    }
-
-    evio_reader -> SetFile(path.c_str());
-
-    // open evio file
-    bool status = evio_reader -> OpenFile();
-
-    return status;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setup event parser and register raw decoders for it
-
-void GEMDataHandler::RegisterRawDecoders()
-{
-    // setup event parser
-    if(event_parser != nullptr)
-        event_parser -> Reset();
-    else
-        event_parser = new EventParser();
-
-#ifdef USE_VME
-    std::cout<<__PRETTY_FUNCTION__<<" INFO: VME mode."<<std::endl;
-    if(mpd_vme_decoder == nullptr) {
-        mpd_vme_decoder = new MPDVMERawEventDecoder();
-
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_VME), mpd_vme_decoder);
-    }
-#elif defined(USE_SRS)
-    std::cout<<__PRETTY_FUNCTION__<<" INFO: SRS mode."<<std::endl;
-    if(srs_decoder == nullptr)
-    {
-        srs_decoder = new SRSRawEventDecoder();
-
-        // in srs, each fec has a different tag, they all use the same decoder
-        for(auto &i: Fec_Bank_Tag)
-            event_parser -> RegisterRawDecoder(static_cast<int>(i), srs_decoder);
-    }
-#else
-    std::cout<<__PRETTY_FUNCTION__<<" INFO: SSP/VTP mode."<<std::endl;
-    if(mpd_ssp_decoder == nullptr) {
-        mpd_ssp_decoder = new MPDSSPRawEventDecoder();
-
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::MPD_SSP), mpd_ssp_decoder);
-    }
-#endif
-
-    // all needs trigger decoder
-    if(trigger_decoder == nullptr)
-    {
-        trigger_decoder = new TriggerDecoder();
-        event_parser -> RegisterRawDecoder(static_cast<int>(Bank_TagID::Trigger), trigger_decoder);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// read from single evio file
-
-int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int split, 
-        [[maybe_unused]]bool verbose)
-{
-    // open evio file
-    bool status = OpenEvioFile(path);
-
-    // failed openning file
-    if(!status) {
-        std::cout<<"Skipped file: "<<path<<std::endl;
-        return 0;
-    }
-
-    RegisterRawDecoders();
-
-    // parse event
-    int count = 0;
-    while(DecodeEvent(count) == S_SUCCESS)
-    {
-        if(pedestalMode)
-        {
-            if(fEventNumber > fMaxPedestalEvents && fMaxPedestalEvents > 0)
-                break;
-        }
-    }
-
-    return count;
-} 
-
-////////////////////////////////////////////////////////////////////////////////
-// read from splitted evio file
-
-int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start, 
-        int split_end, bool verbose)
-{
-    if(split_end < 0)
-    {
-        // default input, no split
-        return ReadFromEvio(path.c_str(), -1, verbose);
-    } else {
-        int count = 0;
-        for(int i=split_start;i<split_end;i++) {
-            // parse all input files
-            size_t pos = 0;
-            if(path.find("evio") != std::string::npos) {
-                pos = path.find("evio") + 4;
-            }
-            else if(path.find("dat") != std::string::npos) {
-                pos = path.find("dat") + 3;
-            }
-            else 
-            {
-                std::cout<<__func__<<" Error: only evio/dat files are accepted."
-                    <<path << std::endl;
-                return count;
-            }
-            std::string split_path = path.substr(0, pos);
-            split_path = split_path + "." + std::to_string(i);
-            count += ReadFromEvio(split_path.c_str(), -1, verbose);
-        }
-        return count;
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// replay the raw data file, do zero suppression and save it to root format
-
-void GEMDataHandler::Replay(const std::string &r_path, int split_start, int split_end,
-        const std::string &_pedestal_input, const std::string &_common_mode_input,
-        const std::string &_pedestal_output, const std::string &_commonMode_output)
-{
-    Reset();
-    // get time start
-    std::cout<<std::endl;
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-    // set mode before work starts
-    SetMode();
-
-    SetupReplay(r_path, split_start, split_end, _pedestal_input, _common_mode_input,
-            _pedestal_output, _commonMode_output);
-
-    int count = ReadFromSplitEvio(r_path, split_start, split_end);
-
-    Write();
-
-    // get time end
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    int _t = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    std::cout<<"Replayed "<<count<<" events";
-    std::cout<<" in "<< _t/60 <<" minutes "<<_t%60 <<" seconds"<<std::endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// setup replay output file names
-
-void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, [[maybe_unused]]int split_end,
-        const std::string &_pedestal_input, const std::string &_common_mode_input,
-        const std::string &_pedestal_output, const std::string &_commonMode_output)
-{
-    if(replayMode)
-    {
-        std::cout<<"INFO::Loading pedestal from : "<<_pedestal_input<<std::endl;
-        std::cout<<"INFO::Loading common mode from : "<<_common_mode_input<<std::endl;
-        gem_sys -> ReadPedestalFile(_pedestal_input, _common_mode_input);
-
-        // parse output path
-        std::string _prefix = "hit_" + std::to_string(split_start);
-        replay_hit_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
-        _prefix = "cluster_" + std::to_string(split_start);
-        replay_cluster_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
-        std::cout<<"Replay started..."<<std::endl;
-    }
-
-    if(pedestalMode)
-    {
-        std::cout<<"Pedestal started..."<<std::endl;
-        if(_pedestal_output.size() > 0) pedestal_output_file = _pedestal_output;
-        else std::cout<<"Warning: no pedestal output path specified, using default."<<std::endl;
-        if(_commonMode_output.size() > 0) commonMode_output_file = _commonMode_output;
-        else std::cout<<"Warning: no common mode output path specified, using default."<<std::endl;
-    }
-
-    if(onlineMode)
-        std::cout<<"Online started..."<<std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -555,7 +555,6 @@ void GEMDataHandler::FillHistograms([[maybe_unused]]const EventData &data)
     // to be implemented
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // feed gem data, for SRS
 
@@ -576,11 +575,11 @@ void GEMDataHandler::FeedDataSRS(const GEMRawData &gemData)
 void GEMDataHandler::FeedDataSRS(const APVAddress &addr, const std::vector<int> &data)
 {
     if(gem_sys) {
-		if(!bEvio2RootFiles)
-			gem_sys -> FillRawDataSRS(addr, data, *new_event);
-		else
-			gem_sys -> FillRawDataSRS(addr, data, *new_event, false);
-	}
+        if(!bEvio2RootFiles)
+            gem_sys -> FillRawDataSRS(addr, data, *new_event);
+        else
+            gem_sys -> FillRawDataSRS(addr, data, *new_event, false);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -590,11 +589,11 @@ void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> 
         const APVDataType &flags, const std::vector<int> &online_common_mode)
 {
     if(gem_sys) {
-		if(!bEvio2RootFiles)
-			gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event);
-		else
-			gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event, false);
-	}
+        if(!bEvio2RootFiles)
+            gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event);
+        else
+            gem_sys -> FillRawDataMPD(addr, raw, flags, online_common_mode, *new_event, false);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -604,11 +603,11 @@ void GEMDataHandler::FeedDataMPD(const APVAddress &addr, const std::vector<int> 
         const APVDataType &flags)
 {
     if(gem_sys) {
-		if(!bEvio2RootFiles)
-			gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event);
-		else
-			gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event, false);
-	}
+        if(!bEvio2RootFiles)
+            gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event);
+        else
+            gem_sys -> FillRawDataMPD(addr, raw, flags, *new_event, false);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -636,7 +635,6 @@ const EventData &GEMDataHandler::GetEvent(const unsigned int &index)
         return event_data.at(index);
     }
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // find event by its event number

@@ -272,6 +272,7 @@ namespace quality_check_histos
 		// part 1)
 		// get inclusive residue
         const std::vector<tracking_dev::point_t>& hits_on_best_track = tracking -> GetVHitsOnBestTrack();
+
 #ifdef WRITE_TRACKS_TO_DISK
         log_tracks::append_track(hits_on_best_track);
 #endif
@@ -286,11 +287,6 @@ namespace quality_check_histos
 			histM.histo_1d<float>(Form("h_cluster_size_y_plane_gem%d", module_id)) -> Fill(it.y_size);
 			histM.histo_1d<float>(Form("h_cluster_adc_x_plane_gem%d", module_id)) -> Fill(it.x_peak);
 			histM.histo_1d<float>(Form("h_cluster_adc_y_plane_gem%d", module_id)) -> Fill(it.y_peak);
-
-			fDet[module_id] -> AddRealHits(it);
-
-			tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, fDet[module_id]->GetZPosition());
-			fDet[module_id] -> AddFittedHits(p);
 		}
 
 		int n_good_track_candidates = tracking -> GetNGoodTrackCandidates();
@@ -300,24 +296,67 @@ namespace quality_check_histos
 
 		for(auto &it: fDet)
 		{
-			const std::vector<tracking_dev::point_t> & real_hits = it.second -> GetRealHits();
-			const std::vector<tracking_dev::point_t> & fitted_hits = it.second -> GetFittedHits();
-
             int det_module_id = it.second -> GetDetModuleID();
 
-			for(unsigned int hitid=0; hitid<real_hits.size(); hitid++)
+            tracking_dev::point_t hit_did_hit;
+            bool fired = false;
+            for(auto &i: hits_on_best_track) {
+                if(i.module_id == det_module_id) {
+                    fired = true;
+                    hit_did_hit = i;
+                }
+            }
+
+			tracking_dev::point_t hit_should_hit = tracking->GetTrackingUtility() -> projected_point(pt, dir, it.second->GetZPosition());
+ 
+			if(fired)
 			{
-				histM.histo_1d<float>(Form("h_xresid_gem%d_inclusive", det_module_id)) -> Fill(real_hits[hitid].x - fitted_hits[hitid].x);
-				histM.histo_1d<float>(Form("h_yresid_gem%d_inclusive", det_module_id)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
+				histM.histo_1d<float>(Form("h_xresid_gem%d_inclusive", det_module_id)) -> Fill(hit_did_hit.x - hit_should_hit.x);
+				histM.histo_1d<float>(Form("h_yresid_gem%d_inclusive", det_module_id)) -> Fill(hit_did_hit.y - hit_should_hit.y);
 
-				histM.histo_2d<float>(Form("h_didhit_xy_gem%d", det_module_id)) -> Fill(real_hits[hitid].x, real_hits[hitid].y);
-				histM.histo_1d<float>(Form("h_didhit_x_gem%d", det_module_id)) -> Fill(real_hits[hitid].x);
-				histM.histo_1d<float>(Form("h_didhit_y_gem%d", det_module_id)) -> Fill(real_hits[hitid].y);
+				histM.histo_2d<float>(Form("h_didhit_xy_gem%d", det_module_id)) -> Fill(hit_did_hit.x, hit_did_hit.y);
+				histM.histo_1d<float>(Form("h_didhit_x_gem%d", det_module_id)) -> Fill(hit_did_hit.x);
+				histM.histo_1d<float>(Form("h_didhit_y_gem%d", det_module_id)) -> Fill(hit_did_hit.y);
 			}
 
-			for(auto &h: fitted_hits) {
-				histM.histo_2d<float>(Form("h_shouldhit_xy_gem%d", det_module_id)) -> Fill(h.x, h.y);
+            histM.histo_2d<float>(Form("h_shouldhit_xy_gem%d", det_module_id)) -> Fill(hit_should_hit.x, hit_should_hit.y);
+		}
+
+        // fill did_hit and should_hit 2D histograms -- for tracking based efficiency study
+		for(auto &it: fDet)
+		{
+            int det_module_id = it.second -> GetDetModuleID();
+
+            // a valid track should have at least 3 hits
+            if(hits_on_best_track.size() < 3)
+                continue;
+ 
+            bool det_fired = false;
+            for(auto &i: hits_on_best_track) {
+                if( i.module_id == det_module_id)
+                    det_fired = true;
+            }
+            // if the track has only 3 hits, and this detector is one of them, then we cannot use this track for efficiency calculation
+            if(det_fired && hits_on_best_track.size() == 3)
+                continue;
+ 
+            tracking_dev::point_t hit_did_hit;
+            bool fired = false;
+            for(auto &i: hits_on_best_track) {
+                if(i.module_id == det_module_id) {
+                    fired = true;
+                    hit_did_hit = i;
+                }
+            }
+
+			tracking_dev::point_t hit_should_hit = tracking->GetTrackingUtility() -> projected_point(pt, dir, it.second->GetZPosition());
+ 
+			if(fired)
+			{
+				histM.histo_2d<float>(Form("h_for_efficiency_didhit_xy_gem%d", det_module_id)) -> Fill(hit_did_hit.x, hit_did_hit.y);
 			}
+
+            histM.histo_2d<float>(Form("h_for_efficiency_shouldhit_xy_gem%d", det_module_id)) -> Fill(hit_should_hit.x, hit_should_hit.y);
 		}
 
 		// part 2)
@@ -364,79 +403,79 @@ namespace quality_check_histos
 			}
 		}
 
-		// part 3)
-		// get tracker-only based residue plots (in case you have non-tracker and tracker chambers)
-		// ---- tracks are fitted using trackers only
-		// ---- use the best track, project to non-tracker chambers, and find the residues,
-		// ---- we will use the closest detected 2D hits on non-tracker chambers
-		// ---- we will search thechamber for the closest hit
-		// ---- search radius around the projected hit is configurable
-		//
-		// if you don't separate chambers into trackers and non-trackers,
-		// then these plots will be equivalent to inclusive residue plots
-		if(found_track) {
-			for(auto &det: fDet) {
-				// look for the closest 2d hit
-				float search_radius = Cuts::Instance().__get("effective search radius").val<float>();
-				size_t total_2d_hits = det.second -> Get2DHitCounts();
+        // part 3)
+        // get tracker-only based residue plots (in case you have non-tracker and tracker chambers)
+        // ---- tracks are fitted using trackers only
+        // ---- use the best track, project to non-tracker chambers, and find the residues,
+        // ---- we will use the closest detected 2D hits on non-tracker chambers
+        // ---- we will search thechamber for the closest hit
+        // ---- search radius around the projected hit is configurable
+        //
+        // if you don't separate chambers into trackers and non-trackers,
+        // then these plots will be equivalent to inclusive residue plots
+        if(found_track) {
+            for(auto &det: fDet) {
+                // look for the closest 2d hit
+                float search_radius = Cuts::Instance().__get("effective search radius").val<float>();
+                size_t total_2d_hits = det.second -> Get2DHitCounts();
 
-				// since each 2D hit might have different z position due to rotation
-				// so we have to do the projection point by point
-				double r = 99999999;
-				double xresidue = r, yresidue = r, x_did_hit = r, y_did_hit = r;
+                // since each 2D hit might have different z position due to rotation
+                // so we have to do the projection point by point
+                double r = 99999999;
+                double xresidue = r, yresidue = r, x_did_hit = r, y_did_hit = r;
 
-				for(size_t i=0; i<total_2d_hits; i++) {
-					tracking_dev::point_t p_i  = det.second -> Get2DHit(i);
-					tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, p_i.z);
-					tracking_dev::point_t p_diff = p_i - p;
+                for(size_t i=0; i<total_2d_hits; i++) {
+                    tracking_dev::point_t p_i  = det.second -> Get2DHit(i);
+                    tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, p_i.z);
+                    tracking_dev::point_t p_diff = p_i - p;
 
-					double distance = p_diff.mod();
+                    double distance = p_diff.mod();
 
-					// only search within the search_radius
-					if(distance > search_radius)
-						continue;
+                    // only search within the search_radius
+                    if(distance > search_radius)
+                        continue;
 
-					if(distance < r) {
-						r = distance;
-						xresidue = p_diff.x;
-						yresidue = p_diff.y;
-						x_did_hit = p_i.x;
-						y_did_hit = p_i.y;
-					}
-				}
+                    if(distance < r) {
+                        r = distance;
+                        xresidue = p_diff.x;
+                        yresidue = p_diff.y;
+                        x_did_hit = p_i.x;
+                        y_did_hit = p_i.y;
+                    }
+                }
 
-				int _module_id = det.second -> GetDetModuleID();
+                int _module_id = det.second -> GetDetModuleID();
 
-				// 1d should hit -tracker based histograms
-				double z_gem = det.second -> GetOrigin().z;
-				tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, z_gem);
-				histM.histo_1d<float>(Form("h_xshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.x);
-				histM.histo_1d<float>(Form("h_yshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.y);
+                // 1d should hit -tracker based histograms
+                double z_gem = det.second -> GetOrigin().z;
+                tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, z_gem);
+                histM.histo_1d<float>(Form("h_xshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.x);
+                histM.histo_1d<float>(Form("h_yshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.y);
 
-				if( r < 99999999 )
-				{
-					histM.histo_1d<float>(Form("h_xresidue_gem%d_tracker_exclusive", _module_id)) -> Fill(xresidue);
-					histM.histo_1d<float>(Form("h_yresidue_gem%d_tracker_exclusive", _module_id)) -> Fill(yresidue);
+                if( r < 99999999 )
+                {
+                    histM.histo_1d<float>(Form("h_xresidue_gem%d_tracker_exclusive", _module_id)) -> Fill(xresidue);
+                    histM.histo_1d<float>(Form("h_yresidue_gem%d_tracker_exclusive", _module_id)) -> Fill(yresidue);
 
-					histM.histo_2d<float>(Form("h_xresidue_x_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(x_did_hit, xresidue);
-					histM.histo_2d<float>(Form("h_xresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, xresidue);
-					histM.histo_2d<float>(Form("h_yresidue_x_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(x_did_hit, yresidue);
-					histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, yresidue);
+                    histM.histo_2d<float>(Form("h_xresidue_x_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(x_did_hit, xresidue);
+                    histM.histo_2d<float>(Form("h_xresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, xresidue);
+                    histM.histo_2d<float>(Form("h_yresidue_x_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(x_did_hit, yresidue);
+                    histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, yresidue);
 
-					// 1d did hit -tracker based histograms
-					histM.histo_1d<float>(Form("h_xdid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit);
-					histM.histo_1d<float>(Form("h_ydid_hit_tracker_based_gem%d", _module_id)) -> Fill(y_did_hit);
-				}
-			}
-		}
-	}
+                    // 1d did hit -tracker based histograms
+                    histM.histo_1d<float>(Form("h_xdid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit);
+                    histM.histo_1d<float>(Form("h_ydid_hit_tracker_based_gem%d", _module_id)) -> Fill(y_did_hit);
+                }
+            }
+        }
+    }
 
-	void generate_tracking_based_2d_efficiency_plots()
-	{
-		// generate gem tracking based efficiency plots
+    void generate_tracking_based_2d_efficiency_plots()
+    {
+        // generate gem tracking based efficiency plots
 
         const std::vector<int> &det_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
-		for(auto &i: det_module_ids) {
+        for(auto &i: det_module_ids) {
             int NXBINS_did_hit = histM.histo_2d<float>((Form("h_didhit_xy_gem%d", i)))->GetNbinsX();
             int NXBINS_should_hit = histM.histo_2d<float>((Form("h_shouldhit_xy_gem%d", i)))->GetNbinsX();
             if(NXBINS_did_hit != NXBINS_should_hit) {
@@ -449,101 +488,101 @@ namespace quality_check_histos
                 std::cout<<"The Y Bins for did_hit histos should be the same with should_hit histos, checking config file histo.conf"<<std::endl;
                 exit(0);
             }
-	
-			for(int xbins = 1; xbins < NXBINS_did_hit; xbins++)
-			{
-				for(int ybins = 1; ybins < NYBINS_did_hit; ybins++) {
-					float did = histM.histo_2d<float>((Form("h_didhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
-					float should = histM.histo_2d<float>((Form("h_shouldhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
 
-					float eff = 0;
-					if(should >0) eff = (did / should < 1) ? did / should : 1.;
-					histM.histo_2d<float>(Form("h_2defficiency_xy_gem%d", i)) -> SetBinContent(xbins, ybins, eff);
-				}
-			}
-		}
-	}
+            for(int xbins = 1; xbins < NXBINS_did_hit; xbins++)
+            {
+                for(int ybins = 1; ybins < NYBINS_did_hit; ybins++) {
+                    float did = histM.histo_2d<float>((Form("h_didhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
+                    float should = histM.histo_2d<float>((Form("h_shouldhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
+
+                    float eff = 0;
+                    if(should >0) eff = (did / should < 1) ? did / should : 1.;
+                    histM.histo_2d<float>(Form("h_2defficiency_xy_gem%d", i)) -> SetBinContent(xbins, ybins, eff);
+                }
+            }
+        }
+    }
 
 
-	///////////////////////////////////////////////////////////////////////////
-	// write histograms to disks
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // write histograms to disks
+    ///////////////////////////////////////////////////////////////////////////
 
-	void save_histos()
-	{
-		std::string path = output_file_name + std::string("_data_quality_check.root");
-		std::cout<<"Writing data quality check histograms to : "<<path<<std::endl;
-		histM.save(path.c_str());
-	}
+    void save_histos()
+    {
+        std::string path = output_file_name + std::string("_data_quality_check.root");
+        std::cout<<"Writing data quality check histograms to : "<<path<<std::endl;
+        histM.save(path.c_str());
+    }
 
-	///////////////////////////////////////////////////////////////////////////
-	// helpers
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // helpers
+    ///////////////////////////////////////////////////////////////////////////
 
-	float get_strip_mean_time(const StripHit& s){
-		int ts = (int)s.ts_adc.size();
-		float adc = 0;
-		float time_adc = 0;
-		for(int i=0; i<ts; i++) {
-			adc += s.ts_adc[i];
-			time_adc += s.ts_adc[i] * 25. * (i+1);
-		}
-		if(adc > 0)
-			return time_adc / adc;
-		return 0;
-	};
+    float get_strip_mean_time(const StripHit& s){
+        int ts = (int)s.ts_adc.size();
+        float adc = 0;
+        float time_adc = 0;
+        for(int i=0; i<ts; i++) {
+            adc += s.ts_adc[i];
+            time_adc += s.ts_adc[i] * 25. * (i+1);
+        }
+        if(adc > 0)
+            return time_adc / adc;
+        return 0;
+    };
 
-	float get_seed_strip_mean_time(const StripCluster &c){
-		float res = -1;
-		float adc = -9999999;
-		for(auto &i: c.hits) {
-			float tmp = get_strip_mean_time(i);
-			if(i.charge > adc) {
-				adc = i.charge;
-				res = tmp;
-			}
-		}
-		return res;
-	};
+    float get_seed_strip_mean_time(const StripCluster &c){
+        float res = -1;
+        float adc = -9999999;
+        for(auto &i: c.hits) {
+            float tmp = get_strip_mean_time(i);
+            if(i.charge > adc) {
+                adc = i.charge;
+                res = tmp;
+            }
+        }
+        return res;
+    };
 
-	std::pair<double, double> convert_uv_to_xy_moller(const double &_u, const double &_v)
-	{
-		// moller strip angle is 26.5 degree
-		double angle = 26.5 * 3.1415926 / 180.;
-		double u = _u, v = _v;
+    std::pair<double, double> convert_uv_to_xy_moller(const double &_u, const double &_v)
+    {
+        // moller strip angle is 26.5 degree
+        double angle = 26.5 * 3.1415926 / 180.;
+        double u = _u, v = _v;
 
-		//u += 20;
-		v -= 406 * TMath::Sin(angle / 2.);
-		double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
-		double x = 0.5 * ( u + v);
+        //u += 20;
+        v -= 406 * TMath::Sin(angle / 2.);
+        double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
+        double x = 0.5 * ( u + v);
 
-		return std::make_pair(x, y);
-	}
+        return std::make_pair(x, y);
+    }
 
-	std::pair<double, double> convert_xw_to_xy_sbs(const double &_x, const double &_w)
-	{
-		// SBS W strip angle is 45 degree
-		//double angle = 45 * 3.1415926 / 180.;
-		double x = _x, w = _w;
+    std::pair<double, double> convert_xw_to_xy_sbs(const double &_x, const double &_w)
+    {
+        // SBS W strip angle is 45 degree
+        //double angle = 45 * 3.1415926 / 180.;
+        double x = _x, w = _w;
 
-		double y = w / TMath::Sqrt(2);
+        double y = w / TMath::Sqrt(2);
 
-		return std::make_pair(x, y);
-	}
+        return std::make_pair(x, y);
+    }
 
-	std::pair<double, double> convert_uv_to_xy_fit_cylindrical(const double &u, const double &v)
-	{
+    std::pair<double, double> convert_uv_to_xy_fit_cylindrical(const double &u, const double &v)
+    {
         //return std::make_pair(u, v);
 
-		// FIT Cylindircal strip angle is 45 degree, for both U and V strips
-		double angle = 45 * 3.1415926 / 180.;
-		double x = 0, y = 0; 
+        // FIT Cylindircal strip angle is 45 degree, for both U and V strips
+        double angle = 45 * 3.1415926 / 180.;
+        double x = 0, y = 0; 
 
         x = TMath::Cos(angle) * u - TMath::Sin(angle) * v;
         y = TMath::Sin(angle) * u + TMath::Cos(angle) * v;
 
-		return std::make_pair(x, y);
-	}
+        return std::make_pair(x, y);
+    }
 
 }
 

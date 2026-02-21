@@ -25,6 +25,7 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     map<int, int> m_layer_x_nhits, m_layer_y_nhits;
     int total_tracks = 0;
     map<int, int> m_layer_didhits;
+    map<int, int> m_layer_shouldhits;
 
     map<int, int> m_layer_didhits_tracker_based;
     map<int, int> m_layer_shouldhits_tracker_based;
@@ -68,14 +69,21 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
         }
 
         // calculate tracking based gem efficiency
-        else if(h_name.find("h_didhit_xy")!=string::npos)
+        else if(h_name.find("h_for_efficiency_didhit_xy")!=string::npos)
         {
-            // h_didhit_xy_gem0
+            // h_for_efficiency_didhit_xy_gem0
             char s_layer = h_name.back();
             int layer = s_layer - '0';
             m_layer_didhits[layer] = h -> GetEntries();
         }
-        else if(h_name.find("h_shouldhit_xy")!=string::npos)
+        else if(h_name.find("h_for_efficiency_shouldhit_xy") != string::npos)
+        {
+            // h_for_efficiency_didhit_xy_gem0
+            char s_layer = h_name.back();
+            int layer = s_layer - '0';
+            m_layer_shouldhits[layer] = h -> GetEntries();
+        }
+        else if(h_name.find("h_nhits_on_best_track")!=string::npos)
         {
             total_tracks = h -> GetEntries();
         }
@@ -95,7 +103,7 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
             int layer = s_layer - '0';
             m_layer_didhits_tracker_based[layer] = h -> GetEntries();
         }
- 
+
         counter++;
     }
     cout<<"total histograms: "<<counter<<endl;
@@ -125,7 +133,15 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     latex.DrawLatex(0.05, 0.9, "tracking-based detector efficiency:");
     for(auto &i: m_layer_didhits)
     {
-        string tracking_eff = Form("Layer %d Efficiency (detected_2d_hits=%d/total_tracks=%d) : %.2f", i.first, i.second, total_tracks, (float)i.second/(float)total_tracks);
+        double f_did_hits = (double)i.second;
+        double f_should_hits = 1.;
+        if(m_layer_shouldhits.find(i.first) == m_layer_shouldhits.end()) {
+            std::cout<<"Error: layer : "<<i.first<<" does NOT have a shouldhit_xy 2D histogram. Use default value 1 as denominator."<<std::endl;
+        }
+        else {
+            f_should_hits = (double)m_layer_shouldhits.at(i.first);
+        }
+        string tracking_eff = Form("Layer %d Efficiency (detected_2d_hits=%.2f/valid_tracks=%.2f) : %.2f", i.first, f_did_hits, f_should_hits, f_did_hits/f_should_hits);
         latex.DrawLatex(0.1, 0.85 - .05*_c, tracking_eff.c_str());
         _c++;
     }
