@@ -250,11 +250,26 @@ namespace quality_check_histos
 		double xt, yt, xp, yp, chi2ndf;
 		bool found_track = tracking -> GetBestTrack(xt, yt, xp, yp, chi2ndf);
 
+		tracking_dev::point_t pt(xt, yt, 0);
+		tracking_dev::point_t dir(xp, yp, 1.);
+
 		if(!found_track) {
 			histM.histo_1d<float>("h_ntracks_found") -> Fill(0);
 			//histM.histo_1d<float>("h_nhits_on_best_track") -> Fill(0);
 			return;
 		}
+        for(auto &it: fDet) {
+            const tracking_dev::point_t & origin = it.second -> GetOrigin();
+            const tracking_dev::point_t & dimension = it.second -> GetDimension();
+			tracking_dev::point_t projected_hit = tracking->GetTrackingUtility() -> projected_point(pt, dir, it.second->GetZPosition());
+
+            // fitted hit must fall within the detector acceptance
+            if(projected_hit.x < (origin.x - dimension.x/2) || projected_hit.x > (origin.x + dimension.x/2))
+                return;
+
+            if(projected_hit.y < (origin.y - dimension.y/2) || projected_hit.y > (origin.y + dimension.y/2))
+                return;
+        }
 
 		histM.histo_1d<float>("h_ntracks_found") -> Fill(tracking -> GetNGoodTrackCandidates());
 		histM.histo_1d<float>("h_nhits_on_best_track") -> Fill(tracking -> GetNHitsonBestTrack());
@@ -265,9 +280,6 @@ namespace quality_check_histos
 		histM.histo_1d<float>("h_xptrack") -> Fill(xp);
 		histM.histo_1d<float>("h_yptrack") -> Fill(yp);
 		histM.histo_1d<float>("h_chi2ndf") -> Fill(chi2ndf);
-
-		tracking_dev::point_t pt(xt, yt, 0);
-		tracking_dev::point_t dir(xp, yp, 1.);
 
 		// part 1)
 		// get inclusive residue
