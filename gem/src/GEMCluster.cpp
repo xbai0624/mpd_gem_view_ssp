@@ -19,6 +19,7 @@
 #include <algorithm>
 
 #define USE_GEM_CUT
+#define COSMIC_MODE_2D_HITS
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
@@ -380,6 +381,32 @@ const
     // empty first
     container.clear();
 
+#ifdef COSMIC_MODE_2D_HITS
+    size_t ss = x_cluster.size() < y_cluster.size() ? x_cluster.size() : y_cluster.size();
+    std::vector<StripCluster> xc_sorted = x_cluster;
+    std::vector<StripCluster> yc_sorted = y_cluster;
+    // sort in peak charge descending order
+    std::sort(xc_sorted.begin(), xc_sorted.end(),
+            [](const StripCluster &a, const StripCluster& b) {
+            return a.peak_charge > b.peak_charge;
+            });
+    std::sort(yc_sorted.begin(), yc_sorted.end(),
+            [](const StripCluster &a, const StripCluster& b) {
+            return a.peak_charge > b.peak_charge;
+            });
+    for(size_t i=0; i<ss; i++)
+    {
+        const StripCluster &xc = xc_sorted.at(i);
+        const StripCluster &yc = yc_sorted.at(i);
+        container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
+                               det_id,                              // detector id
+                               xc.total_charge, yc.total_charge,    // fill in total charge
+                               xc.peak_charge, yc.peak_charge,      // fill in peak charge
+                               xc.max_timebin, yc.max_timebin,      // fill in the max time bin
+                               xc.hits.size(), yc.hits.size(),      // number of hits
+                               resolution);                         // position resolution
+    }
+#else
     // fill possible clusters in
     for(auto &xc : x_cluster)
     {
@@ -393,12 +420,13 @@ const
                 continue;
 #endif
             container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
-                                   det_id,                              // detector id
-                                   xc.total_charge, yc.total_charge,    // fill in total charge
-                                   xc.peak_charge, yc.peak_charge,      // fill in peak charge
-                                   xc.max_timebin, yc.max_timebin,      // fill in the max time bin
-                                   xc.hits.size(), yc.hits.size(),      // number of hits
-                                   resolution);                         // position resolution
+                    det_id,                              // detector id
+                    xc.total_charge, yc.total_charge,    // fill in total charge
+                    xc.peak_charge, yc.peak_charge,      // fill in peak charge
+                    xc.max_timebin, yc.max_timebin,      // fill in the max time bin
+                    xc.hits.size(), yc.hits.size(),      // number of hits
+                    resolution);                         // position resolution
         }
     }
+#endif
 }
