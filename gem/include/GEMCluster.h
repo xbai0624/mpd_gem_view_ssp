@@ -43,6 +43,7 @@ protected:
     unsigned int consecutive_thres;
     float split_cluster_diff;
     float cross_talk_width;
+    bool xy_cluster_matching_mode_cosmic;
 
     // cross talk characteristic distances
     std::vector<float> charac_dists;

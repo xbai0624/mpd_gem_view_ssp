@@ -19,7 +19,7 @@
 #include <algorithm>
 
 #define USE_GEM_CUT
-#define COSMIC_MODE_2D_HITS
+//#define COSMIC_MODE_2D_HITS
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
@@ -63,6 +63,13 @@ void GEMCluster::Configure([[maybe_unused]]const std::string &path)
 
     min_cluster_hits = Cuts::Instance().__get("min cluster size").val<int>();
     max_cluster_hits = Cuts::Instance().__get("max cluster size").val<int>();
+
+    // 0 - match by adc
+    // 1 - match by all possible combinations
+    xy_cluster_matching_mode_cosmic = true;
+    int m = Cuts::Instance().__get("xy cluster matching mode").val<int>();
+    if(m != 0)
+        xy_cluster_matching_mode_cosmic = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -381,44 +388,24 @@ const
     // empty first
     container.clear();
 
-#ifdef COSMIC_MODE_2D_HITS
-    size_t ss = x_cluster.size() < y_cluster.size() ? x_cluster.size() : y_cluster.size();
-    std::vector<StripCluster> xc_sorted = x_cluster;
-    std::vector<StripCluster> yc_sorted = y_cluster;
-    // sort in peak charge descending order
-    std::sort(xc_sorted.begin(), xc_sorted.end(),
-            [](const StripCluster &a, const StripCluster& b) {
-            return a.peak_charge > b.peak_charge;
-            });
-    std::sort(yc_sorted.begin(), yc_sorted.end(),
-            [](const StripCluster &a, const StripCluster& b) {
-            return a.peak_charge > b.peak_charge;
-            });
-    for(size_t i=0; i<ss; i++)
+    if(xy_cluster_matching_mode_cosmic)
     {
-        const StripCluster &xc = xc_sorted.at(i);
-        const StripCluster &yc = yc_sorted.at(i);
-        container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
-                               det_id,                              // detector id
-                               xc.total_charge, yc.total_charge,    // fill in total charge
-                               xc.peak_charge, yc.peak_charge,      // fill in peak charge
-                               xc.max_timebin, yc.max_timebin,      // fill in the max time bin
-                               xc.hits.size(), yc.hits.size(),      // number of hits
-                               resolution);                         // position resolution
-    }
-#else
-    // fill possible clusters in
-    for(auto &xc : x_cluster)
-    {
-        for(auto &yc : y_cluster)
+        size_t ss = x_cluster.size() < y_cluster.size() ? x_cluster.size() : y_cluster.size();
+        std::vector<StripCluster> xc_sorted = x_cluster;
+        std::vector<StripCluster> yc_sorted = y_cluster;
+        // sort in peak charge descending order
+        std::sort(xc_sorted.begin(), xc_sorted.end(),
+                [](const StripCluster &a, const StripCluster& b) {
+                return a.peak_charge > b.peak_charge;
+                });
+        std::sort(yc_sorted.begin(), yc_sorted.end(),
+                [](const StripCluster &a, const StripCluster& b) {
+                return a.peak_charge > b.peak_charge;
+                });
+        for(size_t i=0; i<ss; i++)
         {
-#ifdef USE_GEM_CUT
-            if(!(Cuts::Instance().cluster_adc_assymetry(xc, yc)))
-                continue;
-
-            if(!(Cuts::Instance().cluster_time_assymetry(xc, yc)))
-                continue;
-#endif
+            const StripCluster &xc = xc_sorted.at(i);
+            const StripCluster &yc = yc_sorted.at(i);
             container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
                     det_id,                              // detector id
                     xc.total_charge, yc.total_charge,    // fill in total charge
@@ -428,5 +415,28 @@ const
                     resolution);                         // position resolution
         }
     }
+    else
+    {
+        // fill possible clusters in
+        for(auto &xc : x_cluster)
+        {
+            for(auto &yc : y_cluster)
+            {
+#ifdef USE_GEM_CUT
+                if(!(Cuts::Instance().cluster_adc_assymetry(xc, yc)))
+                    continue;
+
+                if(!(Cuts::Instance().cluster_time_assymetry(xc, yc)))
+                    continue;
 #endif
+                container.emplace_back(xc.position, yc.position, 0.,        // by default z = 0
+                        det_id,                              // detector id
+                        xc.total_charge, yc.total_charge,    // fill in total charge
+                        xc.peak_charge, yc.peak_charge,      // fill in peak charge
+                        xc.max_timebin, yc.max_timebin,      // fill in the max time bin
+                        xc.hits.size(), yc.hits.size(),      // number of hits
+                        resolution);                         // position resolution
+            }
+        }
+    }
 }
