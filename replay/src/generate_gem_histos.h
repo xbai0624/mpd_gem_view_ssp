@@ -464,6 +464,10 @@ namespace quality_check_histos
                 histM.histo_1d<float>(Form("h_xshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.x);
                 histM.histo_1d<float>(Form("h_yshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.y);
 
+                // 2d should hit - tracker based histograms
+                histM.histo_2d<float>(Form("h_xyshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.x, p.y);
+
+                // fill residue plots -- these should be from using 2D matched hits
                 if( r < 99999999 )
                 {
                     histM.histo_1d<float>(Form("h_xresidue_gem%d_tracker_exclusive", _module_id)) -> Fill(xresidue);
@@ -473,11 +477,46 @@ namespace quality_check_histos
                     histM.histo_2d<float>(Form("h_xresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, xresidue);
                     histM.histo_2d<float>(Form("h_yresidue_x_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(x_did_hit, yresidue);
                     histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, yresidue);
-
-                    // 1d did hit -tracker based histograms
-                    histM.histo_1d<float>(Form("h_xdid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit);
-                    histM.histo_1d<float>(Form("h_ydid_hit_tracker_based_gem%d", _module_id)) -> Fill(y_did_hit);
                 }
+
+                // fill 1d did hits -- for 1D efficiency study, these should be from plane clusters, not from 2D matched hits
+                //  -- so redo search using 1D hits
+                auto find_best_1d_hit = [&](const std::vector<tracking_dev::point_t> &plane_hits, bool use_x) -> double
+                {
+                    double best_coord = 99999999;
+                    double best_r = 99999999;
+
+                    for(const auto &i: plane_hits) {
+                        tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, i.z);
+                        tracking_dev::point_t p_diff = i - p;
+
+                        double diff = use_x? std::abs(p_diff.x) : std::abs(p_diff.y);
+
+                        // only search within the search_radius
+                        if(diff > search_radius)
+                            continue;
+
+                        if(diff < best_r) {
+                            best_r = diff;
+                            best_coord = use_x ? i.x : i.y;
+                        }
+                    }
+
+                    return best_coord;
+                };
+                
+                double x_did_hit_1d = find_best_1d_hit(det.second->Get1DHits(0), true);
+                double y_did_hit_1d = find_best_1d_hit(det.second->Get1DHits(1), false);
+
+                // 1d did hit -tracker based histograms
+                if(x_did_hit_1d != 99999999)
+                    histM.histo_1d<float>(Form("h_xdid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit_1d);
+                if(y_did_hit_1d != 99999999)
+                    histM.histo_1d<float>(Form("h_ydid_hit_tracker_based_gem%d", _module_id)) -> Fill(y_did_hit_1d);
+
+                if(x_did_hit_1d != 99999999 && y_did_hit_1d != 99999999)
+                // 2d should hit - tracker based histograms
+                    histM.histo_2d<float>(Form("h_xydid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit_1d, y_did_hit_1d);
             }
         }
     }

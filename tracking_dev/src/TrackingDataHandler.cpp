@@ -264,6 +264,43 @@ namespace tracking_dev
             coord_system -> Transform(p, module_id);
             det -> AddHit(p);
         }
+
+        // fill 1d clusters -- for X/Y plane efficiency study
+        auto transfer_1D_clusters = [&](GEMPlane* pln, int pln_id) {
+            if(!pln) {
+                std::cout<<"transfer_1D_clusters():: Error: Unsupported plane type."<<std::endl;
+                return;
+            }
+
+            for(const auto &c: pln -> GetStripClusters())
+            {
+                point_t p;
+                if(pln_id == 0) {
+                    point_t tmp(c.position, 0, z_det, c.total_charge, 0, c.peak_charge, 0,
+                            c.max_timebin, 0, c.hits.size(), 0);
+                    tmp.module_id = module_id;
+                    tmp.layer_id = layer_id;
+
+                    p = tmp;
+                } else if (pln_id == 1) {
+                    point_t tmp(0, c.position, z_det, 0, c.total_charge, 0, c.peak_charge,
+                            0, c.max_timebin, 0, c.hits.size());
+                    tmp.module_id = module_id;
+                    tmp.layer_id = layer_id;
+
+                    p = tmp;
+                } else {
+                    std::cout<<"trasfer_1D_clusters():: Error: unsupported plane type."<<std::endl;
+                    return;
+                }
+
+                coord_system -> Transform(p, module_id);
+                det -> Add1DHit(p, pln_id);
+            }
+        };
+
+        transfer_1D_clusters(gem_det -> GetPlane(GEMPlane::Plane_X), 0);
+        transfer_1D_clusters(gem_det -> GetPlane(GEMPlane::Plane_Y), 1);
     }
 
     void TrackingDataHandler::CombineDetHitsToLayer()

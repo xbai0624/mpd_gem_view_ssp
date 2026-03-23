@@ -28,6 +28,7 @@ public:
     void AddFittedHits(const point_t &p) { addNonIndexHit(p, fitted_hits); }
     void AddRealHits(const point_t &p) { addNonIndexHit(p, real_hits); }
     void AddBackgroundHits(const point_t &p) { addNonIndexHit(p, background_hits); }
+    void Add1DHit(const point_t &p, int plane_id);
 
     // getters
     const point_t &GetOrigin() const;
@@ -51,6 +52,7 @@ public:
     const std::vector<point_t> &GetFittedHits() const {return fitted_hits;}
     const std::vector<point_t> &GetRealHits() const {return real_hits;}
     const std::vector<point_t> &GetBackgroundHits() const {return background_hits;}
+    const std::vector<point_t> &Get1DHits(int pln_id) const;
 
     // members
     void Reset();
@@ -83,6 +85,10 @@ private:
     std::vector<point_t> fitted_hits;
     std::vector<point_t> real_hits;
     std::vector<point_t> background_hits;
+
+    // for 1D hits
+    std::vector<point_t> global_hits_xplane;
+    std::vector<point_t> global_hits_yplane;
 
     // grid
     double grid_xwidth = 17.2, grid_ywidth = 17.2; // units in mm

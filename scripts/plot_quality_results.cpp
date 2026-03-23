@@ -27,7 +27,9 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     map<int, int> m_layer_didhits;
     map<int, int> m_layer_shouldhits;
 
-    map<int, int> m_layer_didhits_tracker_based;
+    map<int, int> m_layer_didhits_tracker_based_1DplaneX;
+    map<int, int> m_layer_didhits_tracker_based_1DplaneY;
+    map<int, int> m_layer_didhits_tracker_based_2Dplane;
     map<int, int> m_layer_shouldhits_tracker_based;
 
     while( (key = (TKey*)keyList()) )
@@ -101,7 +103,21 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
             // h_didhit_tracker_based_gem0
             char s_layer = h_name.back();
             int layer = s_layer - '0';
-            m_layer_didhits_tracker_based[layer] = h -> GetEntries();
+            m_layer_didhits_tracker_based_1DplaneX[layer] = h -> GetEntries();
+        }
+        else if(h_name.find("h_ydid_hit_tracker_based") != string::npos)
+        {
+            // h_didhit_tracker_based_gem0
+            char s_layer = h_name.back();
+            int layer = s_layer - '0';
+            m_layer_didhits_tracker_based_1DplaneY[layer] = h -> GetEntries();
+        }
+        else if(h_name.find("h_xydid_hit_tracker_based") != string::npos)
+        {
+            // h_didhit_tracker_based_gem0
+            char s_layer = h_name.back();
+            int layer = s_layer - '0';
+            m_layer_didhits_tracker_based_2Dplane[layer] = h -> GetEntries();
         }
 
         counter++;
@@ -155,9 +171,21 @@ void plot_quality_results(const char* path = "../Rootfiles/cluster_0_fermilab_be
     for(auto &i: m_layer_shouldhits_tracker_based)
     {
         double eff = 0;
-        if(m_layer_didhits_tracker_based.find(i.first) != m_layer_didhits_tracker_based.end())
-            eff = (double)m_layer_didhits_tracker_based[i.first]/(double)i.second;
-        string tracker_based_eff = Form("layer %d, tracker based efficiency = %.2f", i.first, eff);
+        if(m_layer_didhits_tracker_based_1DplaneX.find(i.first) != m_layer_didhits_tracker_based_1DplaneX.end())
+            eff = (double)m_layer_didhits_tracker_based_1DplaneX[i.first]/(double)i.second;
+        string tracker_based_eff = Form("layer %d, tracker based efficiency from planeX = %.2f", i.first, eff);
+        latex.DrawLatex(0.1, 0.85 - .05*_c, tracker_based_eff.c_str());
+        _c++;
+
+        if(m_layer_didhits_tracker_based_1DplaneY.find(i.first) != m_layer_didhits_tracker_based_1DplaneY.end())
+            eff = (double)m_layer_didhits_tracker_based_1DplaneY[i.first]/(double)i.second;
+        tracker_based_eff = Form("layer %d, tracker based efficiency from planeY = %.2f", i.first, eff);
+        latex.DrawLatex(0.1, 0.85 - .05*_c, tracker_based_eff.c_str());
+        _c++;
+
+        if(m_layer_didhits_tracker_based_2Dplane.find(i.first) != m_layer_didhits_tracker_based_2Dplane.end())
+            eff = (double)m_layer_didhits_tracker_based_2Dplane[i.first]/(double)i.second;
+        tracker_based_eff = Form("layer %d, tracker based efficiency from 2D matching = %.2f", i.first, eff);
         latex.DrawLatex(0.1, 0.85 - .05*_c, tracker_based_eff.c_str());
         _c++;
     }

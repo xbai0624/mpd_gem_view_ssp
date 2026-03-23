@@ -95,10 +95,23 @@ const std::vector<point_t> &VirtualDetector::GetGlobalHits() const
     return global_hits;
 }
 
+const std::vector<point_t> &VirtualDetector::Get1DHits(int pln_id) const
+{
+    if(pln_id == 0) return global_hits_xplane;
+    else if(pln_id == 1) return global_hits_yplane;
+    else {
+        std::cout<<"VirtualDetector::Get1DHits(const int &pln_id) :: Error :: "
+            <<"only plane_x and plane_y are supported."
+            <<std::endl;
+        exit(0);
+    }
+}
+
 void VirtualDetector::Reset()
 {
     local_hits.clear(); global_hits.clear();
     real_hits.clear(); fitted_hits.clear(); background_hits.clear();
+    global_hits_xplane.clear(); global_hits_yplane.clear();
 
     // reset grid counters
     for(auto &i: grid_chosen)
@@ -134,6 +147,22 @@ inline void VirtualDetector::addIndexHit(const point_t &p)
 
     grid_addr_t addr(i, j);
     vhits_by_grid[addr].push_back(index);
+}
+
+// 1d hit is only for calculating efficiency plane-wise, not for tracking purpose, so
+// hit position doesn't need to be kept record of
+void VirtualDetector::Add1DHit(const point_t &p, int plane_id)
+{
+    // plane_id == 0 : x plane; plane_id == 1: y plane
+
+    if(plane_id == 0)
+        global_hits_xplane.push_back(p);
+    else if(plane_id == 1)
+        global_hits_yplane.push_back(p);
+    else {
+        std::cout<<"Virtual Detector::Add1DHit() Error:: current only support 2 plane: x & y"
+            <<std::endl;
+    }
 }
 
 void VirtualDetector::SetupGrids()
