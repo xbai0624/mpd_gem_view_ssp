@@ -805,6 +805,10 @@ void Viewer::DrawGEMOnlineHits(int num)
                     <<nAPV * APV_STRIP_SIZE<<", probably due to special strip treatments."<<std::endl;
                 continue;
             }
+            if(hit_pos < 0) {
+                std::cout<<"Warning: strip no: "<<hit_pos<<", has negative value. Ignored."<<std::endl;
+                continue;
+            }
             res[hit_pos] = static_cast<int>(i.charge);
         }
         return res;
