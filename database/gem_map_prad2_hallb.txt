@@ -1,0 +1,324 @@
+###############################################################
+# Items    : the current configuration (APV)
+# CrateID  : the Unique ID for the VME Crate
+# MPDID    : MPD address in VME Crate 
+# GEMID    : detector ID
+# dimension: x/y 0/1
+# ADCId    : the ADCId address of APV
+# I2C      : the I2C address of APV
+# Pos	   : Position
+# Invert   : how the detector is positioned in the layer First two are normal (1) last two are inverted (0)
+# other    : backup param used for large scare spectrometer
+#
+# notes    : MPD CrateID and MPDID  uniquely define the MPD address
+#	     APV crateID, MPDID ADCId uniquely define the APV address	
+
+###############################################################
+# layer configurations
+# Items             : Layer
+# LayerID           : layer id
+# ChambersPerLayer  : how many chambers on this layer
+# readout           : readout type (Cartesian/UV)
+# XOffset           : x offset
+# YOffset           : y offset
+# GEMType           : gem chamber type (UVAXYGEM/INFNXYGEM/UVAUVGEM)
+# nb_of_apvs_on_chamber_x_plane: how many APVs on gem chamber x plane
+# nb_of_apvs_on_chamber_y_plane: how many APVs on gem chamber y plane
+# x_pitch           : distance between readout strips on chamber x plane (0.4 mm)
+# y_pitch           : distance between readout strips on chamber y plane (0.4 mm)
+# x_flip            : flip x direction: 1 not flip, -1 flip
+# y_flip            : flip y direction or not (if you install two layers back to back, then one layer can be set to -1)
+
+# Layer configurations
+# Items, LayerID, ChambersPerLayer, readout, XOffset, YOffset, GEMType, nb_of_apvs_on_chamber_x_plane, nb_of_apvs_on_chamber_y_plane, x_pitch, y_pitch, x_flip, y_flip
+
+Layer,  0,  1,         CARTESIAN,  0,   0,   PRADGEM,   12,   24,   0.4,    0.4,    1,  1
+Layer,  1,  1,         CARTESIAN,  0,   0,   PRADGEM,   12,   24,   0.4,    0.4,    1,  1
+Layer,  2,  1,         CARTESIAN,  0,   0,   PRADGEM,   12,   24,   0.4,    0.4,    1,  1
+Layer,  3,  1,         CARTESIAN,  0,   0,   PRADGEM,   12,   24,   0.4,    0.4,    1,  1
+
+#Layer,  0,  2,         CARTESIAN,  0,   0,   PRADGEM,   12,   24,   0.4,    0.4,    1,  1
+#Layer,  1,  2,         CARTESIAN,  0,   0,   PRADGEM,   12,   24,   0.4,    0.4,    1,  1
+
+###############################################################
+#Items,	CrateID, Layer,	FiberID,	GEMID,	dmension,  ADCId,	I2C,	Pos,	Invert,	other,	backplane,	GEMPOS
+#
+######################################         ###########################################
+###################################### CRATE 0 ###########################################
+######################################         ###########################################
+#
+#=========================================================================================
+#
+#                                 Crate_1 Layer_1
+#
+#============================= Crate_1 Layer_1 UV#3 ===================================
+# 0 -> X dimension; 1 -> Y dimension
+
+#temporarily changing normal = 1, split = 0 in field 11
+#
+#============================= L0M0 =====================================
+#
+# X-dimension MPD slot 2
+APV,	146,	0,	0,	1,	0,	0,	0,	11,	0,	normal,	0,	0,
+
+# X-dimension MPD slot 3
+APV,	146,	0,	1,	1,	0,	0,	0,	3,	0,	normal,	1,	0,
+APV,	146,	0,	1,	1,	0,	1,	1,	4,	0,	normal,	1,	0,
+APV,	146,	0,	1,	1,	0,	2,	2,	5,	0,	normal,	1,	0,
+
+# X-dimension MPD slot 4
+APV,	146,	0,	2,	1,	0,	0,	0,	0,	0,	PRadSplit,	2,	0,
+APV,	146,	0,	2,	1,	0,	1,	1,	1,	0,	normal,	2,	0,
+APV,	146,	0,	2,	1,	0,	2,	2,	2,	0,	normal,	2,	0,
+
+# Y-dimension MPD slot 5
+APV,	146,	0,	3,	1,	1,	0,	0,	2,	1,	normal,	3,	0,
+APV,	146,	0,	3,	1,	1,	1,	1,	1,	1,	normal,	3,	0,
+APV,	146,	0,	3,	1,	1,	2,	2,	0,	1,	normal,	3,	0,
+
+# Y-dimension MPD slot 6
+APV,	146,	0,	4,	1,	1,	0,	0,	5,	1,	normal,	4,	0,
+APV,	146,	0,	4,	1,	1,	1,	1,	4,	1,	normal,	4,	0,
+APV,	146,	0,	4,	1,	1,	2,	2,	3,	1,	normal,	4,	0,
+
+# Y-dimension MPD slot 7
+APV,	146,	0,	5,	1,	1,	0,	0,	8,	1,	normal,	5,	0,
+APV,	146,	0,	5,	1,	1,	1,	1,	7,	1,	normal,	5,	0,
+APV,	146,	0,	5,	1,	1,	2,	2,	6,	1,	normal,	5,	0,
+
+# Y-dimension MPD slot 8
+APV,	146,	0,	6,	1,	1,	0,	0,	11,	1,	normal,	6,	0,
+APV,	146,	0,	6,	1,	1,	1,	1,	10,	1,	normal,	6,	0,
+APV,	146,	0,	6,	1,	1,	2,	2,	9,	1,	normal,	6,	0,
+
+# Y-dimension MPD slot 9
+APV,	146,	0,	7,	1,	1,	0,	0,	14,	1,	normal,	7,	0,
+APV,	146,	0,	7,	1,	1,	1,	1,	13,	1,	normal,	7,	0,
+APV,	146,	0,	7,	1,	1,	2,	2,	12,	1,	normal,	7,	0,
+
+# Y-dimension MPD slot 10
+APV,	146,	0,	8,	1,	1,	0,	0,	17,	1,	normal,	8,	0,
+APV,	146,	0,	8,	1,	1,	1,	1,	16,	1,	normal,	8,	0,
+APV,	146,	0,	8,	1,	1,	2,	2,	15,	1,	normal,	8,	0,
+
+# Y-dimension MPD slot 13
+APV,	146,	0,	9,	1,	1,	0,	0,	20,	1,	normal,	9,	0,
+APV,	146,	0,	9,	1,	1,	1,	1,	19,	1,	normal,	9,	0,
+APV,	146,	0,	9,	1,	1,	2,	2,	18,	1,	normal,	9,	0,
+
+# Y-dimension MPD slot 14
+APV,	146,	0,	10,	1,	1,	0,	0,	23,	1,	normal,	10,	0,
+APV,	146,	0,	10,	1,	1,	1,	1,	22,	1,	normal,	10,	0,
+APV,	146,	0,	10,	1,	1,	2,	2,	21,	1,	normal,	10,	0,
+
+# X-dimension MPD slot 15
+APV,	146,	0,	11,	1,	0,	0,	0,	7,	1,	normal,	11,	0,
+APV,	146,	0,	11,	1,	0,	1,	1,	6,	1,	normal,	11,	0,
+
+# X-dimension MPD slot 16
+APV,	146,	0,	12,	1,	0,	0,	0,	10,	1,	PRadSplit,	12,	0,
+APV,	146,	0,	12,	1,	0,	1,	1,	9,	1,	normal,	12,	0,
+APV,	146,	0,	12,	1,	0,	2,	2,	8,	1,	normal,	12,	0,
+
+
+
+#
+#============================= L0M1 =====================================
+#
+# X-dimension MPD slot 17
+APV,	146,	1,	13,	2,	0,	0,	0,	11,	0,	normal,	0,	1,
+
+# X-dimension MPD slot 18
+APV,	146,	1,	14,	2,	0,	0,	0,	3,	0,	normal,	1,	1,
+APV,	146,	1,	14,	2,	0,	1,	1,	4,	0,	normal,	1,	1,
+APV,	146,	1,	14,	2,	0,	2,	2,	5,	0,	normal,	1,	1,
+
+# X-dimension MPD slot 19
+APV,	146,	1,	15,	2,	0,	0,	0,	0,	0,	PRadSplit,	2,	1,
+APV,	146,	1,	15,	2,	0,	1,	1,	1,	0,	normal,	2,	1,
+APV,	146,	1,	15,	2,	0,	2,	2,	2,	0,	normal,	2,	1,
+
+# Y-dimension MPD slot 2
+APV,	146,	1,	16,	2,	1,	0,	0,	2,	1,	normal,	3,	1,
+APV,	146,	1,	16,	2,	1,	1,	1,	1,	1,	normal,	3,	1,
+APV,	146,	1,	16,	2,	1,	2,	2,	0,	1,	normal,	3,	1,
+
+# Y-dimension MPD10
+APV,	146,	1,	17,	2,	1,	0,	0,	5,	1,	normal,	4,	1,
+APV,	146,	1,	17,	2,	1,	1,	1,	4,	1,	normal,	4,	1,
+APV,	146,	1,	17,	2,	1,	2,	2,	3,	1,	normal,	4,	1,
+
+# Y-dimension MPD13
+APV,	146,	1,	18,	2,	1,	0,	0,	8,	1,	normal,	5,	1,
+APV,	146,	1,	18,	2,	1,	1,	1,	7,	1,	normal,	5,	1,
+APV,	146,	1,	18,	2,	1,	2,	2,	6,	1,	normal,	5,	1,
+
+# Y-dimension MPD14
+APV,	146,	1,	19,	2,	1,	0,	0,	11,	1,	normal,	6,	1,
+APV,	146,	1,	19,	2,	1,	1,	1,	10,	1,	normal,	6,	1,
+APV,	146,	1,	19,	2,	1,	2,	2,	9,	1,	normal,	6,	1,
+
+# Y-dimension MPD15
+APV,	146,	1,	20,	2,	1,	0,	0,	14,	1,	normal,	7,	1,
+APV,	146,	1,	20,	2,	1,	1,	1,	13,	1,	normal,	7,	1,
+APV,	146,	1,	20,	2,	1,	2,	2,	12,	1,	normal,	7,	1,
+
+# Y-dimension MPD16
+APV,	146,	1,	21,	2,	1,	0,	0,	17,	1,	normal,	8,	1,
+APV,	146,	1,	21,	2,	1,	1,	1,	16,	1,	normal,	8,	1,
+APV,	146,	1,	21,	2,	1,	2,	2,	15,	1,	normal,	8,	1,
+
+# Y-dimension MPD17
+APV,	146,	1,  22,	2,	1,	0,	0,	20,	1,	normal,	9,	1,
+APV,	146,	1,	22,	2,	1,	1,	1,	19,	1,	normal,	9,	1,
+APV,	146,	1,  22,	2,	1,	2,	2,	18,	1,	normal,	9,	1,
+
+# Y-dimension MPD18
+APV,	146,	1,	23,	2,	1,	0,	0,	23,	1,	normal,	10,	1,
+APV,	146,	1,	23,	2,	1,	1,	1,	22,	1,	normal,	10,	1,
+APV,	146,	1,	23,	2,	1,	2,	2,	21,	1,	normal,	10,	1,
+
+# X-dimension MPD19
+APV,	147,	1,	0,	2,	0,	0,	0,	7,	1,	normal,	11,	1,
+APV,	147,	1,	0,	2,	0,	1,	1,	6,	1,	normal,	11,	1,
+
+# X-dimension MPD20
+APV,	147,	1,	1,	2,	0,	0,	0,	10,	1,	PRadSplit,	12,	1,
+APV,	147,	1,	1,	2,	0,	1,	1,	9,	1,	normal,	12,	1,
+APV,	147,	1,	1,	2,	0,	2,	2,	8,	1,	normal,	12,	1,
+
+
+###############################################################
+#Items,	CrateID, Layer,	FiberID, GEMID,	dmension,  ADCId, I2C, Pos, Invert, other, backplane, GEMPOS
+#
+#============================= L1M0 =====================================
+#
+# X-dimension MPD6
+APV,	147,	2,	2,	3,	0,	0,	0,	11,	0,	normal,	0,	0,
+
+# X-dimension MPD7
+APV,	147,	2,	3,	3,	0,	0,	0,	3,	0,	normal,	1,	0,
+APV,	147,	2,	3,	3,	0,	1,	1,	4,	0,	normal,	1,	0,
+APV,	147,	2,	3,	3,	0,	2,	2,	5,	0,	normal,	1,	0,
+
+# X-dimension MPD8
+APV,	147,	2,	4,	3,	0,	0,	0,	0,	0,	PRadSplit,	2,	0,
+APV,	147,    2,	4,	3,	0,	1,	1,	1,	0,	normal,	2,	0,
+APV,	147,	2,	4,	3,	0,	2,	2,	2,	0,	normal,	2,	0,
+
+# Y-dimension MPD9
+APV,	147,	2,	5,	3,	1,	0,	0,	2,	1,	normal,	3,	0,
+APV,	147,	2,	5,	3,	1,	1,	1,	1,	1,	normal,	3,	0,
+APV,	147,	2,	5,	3,	1,	2,	2,	0,	1,	normal,	3,	0,
+
+# Y-dimension MPD10
+APV,	147,	2,	6,	3,	1,	0,	0,	5,	1,	normal,	4,	0,
+APV,	147,	2,	6,	3,	1,	1,	1,	4,	1,	normal,	4,	0,
+APV,	147,	2,	6,	3,	1,	2,	2,	3,	1,	normal,	4,	0,
+
+# Y-dimension MPD13
+APV,	147,	2,	7,	3,	1,	0,	0,	8,	1,	normal,	5,	0,
+APV,	147,	2,	7,	3,	1,	1,	1,	7,	1,	normal,	5,	0,
+APV,	147,	2,	7,	3,	1,	2,	2,	6,	1,	normal,	5,	0,
+
+# Y-dimension MPD14
+APV,	147,	2,	8,	3,	1,	0,	0,	11,	1,	normal,	6,	0,
+APV,	147,	2,	8,	3,	1,	1,	1,	10,	1,	normal,	6,	0,
+APV,	147,	2,	8,	3,	1,	2,	2,	9,	1,	normal,	6,	0,
+
+# Y-dimension MPD15
+APV,	147,	2,	9,	3,	1,	0,	0,	14,	1,	normal,	7,	0,
+APV,	147,	2,	9,	3,	1,	1,	1,	13,	1,	normal,	7,	0,
+APV,	147,	2,	9,	3,	1,	2,	2,	12,	1,	normal,	7,	0,
+
+# Y-dimension MPD16
+APV,	147,	2,	10,	3,	1,	0,	0,	17,	1,	normal,	8,	0,
+APV,	147,	2,	10,	3,	1,	1,	1,	16,	1,	normal,	8,	0,
+APV,	147,	2,	10,	3,	1,	2,	2,	15,	1,	normal,	8,	0,
+
+# Y-dimension MPD17
+APV,	147,	2,	11,	3,	1,	0,	0,	20,	1,	normal,	9,	0,
+APV,	147,	2,	11,	3,	1,	1,	1,	19,	1,	normal,	9,	0,
+APV,	147,	2,	11,	3,	1,	2,	2,	18,	1,	normal,	9,	0,
+
+# Y-dimension MPD18
+APV,	147,	2,	12,	3,	1,	0,	0,	23,	1,	normal,	10,	0,
+APV,	147,	2,	12,	3,	1,	1,	1,	22,	1,	normal,	10,	0,
+APV,	147,	2,	12,	3,	1,	2,	2,	21,	1,	normal,	10,	0,
+
+# X-dimension MPD19
+APV,	147,	2,	13,	3,	0,	0,	0,	7,	1,	normal,	11,	0,
+APV,	147,	2,	13,	3,	0,	1,	1,	6,	1,	normal,	11,	0,
+
+# X-dimension MPD20
+APV,	147,	2,	14,	3,	0,	0,	0,	10,	1,	PRadSplit,	12,	0,
+APV,	147,	2,	14,	3,	0,	1,	1,	9,	1,	normal,	12,	0,
+APV,	147,	2,	14,	3,	0,	2,	2,	8,	1,	normal,	12,	0,
+
+
+###############################################################
+#Items,	CrateID, Layer,	FiberID, GEMID,	dmension,  ADCId, I2C, Pos, Invert, other, backplane, GEMPOS
+#
+#============================= L1M1 =====================================
+#
+# X-dimension MPD6
+APV,	147,	3,	15,	4,	0,	0,	0,	11,	0,	normal,	0,	1,
+
+# X-dimension MPD7
+APV,	147,	3,	16,	4,	0,	0,	0,	3,	0,	normal,	1,	1,
+APV,	147,	3,	16,	4,	0,	1,	1,	4,	0,	normal,	1,	1,
+APV,	147,	3,	16,	4,	0,	2,	2,	5,	0,	normal,	1,	1,
+
+# X-dimension MPD8
+APV,	147,	3,	17,	4,	0,	0,	0,	0,	0,	PRadSplit,	2,	1,
+APV,	147,    3,	17,	4,	0,	1,	1,	1,	0,	normal,	2,	1,
+APV,	147,	3,	17,	4,	0,	2,	2,	2,	0,	normal,	2,	1,
+
+# Y-dimension MPD9
+APV,	147,	3,	18,	4,	1,	0,	0,	2,	1,	normal,	3,	1,
+APV,	147,	3,	18,	4,	1,	1,	1,	1,	1,	normal,	3,	1,
+APV,	147,	3,	18,	4,	1,	2,	2,	0,	1,	normal,	3,	1,
+
+# Y-dimension MPD10
+APV,	147,	3,	19,	4,	1,	0,	0,	5,	1,	normal,	4,	1,
+APV,	147,	3,	19,	4,	1,	1,	1,	4,	1,	normal,	4,	1,
+APV,	147,	3,	19,	4,	1,	2,	2,	3,	1,	normal,	4,	1,
+
+# Y-dimension MPD13
+APV,	147,	3,	20,	4,	1,	0,	0,	8,	1,	normal,	5,	1,
+APV,	147,	3,	20,	4,	1,	1,	1,	7,	1,	normal,	5,	1,
+APV,	147,	3,	20,	4,	1,	2,	2,	6,	1,	normal,	5,	1,
+
+# Y-dimension MPD14
+APV,	147,	3,	21,	4,	1,	0,	0,	11,	1,	normal,	6,	1,
+APV,	147,	3,	21,	4,	1,	1,	1,	10,	1,	normal,	6,	1,
+APV,	147,	3,	21,	4,	1,	2,	2,	9,	1,	normal,	6,	1,
+
+# Y-dimension MPD15
+APV,	147,	3,	22,	4,	1,	0,	0,	14,	1,	normal,	7,	1,
+APV,	147,	3,	22,	4,	1,	1,	1,	13,	1,	normal,	7,	1,
+APV,	147,	3,	22,	4,	1,	2,	2,	12,	1,	normal,	7,	1,
+
+# Y-dimension MPD16
+APV,	147,	3,	23,	4,	1,	0,	0,	17,	1,	normal,	8,	1,
+APV,	147,	3,	23,	4,	1,	1,	1,	16,	1,	normal,	8,	1,
+APV,	147,	3,	23,	4,	1,	2,	2,	15,	1,	normal,	8,	1,
+
+# Y-dimension MPD17
+APV,	147,	3,	24,	4,	1,	0,	0,	20,	1,	normal,	9,	1,
+APV,	147,	3,	24,	4,	1,	1,	1,	19,	1,	normal,	9,	1,
+APV,	147,	3,	24,	4,	1,	2,	2,	18,	1,	normal,	9,	1,
+
+# Y-dimension MPD18
+APV,	147,	3,	25,	4,	1,	0,	0,	23,	1,	normal,	10,	1,
+APV,	147,	3,	25,	4,	1,	1,	1,	22,	1,	normal,	10,	1,
+APV,	147,	3,	25,	4,	1,	2,	2,	21,	1,	normal,	10,	1,
+
+# X-dimension MPD19
+APV,	147,	3,	26,	4,	0,	0,	0,	7,	1,	normal,	11,	1,
+APV,	147,	3,	26,	4,	0,	1,	1,	6,	1,	normal,	11,	1,
+
+# X-dimension MPD20
+APV,	147,	3,	27,	4,	0,	0,	0,	10,	1,	PRadSplit,	12,	1,
+APV,	147,	3,	27,	4,	0,	1,	1,	9,	1,	normal,	12,	1,
+APV,	147,	3,	27,	4,	0,	2,	2,	8,	1,	normal,	12,	1,

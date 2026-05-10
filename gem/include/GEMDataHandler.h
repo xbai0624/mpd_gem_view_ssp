@@ -44,10 +44,10 @@ public:
     int DecodeEvent(int &count);
 
     // read from multiple evio splits
-    int ReadFromSplitEvio(const std::string &path, int split_start = 0,
+    int ReadAllEvioFiles(const std::string &path, int split_start = 0,
             int split_end = -1, bool verbose = false);
     // read from single evio
-    int ReadFromEvio(const std::string &path, int split=-1, bool verbose = false);
+    int ReadSingleEvioFile(const std::string &path, int split=-1, bool verbose = false);
     // interface member
     void Replay(const std::string &r_path, int split_start = 0, int split_end = -1,
             const std::string &pedestal_input_file = "",

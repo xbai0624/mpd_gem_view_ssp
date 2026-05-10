@@ -21,7 +21,7 @@
 #include "GEMCluster.h"
 #include "Cuts.h"
 
-#define USE_GEM_CUT
+//#define USE_STRIP_SHAPE_CUT
 
 ////////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -50,7 +50,8 @@ GEMPlane::GEMPlane(const std::string &n, const int &t, const float &s,
 
 GEMPlane::GEMPlane(const GEMPlane &that)
 : detector(nullptr), name(that.name), type(that.type), size(that.size), orient(that.orient),
-  direction(that.direction), strip_hits(that.strip_hits), strip_clusters(that.strip_clusters)
+  direction(that.direction), strip_hits(that.strip_hits), strip_clusters(that.strip_clusters),
+  unzero_sup_strip_hits(that.unzero_sup_strip_hits)
 {
     apv_list.resize(that.apv_list.size(), nullptr);
 }
@@ -61,7 +62,7 @@ GEMPlane::GEMPlane(const GEMPlane &that)
 GEMPlane::GEMPlane(GEMPlane &&that)
 : detector(nullptr), name(std::move(that.name)), type(that.type), size(that.size),
   orient(that.orient), direction(that.direction), strip_hits(std::move(that.strip_hits)),
-  strip_clusters(std::move(that.strip_clusters))
+  strip_clusters(std::move(that.strip_clusters)), unzero_sup_strip_hits(std::move(that.unzero_sup_strip_hits))
 {
     apv_list.resize(that.apv_list.size(), nullptr);
 }
@@ -104,6 +105,7 @@ GEMPlane &GEMPlane::operator =(GEMPlane &&rhs)
 
     strip_hits = std::move(rhs.strip_hits);
     strip_clusters = std::move(rhs.strip_clusters);
+    unzero_sup_strip_hits = std::move(rhs.unzero_sup_strip_hits);
 
     return *this;
 }
@@ -443,6 +445,7 @@ float GEMPlane::GetStripPosition(const int &plane_strip)
 void GEMPlane::ClearStripHits()
 {
     strip_hits.clear();
+    unzero_sup_strip_hits.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -487,12 +490,46 @@ void GEMPlane::AddStripHit(int strip, float charge, short maxtime, bool xtalk,
 
     strip_hits.back().ts_adc = _ts_adc;
 
-#ifdef USE_GEM_CUT
+#ifdef USE_STRIP_SHAPE_CUT
     if(!Cuts::Instance().is_concave_shape(strip_hits.back()))
         strip_hits.pop_back();
 #endif
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// add a unzero suppressed plane hit
+
+void GEMPlane::AddUnZeroSupStripHit(int strip, float charge, short maxtime, bool xtalk, 
+        int crate, int mpd, int adc, const std::vector<float> &_ts_adc)
+{
+    std::string detector_type = GetDetector() -> GetType();
+
+    if(detector_type == "PRADGEM") {
+        // PRad floating strip removal
+        // hard coded because it is specific to PRad GEM setting
+        if((type == Plane_X) &&
+                ((strip < 16) || (strip > 1391)))
+            return;
+    }
+
+    if(detector_type == "FITCYLINDRICAL") {
+        // for FIT Cylindrical detector, each APV connects to both U and V plane
+        // U plane is even strips, V plane is odd strips
+        if( (type == Plane_X) && strip % 2 != 0) return;
+        if( (type == Plane_Y) && strip % 2 == 0) return;
+
+        // after removing odd/even strips for V/U planes, the strip index must 
+        // be shrinked by 2 to make strip order consecutive
+
+        if( strip %2 == 0) strip = strip / 2;
+        else strip = strip / 2 + 1;
+    }
+
+    unzero_sup_strip_hits.emplace_back(strip, charge, maxtime, GetStripPosition(strip),
+            xtalk, crate, mpd, adc);
+
+    unzero_sup_strip_hits.back().ts_adc = _ts_adc;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // collect hits from the connected APVs

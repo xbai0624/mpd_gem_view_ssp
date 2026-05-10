@@ -159,6 +159,36 @@ void GEMDataHandler::RegisterRawDecoders()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// replay the raw data file, do zero suppression and save it to root format
+
+void GEMDataHandler::Replay(const std::string &r_path, int split_start, int split_end,
+        const std::string &_pedestal_input, const std::string &_common_mode_input,
+        const std::string &_pedestal_output, const std::string &_commonMode_output)
+{
+    Reset();
+
+    // get time start
+    std::cout<<std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    // set mode before work starts
+    SetMode();
+
+    SetupReplay(r_path, split_start, split_end, _pedestal_input, _common_mode_input,
+            _pedestal_output, _commonMode_output);
+
+    int count = ReadAllEvioFiles(r_path, split_start, split_end);
+
+    Write();
+
+    // get time end
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    int _t = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    std::cout<<"Replayed "<<count<<" events";
+    std::cout<<" in "<< _t/60 <<" minutes "<<_t%60 <<" seconds"<<std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // setup replay output file names
 
 void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, [[maybe_unused]]int split_end,
@@ -176,64 +206,48 @@ void GEMDataHandler::SetupReplay(const std::string &r_path, int split_start, [[m
         replay_hit_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
         _prefix = "cluster_" + std::to_string(split_start);
         replay_cluster_output_file = output_path + ParseOutputFileName(r_path, _prefix.c_str());
+
         std::cout<<"Replay started..."<<std::endl;
     }
 
-    if(pedestalMode)
+    else if(pedestalMode)
     {
         std::cout<<"Pedestal started..."<<std::endl;
-        if(_pedestal_output.size() > 0) pedestal_output_file = _pedestal_output;
-        else std::cout<<"Warning: no pedestal output path specified, using default."<<std::endl;
-        if(_commonMode_output.size() > 0) commonMode_output_file = _commonMode_output;
-        else std::cout<<"Warning: no common mode output path specified, using default."<<std::endl;
+
+        if(_pedestal_output.size() > 0)
+            pedestal_output_file = _pedestal_output;
+        else
+            std::cout<<"Warning: no pedestal output path specified, using default."<<std::endl;
+
+        if(_commonMode_output.size() > 0)
+            commonMode_output_file = _commonMode_output;
+        else
+            std::cout<<"Warning: no common mode output path specified, using default."<<std::endl;
     }
 
-    if(onlineMode)
+    else if(onlineMode)
         std::cout<<"Online started..."<<std::endl;
-}
 
-////////////////////////////////////////////////////////////////////////////////
-// replay the raw data file, do zero suppression and save it to root format
-
-void GEMDataHandler::Replay(const std::string &r_path, int split_start, int split_end,
-        const std::string &_pedestal_input, const std::string &_common_mode_input,
-        const std::string &_pedestal_output, const std::string &_commonMode_output)
-{
-    Reset();
-    // get time start
-    std::cout<<std::endl;
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
-    // set mode before work starts
-    SetMode();
-
-    SetupReplay(r_path, split_start, split_end, _pedestal_input, _common_mode_input,
-            _pedestal_output, _commonMode_output);
-
-    int count = ReadFromSplitEvio(r_path, split_start, split_end);
-
-    Write();
-
-    // get time end
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    int _t = (int)std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    std::cout<<"Replayed "<<count<<" events";
-    std::cout<<" in "<< _t/60 <<" minutes "<<_t%60 <<" seconds"<<std::endl;
+    else
+        std::cout<<"ERROR:: incorrect working mode..."<<std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // read from splitted evio file
 
-int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start, 
+int GEMDataHandler::ReadAllEvioFiles(const std::string &path, int split_start, 
         int split_end, bool verbose)
 {
     if(split_end < 0)
     {
         // default input, no split
-        return ReadFromEvio(path.c_str(), -1, verbose);
-    } else {
+        return ReadSingleEvioFile(path.c_str(), -1, verbose);
+    } 
+    else
+    {
         int count = 0;
-        for(int i=split_start;i<split_end;i++) {
+        for(int i=split_start;i<split_end;i++)
+        {
             // parse all input files
             size_t pos = 0;
             if(path.find("evio") != std::string::npos) {
@@ -250,7 +264,8 @@ int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start,
             }
             std::string split_path = path.substr(0, pos);
             split_path = split_path + "." + std::to_string(i);
-            count += ReadFromEvio(split_path.c_str(), -1, verbose);
+
+            count += ReadSingleEvioFile(split_path.c_str(), -1, verbose);
         }
         return count;
     }
@@ -259,7 +274,7 @@ int GEMDataHandler::ReadFromSplitEvio(const std::string &path, int split_start,
 ////////////////////////////////////////////////////////////////////////////////
 // read from single evio file
 
-int GEMDataHandler::ReadFromEvio(const std::string &path, [[maybe_unused]]int split, 
+int GEMDataHandler::ReadSingleEvioFile(const std::string &path, [[maybe_unused]]int split, 
         [[maybe_unused]]bool verbose)
 {
     // open evio file
@@ -652,8 +667,11 @@ int GEMDataHandler::FindEvent([[maybe_unused]] int event_number) const
 
 void GEMDataHandler::SetMode()
 {
-    if(gem_sys == nullptr)
+    if(gem_sys == nullptr) {
+        std::cout<<"ERROR:: failed to get work mode from GEMSystem: gem_sys == nullptr..."
+            <<std::endl;
         return;
+    }
 
     if(gem_sys->GetPedestalMode())
         SetPedestalMode(true);

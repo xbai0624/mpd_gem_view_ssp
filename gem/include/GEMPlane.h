@@ -43,6 +43,7 @@ public:
     void DisconnectAPV(const uint32_t &plane_index, bool force_disconn);
     void DisconnectAPVs();
     void AddStripHit(int strip, float charge, short timebin, bool xtalk, int crate, int mpd, int adc, const std::vector<float> &ts_adc);
+    void AddUnZeroSupStripHit(int strip, float charge, short timebin, bool xtalk, int crate, int mpd, int adc, const std::vector<float> &ts_adc);
     void ClearStripHits();
     void CollectAPVHits();
     float GetStripPosition(const int &plane_strip) const;
@@ -68,6 +69,8 @@ public:
     std::vector<GEMAPV*> GetAPVList() const;
     std::vector<StripHit> &GetStripHits() {return strip_hits;}
     const std::vector<StripHit> &GetStripHits() const {return strip_hits;}
+    std::vector<StripHit> &GetUnZeroSupStripHits() {return unzero_sup_strip_hits;}
+    const std::vector<StripHit> &GetUnZeroSupStripHits() const {return unzero_sup_strip_hits;}
     std::vector<StripCluster> &GetStripClusters() {return strip_clusters;}
     const std::vector<StripCluster> &GetStripClusters() const {return strip_clusters;};
     void PrintStatus();
@@ -84,6 +87,7 @@ private:
     // plane raw hits and clusters
     std::vector<StripHit> strip_hits;
     std::vector<StripCluster> strip_clusters;
+    std::vector<StripHit> unzero_sup_strip_hits;
 };
 
 #endif
