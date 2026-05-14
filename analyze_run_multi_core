@@ -3,8 +3,8 @@
 export LD_LIBRARY_PATH=${PWD}/decoder/lib:${PWD}/gem/lib:${PWD}/epics/lib:${PWD}/tracking_dev/lib:${LD_LIBRARY_PATH}
 
 # pedestal file
-PEDESTAL_FILE="database/gem_ped_749.dat"
-COMMON_MODE_FILE="database/CommonModeRange_749.txt"
+PEDESTAL_FILE="database/gem_ped_24495.dat"
+COMMON_MODE_FILE="database/CommonModeRange_24495.txt"
 
 export PEDESTAL_FILE
 export COMMON_MODE_FILE

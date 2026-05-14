@@ -190,7 +190,7 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
 
 void HistoWidget::Clear()
 {
-    //for(int i=0;i<fRow*fCol;i++)
-    //    pItem[i] -> Clear();
+    for(int i=0;i<fRow*fCol;i++)
+        pItem[i] -> clearContent();
 }
 
