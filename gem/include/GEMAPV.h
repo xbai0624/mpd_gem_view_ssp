@@ -115,6 +115,17 @@ public:
     std::vector<float> GetRawTSADC(const uint32_t &ch) const;
     float GetAveragedCharge(const uint32_t &ch) const;
     float GetIntegratedCharge(const uint32_t &ch) const;
+    // Returns peak (max-over-time-samples) ADC after offset +
+    // common-mode subtraction for EVERY strip of this APV, regardless
+    // of the zero-suppression hit flag.
+    // Each entry is (plane-wide strip index, peak corrected ADC).
+    // Must be called AFTER ZeroSuppression() so raw_data already has
+    // the offset and dynamic common-mode subtracted in place.
+    // Uses the same per-strip metric as CollectZeroSupHits()
+    // (which stores GetMaxCharge() on each StripHit), so the
+    // non-zero-suppressed online display is directly comparable to
+    // the zero-suppressed one strip-by-strip.
+    std::vector<std::pair<int, float>> GetMaxADCAllStrips() const;
     const std::vector<int> & GetOfflineCommonMode() const {return offline_common_mode;}
     const std::vector<int> & GetOnlineCommonMode() const {return online_common_mode;}
     const std::vector<int> & GetUnusedChannels() const {return unused_channels;}

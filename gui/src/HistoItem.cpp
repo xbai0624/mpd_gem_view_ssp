@@ -150,19 +150,36 @@ void HistoItem::prepareDataShape()
 
         find_data_range(data_x_range, data_y_range);
 
-        double scale_factor_x = drawing_range.width()/(data_x_range.second - data_x_range.first);
-        double scale_factor_y = drawing_range.height()/(data_y_range.second - data_y_range.first);
+        // Guard against degenerate X range
+        double x_span = data_x_range.second - data_x_range.first;
+        if(x_span <= 0) {
+            x_span = 1.0;
+            data_x_range.second = data_x_range.first + 1.0;
+        }
+        // Always show at least [-50, 50] on the Y axis. This gives an
+        // empty histogram (typically all 0 after zero suppression with
+        // no hits) a sensible flat-zero line in the middle of the
+        // frame rather than collapsing it onto the frame's bottom
+        // edge, while still letting the axis grow outward whenever
+        // real data exceeds those bounds.
+        constexpr double kMinYRange = 50.0;
+        if(data_y_range.first  > -kMinYRange) data_y_range.first  = -kMinYRange;
+        if(data_y_range.second <  kMinYRange) data_y_range.second =  kMinYRange;
+        double y_span = data_y_range.second - data_y_range.first;
+
+        double scale_factor_x = drawing_range.width() / x_span;
+        double scale_factor_y = drawing_range.height() / y_span;
 
         _content<<QPointF(drawing_range.x(), drawing_range.y() + drawing_range.height());
 
         for(int i=0; i<_data2.size()-1; i++)
         {
             _content<<QPointF(
-                    drawing_range.x() + (_data2[i].first - data_x_range.first)*scale_factor_x, 
+                    drawing_range.x() + (_data2[i].first - data_x_range.first)*scale_factor_x,
                     drawing_range.y() + drawing_range.height() - (_data2[i].second - data_y_range.first)*scale_factor_y
                     )
                 <<QPointF(
-                        drawing_range.x() + (_data2[i+1].first - data_x_range.first)*scale_factor_x, 
+                        drawing_range.x() + (_data2[i+1].first - data_x_range.first)*scale_factor_x,
                         drawing_range.y() + drawing_range.height() - (_data2[i].second - data_y_range.first)*scale_factor_y
                         );
         }
@@ -448,7 +465,17 @@ void HistoItem::drawTitle(QPainter *painter)
     // draw data
     painter -> setPen(pen1);
  
+    // The coordinate frame extends UP to drawing_range.y() * 0.6
+    // (see drawAxis), so place the title comfortably above that line
+    // rather than above drawing_range.y(); otherwise it gets drawn
+    // inside the plot box.
+    double frame_top = drawing_range.y() * 0.6;
+    double title_baseline = frame_top - 3;  // a few pixels of breathing room
+    // make sure the title still fits inside the bounding rect
+    if(title_baseline < font_height)
+        title_baseline = font_height;
+
     painter -> drawText(drawing_range.x() + drawing_range.width()/2 - font_width/2,
-            drawing_range.y() - font_height/2 - 2, // 2 pixel to give it some margin
+            title_baseline,
             _title);
 }

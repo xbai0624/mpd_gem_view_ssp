@@ -180,8 +180,7 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
     // fill histoitems
     for(unsigned int i=0; i < data.size(); i++) {
         pItem[i] -> ReceiveContents(data[i]);
-        std::string title = vTitle[i];
-        //pItem[i] -> SetTitle(title);
+        pItem[i] -> SetTitle(vTitle[i]);
     }
 }
 

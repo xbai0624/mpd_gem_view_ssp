@@ -1534,6 +1534,39 @@ float GEMAPV::GetAveragedCharge(const uint32_t &ch)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// get peak (max over time samples) ADC after offset + common mode
+// subtraction for every strip of this APV, regardless of the
+// zero-suppression hit flag. Intended for the "non-zero-suppressed"
+// online display: call AFTER ZeroSuppression() has run so raw_data has
+// been corrected in place.
+//
+// Uses the same per-strip metric as CollectZeroSupHits(), which calls
+// GetMaxCharge() to fill StripHit::charge. Without this match the
+// non-ZS view would be systematically smaller than the ZS view and
+// they wouldn't line up when stacked.
+
+std::vector<std::pair<int, float>> GEMAPV::GetMaxADCAllStrips()
+    const
+{
+    std::vector<std::pair<int, float>> res;
+    res.reserve(APV_STRIP_SIZE);
+
+    for(uint32_t i = 0; i < APV_STRIP_SIZE; ++i)
+    {
+        float val = raw_data[DATA_INDEX(i, 0)];
+        for(uint32_t j = 1; j < time_samples; ++j)
+        {
+            float this_val = raw_data[DATA_INDEX(i, j)];
+            if(val < this_val)
+                val = this_val;
+        }
+        res.emplace_back(strip_map[i].plane, val);
+    }
+
+    return res;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // get raw time sample adc in the specified adc channel
 
 std::vector<float> GEMAPV::GetRawTSADC(const uint32_t &ch)

@@ -745,6 +745,20 @@ void Viewer::DrawGEMOnlineHits(int num)
     }
 
     // online zero suppression
+    // also collect the non-zero-suppressed (offset + common-mode subtracted,
+    // but NOT threshold-cut) strip ADC per plane, so the GUI can display the
+    // pre-threshold view side-by-side with the zero-suppressed view.
+    std::map<GEMPlane*, std::vector<std::pair<int, float>>> plane_nzs_hits;
+
+    auto collect_nzs = [&](GEMAPV *apv)
+    {
+        GEMPlane *pln = apv -> GetPlane();
+        if(pln == nullptr) return;
+        auto nzs = apv -> GetMaxADCAllStrips();
+        auto &dst = plane_nzs_hits[pln];
+        dst.insert(dst.end(), nzs.begin(), nzs.end());
+    };
+
     for(auto &i: event_data)
     {
         GEMAPV *apv = pGEMReplay -> GetGEMSystem() -> GetAPV(i.first);
@@ -763,6 +777,7 @@ void Viewer::DrawGEMOnlineHits(int num)
         apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
         apv -> ZeroSuppression();
         apv -> CollectZeroSupHits();
+        collect_nzs(apv);
 
         // fill ghost apv data
         GEMAPV *ghost_apv = pGEMReplay -> GetGEMSystem() -> GetGhostAPV(i.first);
@@ -770,6 +785,7 @@ void Viewer::DrawGEMOnlineHits(int num)
             ghost_apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
             ghost_apv -> ZeroSuppression();
             ghost_apv -> CollectZeroSupHits();
+            collect_nzs(ghost_apv);
         }
     }
 
@@ -778,8 +794,16 @@ void Viewer::DrawGEMOnlineHits(int num)
 
     // online hits contents
     // (x_hits, y_hits)[layer][chamber] -- default 4 chambers per layer
+    // online_hits     -- zero-suppressed hits (kept identical to before so the
+    //                    2D detector view in Detector2DView is unaffected)
+    // online_hits_nzs -- non-zero-suppressed hits (offset + common mode
+    //                    subtracted, NO threshold), used only by the
+    //                    HistoWidget side-by-side comparison.
     using Hits2D = std::pair<std::vector<int>, std::vector<int>>;
     std::vector<std::vector<Hits2D>> online_hits(
+            layerID.size(), std::vector<Hits2D>(4)
+            );
+    std::vector<std::vector<Hits2D>> online_hits_nzs(
             layerID.size(), std::vector<Hits2D>(4)
             );
     //std::pair<std::vector<int>, std::vector<int>> online_hits[layerID.size()][4];
@@ -795,7 +819,6 @@ void Viewer::DrawGEMOnlineHits(int num)
         std::vector<int> res(nAPV * APV_STRIP_SIZE + 10, 0); // +10 is for safety reason
         for(auto &i: hits) {
             int hit_pos = i.strip;
-            std::cout<<"i.strip = "<<i.strip<<", nAPV = "<<nAPV<<", GEMPos = "<<GEMPos<<std::endl;
             if(xPlane) {
                 // x plane needs to go to local GEM coord
                 // y plane is already in local GEM coord, b/c for SBS arrangement, y is the shorter side
@@ -811,6 +834,25 @@ void Viewer::DrawGEMOnlineHits(int num)
                 continue;
             }
             res[hit_pos] = static_cast<int>(i.charge);
+        }
+        return res;
+    };
+    // same as get_histo, but for the non-zero-suppressed (offset + CM
+    // subtracted, all 128 strips per APV) data. Input is the list of
+    // (plane_strip_no, averaged_corrected_adc) pairs accumulated across
+    // every APV connected to a given plane.
+    auto get_histo_nzs = [&](const std::vector<std::pair<int, float>> &hits,
+            const int &nAPV, bool xPlane, const int &GEMPos) -> std::vector<int>
+    {
+        std::vector<int> res(nAPV * APV_STRIP_SIZE + 10, 0);
+        for(auto &h: hits) {
+            int hit_pos = h.first;
+            if(xPlane) {
+                hit_pos -= APV_STRIP_SIZE * GEMPos * nAPV;
+            }
+            if(hit_pos < 0 || hit_pos >= nAPV * APV_STRIP_SIZE)
+                continue;
+            res[hit_pos] = static_cast<int>(h.second);
         }
         return res;
     };
@@ -840,11 +882,19 @@ void Viewer::DrawGEMOnlineHits(int num)
         GEMPlane *pln_x = i -> GetPlane(GEMPlane::Plane_X);
         GEMPlane *pln_y = i -> GetPlane(GEMPlane::Plane_Y);
         std::vector<int> x_online_hits, y_online_hits;
+        std::vector<int> x_online_hits_nzs, y_online_hits_nzs;
 
         if(pln_x != nullptr) {
             const std::vector<StripHit> & x_hits = pln_x -> GetStripHits();
             int x_apvs = pln_x -> GetCapacity();
             x_online_hits = get_histo(x_hits, x_apvs, true, chamber_pos);
+            // non-zero-suppressed counterpart for this plane (if any APV
+            // belonging to it appeared in the current event).
+            auto it_nzs = plane_nzs_hits.find(pln_x);
+            if(it_nzs != plane_nzs_hits.end()) {
+                x_online_hits_nzs = get_histo_nzs(it_nzs->second, x_apvs,
+                        true, chamber_pos);
+            }
             // clear strip hits for next event
             pln_x -> ClearStripHits();
 
@@ -854,6 +904,11 @@ void Viewer::DrawGEMOnlineHits(int num)
             const std::vector<StripHit> & y_hits = pln_y -> GetStripHits();
             int y_apvs = pln_y -> GetCapacity();
             y_online_hits = get_histo(y_hits, y_apvs, false, chamber_pos);
+            auto it_nzs = plane_nzs_hits.find(pln_y);
+            if(it_nzs != plane_nzs_hits.end()) {
+                y_online_hits_nzs = get_histo_nzs(it_nzs->second, y_apvs,
+                        false, chamber_pos);
+            }
             // clear strip hits for next event
             pln_y -> ClearStripHits();
         }
@@ -866,28 +921,74 @@ void Viewer::DrawGEMOnlineHits(int num)
 
         online_hits[index][chamber_pos] = std::pair<std::vector<int>,
             std::vector<int>>(x_online_hits, y_online_hits);
+        online_hits_nzs[index][chamber_pos] = std::pair<std::vector<int>,
+            std::vector<int>>(x_online_hits_nzs, y_online_hits_nzs);
     }
 
     // draw online hits
+    //
+    // Per-layer layout, sized to the actual number of chambers in that
+    // layer (no placeholder pads):
+    //
+    //   columns : 0 = X plane,        1 = Y plane
+    //   rows    : 2 per chamber.
+    //               row 2k     : non-zero-suppressed (offset + CM subtracted)
+    //               row 2k + 1 : zero-suppressed
+    //             So the pre-threshold view is on TOP and the
+    //             after-threshold view is directly below it for the
+    //             same plane.
+    //
+    // A layer with only 1 chamber therefore shows just 2x2 = 4 pads.
+    //
+    // Title format follows the convention from the mapping file:
+    //     layer{ID}_x before zero suppression / after zero suppression
+    //     layer{ID}_y before zero suppression / after zero suppression
+    // (chamber index is appended only when the layer has more than one
+    //  chamber, e.g. layer1_chamber2_x).
+    //
+    // HistoWidget indexes pItem as row * fCol + col, so the push order
+    // below MUST match that.
+    const auto & layer_map = apv_strip_mapping::Mapping::Instance() -> GetLayerMap();
     for(size_t i=0; i<layerID.size(); ++i)
     {
+        const int real_layer_id = layerID[i];
+        int n_chambers = 1;
+        auto it_layer = layer_map.find(real_layer_id);
+        if(it_layer != layer_map.end()) {
+            n_chambers = it_layer->second.chambers_per_layer;
+        }
+        if(n_chambers <= 0) n_chambers = 1;
+        if(n_chambers > 4)  n_chambers = 4;   // online_hits is sized to 4
+
+        const int rows = 2 * n_chambers;
+        const int cols = 2;
+
         std::vector<std::vector<int>> data;
         std::vector<std::string> title;
-        // 4 chambers
-        for(int j=0; j<4; ++j)
+        data.reserve(rows * cols);
+        title.reserve(rows * cols);
+
+        for(int j=0; j<n_chambers; ++j)
         {
+            std::string prefix = "layer" + std::to_string(real_layer_id);
+            if(n_chambers > 1)
+                prefix += "_chamber" + std::to_string(j);
+
+            // ---- non-zero-suppressed row (X | Y) on TOP ----
+            data.push_back(online_hits_nzs[i][j].first);
+            title.push_back(prefix + "_x before zero suppression");
+            data.push_back(online_hits_nzs[i][j].second);
+            title.push_back(prefix + "_y before zero suppression");
+
+            // ---- zero-suppressed row (X | Y) directly below ----
             data.push_back(online_hits[i][j].first);
-            std::string _tmpx = "Layer " + std::to_string(i) + " Chamber " + 
-                               std::to_string(j) + " X Plane";
-            title.push_back(_tmpx);
+            title.push_back(prefix + "_x after zero suppression");
             data.push_back(online_hits[i][j].second);
-            std::string _tmpy = "Layer " + std::to_string(i) + " Chamber " + 
-                               std::to_string(j) + " Y Plane";
-            title.push_back(_tmpy);
+            title.push_back(prefix + "_y after zero suppression");
         }
 
         vTabCanvasOnlineHits[i] -> Clear();
-        vTabCanvasOnlineHits[i] -> DrawCanvas(data, title, 4, 2);
+        vTabCanvasOnlineHits[i] -> DrawCanvas(data, title, rows, cols);
         vTabCanvasOnlineHits[i] -> Refresh();
     }
 
