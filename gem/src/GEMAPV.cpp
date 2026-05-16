@@ -557,11 +557,9 @@ inline void split_data(const uint32_t &data, float &val1, float &val2)
 // 16-bit word corresponds to one ADC value
 
 void GEMAPV::FillRawDataSRS(const std::vector<int> &buf)
-//void GEMAPV::FillRawDataSRS(const uint32_t *buf, const uint32_t &size)
 {
     uint32_t size = buf.size();
 
-    //if(2*size > buffer_size) {
     if(size > buffer_size) {
         std::cerr << __PRETTY_FUNCTION__ << " Received " << size * 2 << " adc words, "
             << "but APV " << adc_ch << " in MPD " << mpd_id
