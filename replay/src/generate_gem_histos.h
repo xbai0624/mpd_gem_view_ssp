@@ -138,6 +138,10 @@ namespace quality_check_histos
             histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(det_module_id, xs/x_total_strips);
             histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(det_module_id, ys/y_total_strips);
 
+            // per-detector, per-plane fired-strip-count distributions (1D)
+            histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 0)) -> Fill(xs);
+            histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 1)) -> Fill(ys);
+
             // strip info x axis
             for(auto &i: x_strip_hits) {
                 histM.histo_1d<float>(Form("h_raw_xstrip_maxtimebin_layer%d", det_module_id)) -> Fill(i.max_timebin);

@@ -22,7 +22,7 @@ INCLUDEPATH += . ./include
 
 ######################################################################
 # decoder headers
-INCLUDEPATH += ../decoder/include ../decoder/evio-5.2
+INCLUDEPATH += ../decoder/include ../third_party/evio-5.2
 
 # decoder lib
 LIBS += -L../decoder/lib -ldecoder

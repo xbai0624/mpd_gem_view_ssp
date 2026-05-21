@@ -19,7 +19,7 @@ QMAKE_CFLAGS   += -g
 QMAKE_LFLAGS   += -g
 
 # self headers
-INCLUDEPATH += . ./include ./evio-5.2
+INCLUDEPATH += . ./include ../third_party/evio-5.2
 
 # root headers
 INCLUDEPATH += $$system(root-config --incdir)
@@ -65,11 +65,11 @@ SOURCES += src/EvioFileReader.cpp \
 
 
 # evio source files
-HEADERS += evio-5.2/evio.h \
-           evio-5.2/msinttypes.h \
+HEADERS += ../third_party/evio-5.2/evio.h \
+           ../third_party/evio-5.2/msinttypes.h \
 
-SOURCES += evio-5.2/evio.c \
-           evio-5.2/eviofmt.c \
-           evio-5.2/eviofmtdump.c \
-           evio-5.2/eviofmtswap.c \
-           evio-5.2/evioswap.c \
+SOURCES += ../third_party/evio-5.2/evio.c \
+           ../third_party/evio-5.2/eviofmt.c \
+           ../third_party/evio-5.2/eviofmtdump.c \
+           ../third_party/evio-5.2/eviofmtswap.c \
+           ../third_party/evio-5.2/evioswap.c \
