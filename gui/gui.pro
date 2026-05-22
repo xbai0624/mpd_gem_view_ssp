@@ -51,6 +51,18 @@ INCLUDEPATH += $$system(root-config --incdir)
 LIBS += $$system(root-config --glibs)
 
 ######################################################################
+# optional online (ET) monitoring -- enable with: qmake CONFIG+=et
+# All ET code lives in the online_monitor lib; OnlineMonitor.h exposes no
+# ET types, so gui needs only that one header dir and the lib (no ET
+# include path). When 'et' is not in CONFIG, none of this is referenced and
+# the GUI builds offline-only.
+et {
+    DEFINES     += HAVE_ET
+    INCLUDEPATH += online_monitor
+    LIBS        += -Lonline_monitor/lib -lonline_monitor -lpthread
+}
+
+######################################################################
 #  dir setting
 
 MOC_DIR = moc

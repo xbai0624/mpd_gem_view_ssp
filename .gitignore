@@ -21,6 +21,10 @@ gui/database/gem_ped*.dat
 gui/database/Common*.txt
 gui/database/*bkp
 gui/database/*.root
+gui/online_monitor/moc/
+gui/online_monitor/obj/
+gui/online_monitor/lib/
+gui/online_monitor/Makefile
 
 fadc/obj/
 fadc/moc/

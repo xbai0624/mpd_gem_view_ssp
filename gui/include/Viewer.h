@@ -30,6 +30,13 @@
 #include <string>
 #include <deque>
 
+class QTimer;
+class QRadioButton;
+// Online (ET) monitoring is optional; the wrapper type is only referenced
+// when the GUI is built with CONFIG+=et (HAVE_ET). Forward-declared so the
+// header stays ET-free.
+namespace online_monitor { class OnlineMonitor; }
+
 class Viewer : public QMainWindow
 {
     Q_OBJECT
@@ -90,6 +97,11 @@ public slots:
     void OpenOnlineAnalysisInterface();
     void SaveCurrentEvent();
     void Prepare2DGeoHits(GEMDetector *);
+
+    // online (ET) monitoring control. Bodies are no-ops unless built with
+    // HAVE_ET, but the slots are always declared so moc/linkage is stable.
+    void ToggleOnline(bool on);   // start/stop the live ET feed
+    void PollOnlineEvent();       // timer tick: pull + draw one ET event
 
 signals:
     void onlineHitsDrawn(const QMap<int, QVector<QPointF>>&);
@@ -154,6 +166,24 @@ private:
 
     // a text parser
     ConfigObject txt_parser;
+
+    // ---- online (ET) monitoring ----
+    bool online_mode = false;          // true while a live ET feed is running
+    int  online_event_counter = 0;     // ever-increasing event index for online
+    QTimer *online_timer = nullptr;    // drives periodic event pulls
+    // Online/Offline radio buttons live in the Advanced page; selecting
+    // "Online Mode" starts the ET feed (disabled when built without ET).
+    QRadioButton *m_cbOnline  = nullptr;
+    QRadioButton *m_cbOffline = nullptr;
+#ifdef HAVE_ET
+    online_monitor::OnlineMonitor *pOnlineMonitor = nullptr;
+#endif
+    // connection params, loaded from config/online.conf
+    std::string fOnlineEtFile  = "/tmp/et_sys_gem";
+    std::string fOnlineHost    = "localhost";
+    std::string fOnlineStation = "gem_monitor";
+    int fOnlinePort   = 11111;
+    int fOnlinePollMs = 200;
 };
 
 #endif

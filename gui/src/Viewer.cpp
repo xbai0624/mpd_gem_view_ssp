@@ -3,6 +3,9 @@
 #include "APVStripMapping.h"
 #include "hardcode.h"
 #include "experiment_setup/PRadSetup.h"
+#ifdef HAVE_ET
+#include "OnlineMonitor.h"
+#endif
 
 #include <QGraphicsRectItem>
 #include <QSpinBox>
@@ -487,20 +490,28 @@ QWidget* Viewer::createAdvancedPage()
     QVBoxLayout *v = new QVBoxLayout(box);
     v -> setContentsMargins(8, 8, 8, 8);
     
-    QRadioButton* cb_offline = new QRadioButton("Offline Mode", box);
-    QRadioButton* cb_online = new QRadioButton("Online Mode", box);
+    m_cbOffline = new QRadioButton("Offline Mode", box);
+    m_cbOnline  = new QRadioButton("Online Mode", box);
     QButtonGroup* group = new QButtonGroup(box);
-    group -> addButton(cb_offline);
-    group -> addButton(cb_online);
+    group -> addButton(m_cbOffline);
+    group -> addButton(m_cbOnline);
     group -> setExclusive(true);
-    cb_offline -> setChecked(true);
+    m_cbOffline -> setChecked(true);
 
-    v -> addWidget(cb_offline);
-    v -> addWidget(cb_online);
+    v -> addWidget(m_cbOffline);
+    v -> addWidget(m_cbOnline);
 
     form -> addRow(box);
 
-    // signal-slot
+    // signal-slot: selecting "Online Mode" starts the live ET feed,
+    // selecting "Offline Mode" (which deselects Online in this exclusive
+    // group) stops it -- so toggled(bool) maps straight onto ToggleOnline.
+    connect(m_cbOnline, &QRadioButton::toggled, this, &Viewer::ToggleOnline);
+#ifndef HAVE_ET
+    // ET support not compiled in -- offer offline only
+    m_cbOnline -> setEnabled(false);
+    m_cbOnline -> setToolTip(tr("rebuild with: qmake CONFIG+=et"));
+#endif
 
     return page;
 }
@@ -579,11 +590,100 @@ void Viewer::InitGEMAnalyzer()
 
 void Viewer::DrawEvent(int num)
 {
-    // raw data will be fetched in DrawGEMRawHistos, 
+    // raw data will be fetched in DrawGEMRawHistos,
     // thus DrawHistos() must be called first
     DrawGEMRawHistos(num);
 
     DrawGEMOnlineHits(num);
+}
+
+
+////////////////////////////////////////////////////////////////
+// online (ET) monitoring: start/stop the live feed
+
+void Viewer::ToggleOnline([[maybe_unused]] bool on)
+{
+#ifdef HAVE_ET
+    if(on)
+    {
+        // load connection parameters from config/online.conf (if present).
+        // Format: one "key value" per line; keys: et_file host port station poll_ms
+        {
+            std::ifstream fin("config/online.conf");
+            std::string key;
+            while(fin >> key) {
+                if(key.size() && key[0] == '#') { std::getline(fin, key); continue; }
+                if(key == "et_file")      fin >> fOnlineEtFile;
+                else if(key == "host")    fin >> fOnlineHost;
+                else if(key == "port")    fin >> fOnlinePort;
+                else if(key == "station") fin >> fOnlineStation;
+                else if(key == "poll_ms") fin >> fOnlinePollMs;
+                else { std::string skip; std::getline(fin, skip); }
+            }
+        }
+
+        if(!pOnlineMonitor)
+            pOnlineMonitor = new online_monitor::OnlineMonitor();
+
+        if(!online_timer) {
+            online_timer = new QTimer(this);
+            connect(online_timer, &QTimer::timeout, this, &Viewer::PollOnlineEvent);
+        }
+
+        QString msg = QString("[info] connecting to ET '%1' @ %2:%3 station '%4' ...")
+            .arg(QString::fromStdString(fOnlineEtFile))
+            .arg(QString::fromStdString(fOnlineHost))
+            .arg(fOnlinePort)
+            .arg(QString::fromStdString(fOnlineStation));
+        m_logEdit -> appendPlainText(msg);
+        QCoreApplication::processEvents();
+
+        if(!pOnlineMonitor->Connect(fOnlineEtFile, fOnlineHost, fOnlinePort, fOnlineStation))
+        {
+            m_logEdit -> appendPlainText("[error] failed to connect to ET system. Staying offline.");
+            // revert to Offline without recursing into a real stop
+            if(m_cbOffline) {
+                m_cbOffline -> blockSignals(true);
+                m_cbOffline -> setChecked(true);
+                m_cbOffline -> blockSignals(false);
+            }
+            return;
+        }
+
+        online_mode = true;
+        online_timer -> start(fOnlinePollMs);
+        m_logEdit -> appendPlainText("[info] online monitoring started.");
+    }
+    else
+    {
+        if(online_timer)
+            online_timer -> stop();
+        if(pOnlineMonitor)
+            pOnlineMonitor -> Disconnect();
+        online_mode = false;
+        m_logEdit -> appendPlainText("[info] online monitoring stopped.");
+    }
+#endif
+}
+
+////////////////////////////////////////////////////////////////
+// online (ET) monitoring: timer tick -- pull and draw one event
+
+void Viewer::PollOnlineEvent()
+{
+#ifdef HAVE_ET
+    if(!online_mode)
+        return;
+    // Always advance the counter so DrawGEMRawHistos takes its "forward"
+    // branch, which is where the ET event is actually pulled. This reuses
+    // the entire offline draw + cache path unchanged; the spinbox can still
+    // scroll back through recently received online events.
+    online_event_counter++;
+    m_eventSpin -> blockSignals(true);
+    m_eventSpin -> setValue(online_event_counter);
+    m_eventSpin -> blockSignals(false);
+    DrawEvent(online_event_counter);
+#endif
 }
 
 
@@ -598,17 +698,35 @@ void Viewer::DrawGEMRawHistos(int num)
     // event number increased - forward
     if(num > event_number_checked)
     {
-        // get apv raw histos
-        pGEMAnalyzer -> AnalyzeEvent(num);
-        auto & _mData = pGEMAnalyzer->GetData();
-        auto & _mDataFlags = pGEMAnalyzer -> GetDataFlags();
-        if(_mData.size() <= 0) return;
+        // Fetch the next event's decoded APV maps. Offline pulls from the
+        // EVIO file via GEMAnalyzer; online pulls from the live ET feed via
+        // OnlineMonitor. Both expose the same GetData()/GetDataFlags()
+        // interface, so the rest of this function is source-agnostic.
+        const std::unordered_map<APVAddress, std::vector<int>> *_pData;
+        const std::unordered_map<APVAddress, APVDataType>      *_pFlags;
+#ifdef HAVE_ET
+        if(online_mode)
+        {
+            if(!pOnlineMonitor || !pOnlineMonitor->NextEvent())
+                return;                       // no event available this tick
+            _pData  = &pOnlineMonitor->GetData();
+            _pFlags = &pOnlineMonitor->GetDataFlags();
+        }
+        else
+#endif
+        {
+            // get apv raw histos
+            pGEMAnalyzer -> AnalyzeEvent(num);
+            _pData  = &pGEMAnalyzer->GetData();
+            _pFlags = &pGEMAnalyzer->GetDataFlags();
+        }
+        if(_pData->size() <= 0) return;
 
         // sort raw histos
-        for(auto &i: _mData)
+        for(auto &i: *_pData)
             mData[i.first] = i.second;
         // sort flags
-        for(auto &i: _mDataFlags)
+        for(auto &i: *_pFlags)
             mDataFlags[i.first] = i.second;
 
         event_number_checked = num;

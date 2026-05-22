@@ -471,9 +471,9 @@ void HistoItem::drawTitle(QPainter *painter)
     // inside the plot box.
     double frame_top = drawing_range.y() * 0.6;
     double title_baseline = frame_top - 3;  // a few pixels of breathing room
+
     // make sure the title still fits inside the bounding rect
-    if(title_baseline < font_height)
-        title_baseline = font_height;
+    //if(title_baseline < font_height) title_baseline = font_height;
 
     painter -> drawText(drawing_range.x() + drawing_range.width()/2 - font_width/2,
             title_baseline,

@@ -29,3 +29,10 @@ rm -rf Makefile
 
 echo "rm -rf bin/*"
 rm -rf bin/*
+
+echo "rm -rf gui/online_monitor/obj/*"
+rm -rf gui/online_monitor/obj/*
+echo "rm -rf gui/online_monitor/lib/*"
+rm -rf gui/online_monitor/lib/*
+echo "rm -rf gui/online_monitor/moc/*"
+rm -rf gui/online_monitor/moc/*
