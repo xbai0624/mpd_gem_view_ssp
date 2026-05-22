@@ -1,0 +1,45 @@
+# scons build file for ET examples
+Import('env', 'libInstallDir', 'binInstallDir', 'archDir', 'execLibs', 'debugSuffix')
+
+
+# List of all C and C++ files.
+allFileList = Glob('*.c', strings=True) + Glob('*.cc', strings=True)
+
+
+# List of files containing user-defined event selection routines, other non-executable, or separately compliled files.
+myUserSelectionFiles = ['et_userfunction.c']
+nonExecutableFiles = ['et_userfunction.c', 'etInsertEvent.c', 'etInsertEventR.c', 'fileToEvent.c']
+
+
+# Filter out all non-executable files
+fileList = filter( (lambda a : (a not in  nonExecutableFiles)), allFileList)
+
+
+# For each file, create executable of the same name,
+# and install that executable if "scons examples" is command.
+for fileName in fileList:
+    compiledFile = env.Program(source  = fileName,
+                               LIBS    = ['et'+ debugSuffix] + execLibs,
+                               LIBPATH = ['#src/libsrc/' + archDir],
+                               CPPPATH = ['.','#src/libsrc'])
+    
+    if 'install' in COMMAND_LINE_TARGETS:
+        env.Alias('install', env.Install(target = binInstallDir + '/examples', source = compiledFile))
+
+# Create file2Event executable separately
+file2event = env.Program(source  = ['fileToEvent.c', 'etInsertEventR.c'],
+                               LIBS    = ['et'+ debugSuffix] + execLibs,
+                               LIBPATH = ['#src/libsrc/' + archDir],
+                               CPPPATH = ['.','#src/libsrc'])
+
+if 'install' in COMMAND_LINE_TARGETS:
+        env.Alias('install', env.Install(target = binInstallDir + '/examples', source = file2event))
+
+##################################################################
+# Example of how to compile a user-defined event selection routine
+##################################################################
+if False:
+    userLibName = 'myLibrary'
+    env.AppendUnique(CPPPATH = ['.', '#src/libsrc'])
+    myLib = env.SharedLibrary(target = userLibName+debugSuffix, source = myUserSelectionFiles)
+    env.Alias("examples", env.Install(target = libInstallDir, source = myLib))
