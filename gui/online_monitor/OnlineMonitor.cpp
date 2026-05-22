@@ -8,6 +8,8 @@
 
 #include <et.h>
 
+#include <arpa/inet.h>   // ntohl: ET payload is network (big-endian) order
+
 #include <iostream>
 
 namespace online_monitor {
@@ -61,6 +63,10 @@ bool OnlineMonitor::Connect(const std::string &etFile, const std::string &host,
     et_open_config_setcast(openconfig, ET_DIRECT);
     et_open_config_sethost(openconfig, host.c_str());
     et_open_config_setserverport(openconfig, port);
+    // Always use socket (remote) access, never shared memory -- avoids the
+    // in-shared-memory pthread mutex ABI mismatch that aborts the process,
+    // and is the correct model for a host:port monitoring client.
+    et_open_config_setmode(openconfig, ET_HOST_AS_REMOTE);
     et_open_config_setwait(openconfig, ET_OPEN_WAIT);
 
     et_sys_id id;
@@ -137,12 +143,30 @@ bool OnlineMonitor::NextEvent()
     et_event_getdata(pe, &data);
     et_event_getlength(pe, &len);
 
-    // An ET event payload is one EVIO event. ParseEvent wants a uint32_t word
-    // count, so convert bytes -> words. After this the decoder's GetAPV()/
-    // GetAPVDataFlags() hold the decoded event.
-    if(data != nullptr && len >= sizeof(uint32_t)) {
-        parser->ParseEvent(static_cast<const uint32_t*>(data),
-                           static_cast<uint32_t>(len / sizeof(uint32_t)));
+    // Decode the ET payload exactly like the proven SRS_GEM_View ETChannel:
+    //   1) byte-swap network (big-endian) -> host order, and
+    //   2) skip the 8-word CODA event header the EVIO decoder doesn't handle.
+    uint32_t *w     = static_cast<uint32_t*>(data);
+    uint32_t  total = static_cast<uint32_t>(len / sizeof(uint32_t));
+
+    if(w != nullptr && total > 0) {
+        // 1) network -> host order. Safe to swap in place: with
+        //    ET_HOST_AS_REMOTE the client owns a local copy of the data.
+        for(uint32_t i = 0; i < total; ++i)
+            w[i] = ntohl(w[i]);
+
+        // 2) skip the CODA event header (8 uint32_t words).
+        const uint32_t kCodaHeaderWords = 8;
+        if(total > kCodaHeaderWords) {
+            const uint32_t *ev = w + kCodaHeaderWords;
+            uint32_t nwords = total - kCodaHeaderWords;
+            // clamp to the EVIO event bank's own declared length (word[0]+1)
+            // so the parser never walks past the event into trailing words.
+            uint32_t evlen = ev[0] + 1;
+            if(evlen < nwords)
+                nwords = evlen;
+            parser->ParseEvent(ev, nwords);
+        }
     }
 
     // return the event to the system so it can be recycled
