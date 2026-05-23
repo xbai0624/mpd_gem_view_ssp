@@ -81,7 +81,7 @@ void GEMAnalyzer::AnalyzeEvent([[maybe_unused]] int event)
     //if((pFileReader->ReadEventNum(&pBuf, &fBufLen, event)) != S_SUCCESS)
     if((pFileReader->ReadNoCopy(&pBuf, &fBufLen)) != S_SUCCESS)
     {
-        std::cout<<"Error: cannot open event."<<std::endl;
+        std::cout<<"Error: cannot read event."<<std::endl;
         return;
     }
 
