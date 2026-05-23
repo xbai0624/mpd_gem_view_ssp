@@ -156,15 +156,6 @@ void HistoItem::prepareDataShape()
             x_span = 1.0;
             data_x_range.second = data_x_range.first + 1.0;
         }
-        // Always show at least [-50, 50] on the Y axis. This gives an
-        // empty histogram (typically all 0 after zero suppression with
-        // no hits) a sensible flat-zero line in the middle of the
-        // frame rather than collapsing it onto the frame's bottom
-        // edge, while still letting the axis grow outward whenever
-        // real data exceeds those bounds.
-        constexpr double kMinYRange = 50.0;
-        if(data_y_range.first  > -kMinYRange) data_y_range.first  = -kMinYRange;
-        if(data_y_range.second <  kMinYRange) data_y_range.second =  kMinYRange;
         double y_span = data_y_range.second - data_y_range.first;
 
         double scale_factor_x = drawing_range.width() / x_span;
