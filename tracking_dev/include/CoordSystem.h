@@ -25,6 +25,7 @@ namespace tracking_dev
         point_t GetDetectorPosition(int i){return position_gem.at(i);}
         point_t GetDetectorDimension(int i){return dimension_gem.at(i);}
         bool IsInTrackerSystem(int i){return tracker_config_gem.at(i);}
+        bool HasDetectorConfig(int i) const {return position_gem.find(i) != position_gem.end();}
 
     private:
         std::unordered_map<int, point_t> offset_gem;

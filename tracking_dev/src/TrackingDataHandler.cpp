@@ -85,6 +85,13 @@ namespace tracking_dev
             int mod_id = det -> GetDetID(); // detector module id
             int layer_id = det -> GetLayerID();
 
+            if(!coord_system->HasDetectorConfig(mod_id)) {
+                std::cout << "TrackingDataHandler::SetupDetector warning: detector "
+                    << mod_id << " is in the GEM map but not in the tracking config. "
+                    << "Skipping tracking geometry for this detector." << std::endl;
+                continue;
+            }
+
             point_t dimension = coord_system -> GetDetectorDimension(mod_id);
             point_t origin = coord_system -> GetDetectorPosition(mod_id);
 
