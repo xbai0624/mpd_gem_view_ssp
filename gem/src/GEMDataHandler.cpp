@@ -384,19 +384,27 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
                 //    <<"          skipped the current APV data."<<std::endl;
                 continue;
             }
-            if(decoded_data.find(apvs[i]) != decoded_data.end()) {
-                if(decoded_online_cm.find(apvs[i]) != decoded_online_cm.end())
+            auto data_it = decoded_data.find(apvs[i]);
+            if(data_it != decoded_data.end()) {
+                auto cm_it = decoded_online_cm.find(apvs[i]);
+                auto flags_it = decoded_data_flags.find(apvs[i]);
+#ifndef USE_SRS
+                APVDataType default_flags;
+                default_flags.SetAPVAddress(apvs[i]);
+                const APVDataType &flags = (flags_it != decoded_data_flags.end()) ?
+                    flags_it->second : default_flags;
+#endif
+                if(cm_it != decoded_online_cm.end())
 #ifdef USE_SRS
-                    FeedDataSRS(apvs[i], decoded_data.at(apvs[i]));
+                    FeedDataSRS(apvs[i], data_it->second);
 #else
-                FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]),
-                        decoded_online_cm.at(apvs[i]));
+                FeedDataMPD(apvs[i], data_it->second, flags, cm_it->second);
 #endif
                 else
 #ifdef USE_SRS
-                    FeedDataSRS(apvs[i], decoded_data.at(apvs[i]));
+                    FeedDataSRS(apvs[i], data_it->second);
 #else
-                FeedDataMPD(apvs[i], decoded_data.at(apvs[i]), decoded_data_flags.at(apvs[i]));
+                FeedDataMPD(apvs[i], data_it->second, flags);
 #endif
             }
         }
@@ -421,17 +429,26 @@ void GEMDataHandler::ProcessEvent(const uint32_t *pBuf, const uint32_t &fBufLen,
             continue;
         }
 
-        if(decoded_online_cm.find(i.first) != decoded_online_cm.end())
+        auto cm_it = decoded_online_cm.find(i.first);
+        auto flags_it = decoded_data_flags.find(i.first);
+#ifndef USE_SRS
+        APVDataType default_flags;
+        default_flags.SetAPVAddress(i.first);
+        const APVDataType &flags = (flags_it != decoded_data_flags.end()) ?
+            flags_it->second : default_flags;
+#endif
+
+        if(cm_it != decoded_online_cm.end())
 #ifdef USE_SRS
             FeedDataSRS(i.first, i.second);
 #else
-        FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first), decoded_online_cm.at(i.first));
+        FeedDataMPD(i.first, i.second, flags, cm_it->second);
 #endif
         else
 #ifdef USE_SRS
             FeedDataSRS(i.first, i.second);
 #else
-        FeedDataMPD(i.first, i.second, decoded_data_flags.at(i.first));
+        FeedDataMPD(i.first, i.second, flags);
 #endif
     }
 #endif
