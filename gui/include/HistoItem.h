@@ -12,6 +12,7 @@
 #define HISTOITEM_H
 
 #include <QGraphicsItem>
+#include <QStringList>
 #include <QVector>
 
 class HistoItem : public QGraphicsItem {
@@ -46,7 +47,9 @@ public:
     void prepareDataShape();
     void clearContent();
     void SetTitle(const std::string &);
+    void SetStats(const std::vector<std::string> &stats);
     void drawTitle(QPainter *painter);
+    void drawStatsBox(QPainter *painter);
 
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -76,6 +79,7 @@ private:
 
     // title
     QString _title = "hist";
+    QStringList _stats;
 };
 
 #endif

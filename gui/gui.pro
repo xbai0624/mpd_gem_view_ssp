@@ -87,6 +87,7 @@ HEADERS += include/QRootCanvas.h \
            include/GEMAnalyzer.h \
            include/GEMReplay.h \
            include/HistoItem.h \
+           include/HistoItem2D.h \
            include/HistoView.h \
            include/Detector2DItem.h \
            include/Detector2DView.h \
@@ -105,6 +106,7 @@ SOURCES += src/main.cpp \
            src/GEMAnalyzer.cpp \
            src/GEMReplay.cpp \
            src/HistoItem.cpp \
+           src/HistoItem2D.cpp \
            src/HistoView.cpp \
            src/Detector2DItem.cpp \
            src/Detector2DView.cpp \

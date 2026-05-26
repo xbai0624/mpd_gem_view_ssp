@@ -1,6 +1,7 @@
 #include "OnlineAnalysisInterface.h"
 
 #include "ConfigObject.h"  // same parser Viewer uses for config/gem.conf
+#include "HistoWidget.h"
 
 #include <QWidget>
 #include <QGroupBox>
@@ -13,12 +14,9 @@
 #include <QPlainTextEdit>
 #include <QComboBox>
 #include <QLabel>
-#include <QScrollArea>
-#include <QPixmap>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QDir>
-#include <QTemporaryFile>
 #include <QProcess>
 #include <QSplitter>
 #include <QMessageBox>
@@ -27,29 +25,19 @@
 #include <QCoreApplication>
 
 #include <vector>
+#include <cstdio>
 
 #include <TFile.h>
 #include <TKey.h>
 #include <TROOT.h>
 #include <TH1.h>
-#include <TCanvas.h>
+#include <TH2.h>
 #include <TClass.h>
 
 #include <QtAlgorithms>
 #include <QFontMetrics>
 
 #include <cmath>
-
-namespace {
-// RAII guard around gROOT->SetBatch(true): restores the previous value
-// even if a ROOT call inside the scope throws / longjmps. Avoids leaving
-// the global ROOT batch state flipped when ShowPage's draw path bails.
-struct BatchGuard {
-    bool prev;
-    BatchGuard() : prev(gROOT->IsBatch()) { gROOT->SetBatch(kTRUE); }
-    ~BatchGuard()                         { gROOT->SetBatch(prev); }
-};
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor / dtor
@@ -64,25 +52,6 @@ OnlineAnalysisInterface::OnlineAnalysisInterface(QWidget *parent)
     // launched the GUI from. Fall back to current CWD if not found.
     m_repoRoot = DetectRepoRoot();
     BuildUi();
-
-    // Unique temp PNG path for the rendered page. The QTemporaryFile
-    // generates the name from the pattern (the 'XXXXXX' is replaced) and,
-    // because it's parented to `this` and uses autoRemove(true) by default,
-    // Qt deletes the file from disk when this window is destroyed --
-    // no leftover garbage between runs, no race with a second window.
-    m_pageTmpFile = new QTemporaryFile(
-            QDir::temp().filePath("oa_page_XXXXXX.png"), this);
-    m_pageTmpFile->setAutoRemove(true);  // default; explicit for clarity
-    if(m_pageTmpFile->open()) {
-        m_pageTmpPath = m_pageTmpFile->fileName();
-        m_pageTmpFile->close();          // close handle so ROOT can write
-    } else {
-        // could not create a unique temp file; degrade to a fixed name
-        // rather than crash on first plot.
-        m_pageTmpPath = QDir::temp().filePath("oa_page.png");
-        m_pageTmpFile->deleteLater();
-        m_pageTmpFile = nullptr;
-    }
 }
 
 OnlineAnalysisInterface::~OnlineAnalysisInterface()
@@ -216,19 +185,9 @@ QGroupBox *OnlineAnalysisInterface::BuildPlotsGroup(QWidget *parent)
     topRowLayout->addStretch(1);
     vplots->addWidget(topRow);
 
-    // No parent here -- m_plotScroll->setWidget() reparents it correctly
-    // and avoids the brief moment where the label was a direct child of
-    // gbPlots before being moved to the scroll area.
-    m_plotLabel = new QLabel(nullptr);
-    m_plotLabel->setAlignment(Qt::AlignCenter);
-    m_plotLabel->setStyleSheet("background: #FFFFFF;");
-    m_plotLabel->setMinimumSize(1, 1);
-
-    m_plotScroll = new QScrollArea(gbPlots);
-    m_plotScroll->setWidget(m_plotLabel);
-    m_plotScroll->setWidgetResizable(true);
-    m_plotScroll->setMinimumHeight(480);
-    vplots->addWidget(m_plotScroll, 1);
+    m_plotWidget = new HistoWidget(gbPlots);
+    m_plotWidget->setMinimumHeight(480);
+    vplots->addWidget(m_plotWidget, 1);
 
     connect(m_pageCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &OnlineAnalysisInterface::ShowPage);
@@ -625,19 +584,27 @@ void OnlineAnalysisInterface::OnWorkerReadyRead()
     if(!p) return;
     const int core = p->property("core").toInt();
 
-    // Append new bytes to the per-process buffer; only flush COMPLETE lines.
-    // Avoids the old behaviour of splitting a partial line across two log
-    // entries when the worker writes piecemeal.
+    // Append new bytes to the per-process buffer. Flush newline/carriage-return
+    // delimited progress first, then flush the remaining tail immediately so
+    // long-running replay output is visible in real time.
     QByteArray buf = p->property("buf").toByteArray();
     buf += p->readAllStandardOutput();
-    int nl;
-    while((nl = buf.indexOf('\n')) >= 0) {
-        const QByteArray line = buf.left(nl);
-        buf.remove(0, nl + 1);
+    buf.replace('\r', '\n');
+
+    int sep;
+    while((sep = buf.indexOf('\n')) >= 0) {
+        const QByteArray line = buf.left(sep);
+        buf.remove(0, sep + 1);
         if(line.isEmpty()) continue;
         AppendLog(QString("[core %1] %2")
                   .arg(core)
                   .arg(QString::fromLocal8Bit(line).trimmed()));
+    }
+    if(!buf.isEmpty()) {
+        AppendLog(QString("[core %1] %2")
+                  .arg(core)
+                  .arg(QString::fromLocal8Bit(buf).trimmed()));
+        buf.clear();
     }
     p->setProperty("buf", buf);
 }
@@ -721,7 +688,7 @@ void OnlineAnalysisInterface::StartMergeProcess()
     m_mergeProc->setProgram("/bin/bash");
     m_mergeProc->setArguments({"-c", BuildMergeCommand()});
     m_mergeProc->setProcessChannelMode(QProcess::MergedChannels);
-    m_mergeProc->setProperty("buf", QByteArray());   // line buffer
+    m_mergeProc->setProperty("buf", QByteArray());
     connect(m_mergeProc, &QProcess::readyReadStandardOutput,
             this, &OnlineAnalysisInterface::OnMergeReadyRead);
     connect(m_mergeProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
@@ -734,12 +701,18 @@ void OnlineAnalysisInterface::OnMergeReadyRead()
     if(!m_mergeProc) return;
     QByteArray buf = m_mergeProc->property("buf").toByteArray();
     buf += m_mergeProc->readAllStandardOutput();
-    int nl;
-    while((nl = buf.indexOf('\n')) >= 0) {
-        const QByteArray line = buf.left(nl);
-        buf.remove(0, nl + 1);
+    buf.replace('\r', '\n');
+
+    int sep;
+    while((sep = buf.indexOf('\n')) >= 0) {
+        const QByteArray line = buf.left(sep);
+        buf.remove(0, sep + 1);
         if(line.isEmpty()) continue;
         AppendLog(QString("[merge] %1").arg(QString::fromLocal8Bit(line).trimmed()));
+    }
+    if(!buf.isEmpty()) {
+        AppendLog(QString("[merge] %1").arg(QString::fromLocal8Bit(buf).trimmed()));
+        buf.clear();
     }
     m_mergeProc->setProperty("buf", buf);
 }
@@ -790,8 +763,8 @@ void OnlineAnalysisInterface::Plot()
     if(nPages > 0) {
         m_pageCombo->setCurrentIndex(0);
         ShowPage(0);              // explicit because index was already 0
-    } else if(m_plotLabel) {
-        m_plotLabel->clear();
+    } else if(m_plotWidget) {
+        m_plotWidget->Clear();
     }
 }
 
@@ -845,76 +818,68 @@ void OnlineAnalysisInterface::PopulatePageCombo()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// render the 4-histogram page off-screen via a batch-mode TCanvas, save to a
-// temp PNG, then show that PNG in the QLabel. No on-screen ROOT canvas
-// involved -- works reliably on macOS where embedded TGQuartz is fragile.
+// Draw one page of ROOT histograms with Qt-native graphics items. ROOT is only
+// used as the histogram data container here; no ROOT canvas / Quartz drawing.
 
 void OnlineAnalysisInterface::ShowPage(int idx)
 {
-    if(!m_plotLabel) return;
-    if(m_histos.empty()) { m_plotLabel->clear(); return; }
-
-    // RAII guard restores gROOT->IsBatch() on scope exit even if any of
-    // the ROOT calls below raises.
-    BatchGuard batch;
-
-    // fixed render size; the QScrollArea handles overflow if the user has
-    // shrunk the window.
-    const int W = 1200, H = 900;
-    TCanvas off("oa_page", "oa_page", W, H);
-    off.Divide(2, 2);
+    if(!m_plotWidget) return;
+    if(m_histos.empty()) { m_plotWidget->Clear(); return; }
 
     const int base = idx * 4;
+    std::vector<HistoWidget::PlotData> plots;
     for(int i = 0; i < 4; ++i) {
         const int hi = base + i;
         if(hi >= static_cast<int>(m_histos.size())) break;
-        off.cd(i + 1);
-        m_histos[hi]->Draw("colz");
+
+        TH1 *h = m_histos[hi];
+        HistoWidget::PlotData plot;
+        plot.title = h->GetTitle() && std::string(h->GetTitle()).size() > 0
+            ? std::string(h->GetTitle())
+            : std::string(h->GetName());
+
+        if(TH2 *h2 = dynamic_cast<TH2*>(h)) {
+            plot.type = HistoWidget::PlotData::Plot2D;
+            char buf[128];
+            std::snprintf(buf, sizeof(buf), "Entries %.0f", h2->GetEntries());
+            plot.stats.push_back(buf);
+            std::snprintf(buf, sizeof(buf), "Mean x %.3g", h2->GetMean(1));
+            plot.stats.push_back(buf);
+            std::snprintf(buf, sizeof(buf), "Mean y %.3g", h2->GetMean(2));
+            plot.stats.push_back(buf);
+            std::snprintf(buf, sizeof(buf), "Std x %.3g", h2->GetStdDev(1));
+            plot.stats.push_back(buf);
+            std::snprintf(buf, sizeof(buf), "Std y %.3g", h2->GetStdDev(2));
+            plot.stats.push_back(buf);
+            plot.nx = h2->GetNbinsX();
+            plot.ny = h2->GetNbinsY();
+            plot.xMin = h2->GetXaxis()->GetXmin();
+            plot.xMax = h2->GetXaxis()->GetXmax();
+            plot.yMin = h2->GetYaxis()->GetXmin();
+            plot.yMax = h2->GetYaxis()->GetXmax();
+            plot.z.reserve(plot.nx * plot.ny);
+            for(int iy = 1; iy <= plot.ny; ++iy) {
+                for(int ix = 1; ix <= plot.nx; ++ix)
+                    plot.z.push_back(h2->GetBinContent(ix, iy));
+            }
+        } else {
+            plot.type = HistoWidget::PlotData::Plot1D;
+            char buf[128];
+            std::snprintf(buf, sizeof(buf), "Entries %.0f", h->GetEntries());
+            plot.stats.push_back(buf);
+            std::snprintf(buf, sizeof(buf), "Mean %.3g", h->GetMean());
+            plot.stats.push_back(buf);
+            std::snprintf(buf, sizeof(buf), "Std Dev %.3g", h->GetStdDev());
+            plot.stats.push_back(buf);
+            const int nBins = h->GetNbinsX();
+            plot.y.reserve(nBins);
+            for(int bin = 1; bin <= nBins; ++bin)
+                plot.y.push_back(h->GetBinContent(bin));
+        }
+
+        plots.push_back(plot);
     }
-    off.cd(0);
-    off.Modified();
-    off.Update();
-
-    off.SaveAs(m_pageTmpPath.toLocal8Bit().constData());
-
-    QPixmap pix(m_pageTmpPath);
-    if(pix.isNull()) {
-        AppendLog(QString("[plot] failed to load rendered page from %1").arg(m_pageTmpPath));
-        return;
-    }
-    m_pagePixmap = pix;          // cache raw render for rescaling on resize
-    ApplyPagePixmap();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// scale the cached page pixmap to fit the current label size while keeping
-// its aspect ratio. Called both from ShowPage() and from resizeEvent().
-
-void OnlineAnalysisInterface::ApplyPagePixmap()
-{
-    if(m_pagePixmap.isNull() || !m_plotLabel) return;
-    // available area = the scroll area viewport (the QLabel's own size will
-    // catch up since widgetResizable is on, but viewport size is what we
-    // really want to fit into).
-    QSize area = m_plotScroll
-        ? m_plotScroll->viewport()->size()
-        : m_plotLabel->size();
-    if(area.width() <= 1 || area.height() <= 1)
-        area = m_plotLabel->size();
-    if(area.width() <= 1 || area.height() <= 1) return;
-
-    const QPixmap scaled = m_pagePixmap.scaled(
-            area, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    m_plotLabel->setPixmap(scaled);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// keep the page rescaled when the user resizes the window.
-
-void OnlineAnalysisInterface::resizeEvent(QResizeEvent *e)
-{
-    QMainWindow::resizeEvent(e);
-    ApplyPagePixmap();
+    m_plotWidget->DrawCanvas(plots, 2, 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -929,6 +894,5 @@ void OnlineAnalysisInterface::ClearHistos()
         m_pageCombo->clear();
         m_pageCombo->blockSignals(false);
     }
-    m_pagePixmap = QPixmap();
-    if(m_plotLabel) m_plotLabel->clear();
+    if(m_plotWidget) m_plotWidget->Clear();
 }

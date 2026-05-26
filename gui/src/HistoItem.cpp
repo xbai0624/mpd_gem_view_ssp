@@ -4,6 +4,7 @@
 #include <QPen>
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
+#include <QStringList>
 
 // for unit test
 static const double test_dist[] = {
@@ -54,6 +55,7 @@ void HistoItem::clearContent()
     _content.clear();
     _select_box.clear();
     _coordinate_frame.clear();
+    _stats.clear();
 }
 
 void HistoItem::SetBoundingRect(const QRectF &f)
@@ -220,6 +222,7 @@ void HistoItem::paint(QPainter *painter,
 
     // draw a title
     drawTitle(painter);
+    drawStatsBox(painter);
 }
 
 void HistoItem::drawAxis(QPainter *painter, double data_x1, double data_x2, double data_y1, double data_y2)
@@ -440,6 +443,13 @@ void HistoItem::SetTitle(const std::string &s)
     _title = QString::fromStdString(s);
 }
 
+void HistoItem::SetStats(const std::vector<std::string> &stats)
+{
+    _stats.clear();
+    for(const std::string &line : stats)
+        _stats << QString::fromStdString(line);
+}
+
 void HistoItem::drawTitle(QPainter *painter)
 {
     // text font below tick
@@ -450,7 +460,6 @@ void HistoItem::drawTitle(QPainter *painter)
     painter -> setFont(font);
 
     int font_width = fm.horizontalAdvance(_title);
-    int font_height = fm.height();
 
     QPen pen1(Qt::black);
     // draw data
@@ -469,4 +478,38 @@ void HistoItem::drawTitle(QPainter *painter)
     painter -> drawText(drawing_range.x() + drawing_range.width()/2 - font_width/2,
             title_baseline,
             _title);
+}
+
+void HistoItem::drawStatsBox(QPainter *painter)
+{
+    if(_stats.isEmpty())
+        return;
+
+    QFont font;
+    int font_size = bounding_rect.width() / 60 > 6 ? bounding_rect.width() / 60 : 6;
+    font.setPixelSize(font_size);
+    painter->setFont(font);
+    QFontMetrics fm(font);
+
+    int textWidth = 0;
+    for(const QString &line : _stats)
+        textWidth = std::max(textWidth, fm.horizontalAdvance(line));
+
+    const double pad = std::max(3.0, bounding_rect.width() / 180.0);
+    const double boxW = textWidth + 2.0 * pad;
+    const double boxH = _stats.size() * fm.height() + 2.0 * pad;
+    QRectF box(drawing_range.right() - boxW - pad,
+               drawing_range.top() + pad,
+               boxW, boxH);
+
+    painter->setPen(QPen(Qt::black));
+    painter->setBrush(QColor(255, 255, 255, 220));
+    painter->drawRect(box);
+
+    painter->setPen(Qt::black);
+    double y = box.top() + pad + fm.ascent();
+    for(const QString &line : _stats) {
+        painter->drawText(QPointF(box.left() + pad, y), line);
+        y += fm.height();
+    }
 }

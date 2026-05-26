@@ -18,12 +18,9 @@
 #include <QMainWindow>
 #include <QStringList>
 #include <QList>
-#include <QPixmap>
 #include <QString>
 
 #include <vector>
-
-class QTemporaryFile;
 
 class QLineEdit;
 class QSpinBox;
@@ -31,11 +28,10 @@ class QPushButton;
 class QPlainTextEdit;
 class QComboBox;
 class QProcess;
-class QLabel;
-class QScrollArea;
 class QWidget;
 class QGroupBox;
 class QSplitter;
+class HistoWidget;
 class TH1;
 
 class OnlineAnalysisInterface : public QMainWindow
@@ -111,10 +107,6 @@ private:
     void PopulatePageCombo();
     void SetControlsEnabled(bool on);
     void ClearHistos();
-    void ApplyPagePixmap();   // rescale m_pagePixmap to current label size
-
-protected:
-    void resizeEvent(QResizeEvent *e) override;
 
 private:
     // ---- settings widgets ----
@@ -136,15 +128,7 @@ private:
 
     // ---- output area ----
     QPlainTextEdit *m_log       = nullptr;
-    // Histograms are rendered OFF-SCREEN by a batch-mode ROOT TCanvas to a
-    // temp PNG, and the PNG is shown in m_plotLabel. We avoid embedding a
-    // ROOT TCanvas in Qt entirely because ROOT's macOS TGQuartz back-end
-    // floods stderr ("requested drawable 18446744073709551615...") when an
-    // embedded canvas isn't perfectly sized/shown at every draw, which is
-    // impossible to guarantee given Qt's deferred layout.
-    QLabel         *m_plotLabel    = nullptr;
-    QScrollArea    *m_plotScroll   = nullptr;
-    QPixmap         m_pagePixmap;       // raw rendered PNG, kept for rescaling
+    HistoWidget    *m_plotWidget = nullptr;
     QComboBox      *m_pageCombo    = nullptr;
     std::vector<TH1*> m_histos;        // owned; deleted in ClearHistos()
 
@@ -157,13 +141,6 @@ private:
     QString m_repoRoot;       // cached at construction; ./setup_env.sh + ./bin/replay live here
     int     m_workerFailures = 0;
     QProcess *m_mergeProc = nullptr;
-
-    // Unique-per-window temp file for the rendered page PNG. QTemporaryFile
-    // generates a unique path AND auto-removes the file from disk when
-    // destructed -- so no race between multiple windows and no garbage
-    // temp files left behind on exit.
-    QTemporaryFile *m_pageTmpFile = nullptr;
-    QString         m_pageTmpPath;
 };
 
 #endif

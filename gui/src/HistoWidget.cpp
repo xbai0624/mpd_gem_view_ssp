@@ -58,13 +58,34 @@ void HistoWidget::mousePressEvent([[maybe_unused]]QMouseEvent *e)
 
 void HistoWidget::ReInitHistoItems()
 {
-    pItem = new HistoItem*[fCol*fRow];
+    pItem.clear();
+    pItem.resize(fCol*fRow);
 
     for(int i=0;i<fCol*fRow;i++) {
-        pItem[i] = new HistoItem();
-        // addItem function makes scene takes ownership of pItem[i]
-        scene -> addItem(pItem[i]);
+        EnsureSlotType(i, PlotData::Plot1D);
     }
+}
+
+void HistoWidget::EnsureSlotType(int idx, PlotData::Type type)
+{
+    if(idx < 0 || idx >= static_cast<int>(pItem.size()))
+        return;
+
+    PlotSlot &slot = pItem[idx];
+    if(slot.item && slot.type == type)
+        return;
+
+    if(slot.item) {
+        scene->removeItem(slot.item);
+        delete slot.item;
+        slot.item = nullptr;
+    }
+
+    slot.type = type;
+    slot.item = (type == PlotData::Plot2D)
+        ? static_cast<QGraphicsItem*>(new HistoItem2D())
+        : static_cast<QGraphicsItem*>(new HistoItem());
+    scene->addItem(slot.item);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,8 +106,6 @@ void HistoWidget::Divide(int r, int c)
     //    if(pItem[i])
     //        delete pItem[i];
     //}
-
-    delete[] pItem;
 
     fCol = c; fRow = r;
 
@@ -121,7 +140,11 @@ void HistoWidget::ReDistributePaintingArea()
         for(int j=0;j<fCol;j++)
         {
             QRectF f(x_interval*j, y_interval*i, x_interval, y_interval);
-            pItem[i*fCol + j] -> SetBoundingRect(f);
+            PlotSlot &slot = pItem[i*fCol + j];
+            if(slot.type == PlotData::Plot2D)
+                static_cast<HistoItem2D*>(slot.item)->SetBoundingRect(f);
+            else
+                static_cast<HistoItem*>(slot.item)->SetBoundingRect(f);
         }
     }
 
@@ -134,7 +157,8 @@ void HistoWidget::ReDistributePaintingArea()
 void HistoWidget::Refresh()
 {
     for(int i=0;i<fRow*fCol;i++)
-        pItem[i] -> update();
+        if(pItem[i].item)
+            pItem[i].item -> update();
 
     update();
 }
@@ -148,19 +172,19 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
     if(row != fRow || col != fCol)
     {
         Divide(row, col);
-        ReDistributePaintingArea();
-        ReInitHistoItems();
     }
 
     assert(static_cast<int>(data.size()) <= fRow * fCol);
 
     // fill histoitems
     for(unsigned int i=0; i < data.size(); i++) {
-        pItem[i] -> ReceiveContents(data[i]);
+        EnsureSlotType(i, PlotData::Plot1D);
+        HistoItem *item = static_cast<HistoItem*>(pItem[i].item);
+        item -> ReceiveContents(data[i]);
         std::string title = "slot_" + std::to_string(addr[i].crate_id) +
             "_fiber_" + std::to_string(addr[i].mpd_id) + 
             "_apv_" + std::to_string(addr[i].adc_ch);
-        pItem[i] -> SetTitle(title);
+        item -> SetTitle(title);
     }
 }
 
@@ -179,9 +203,47 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
 
     // fill histoitems
     for(unsigned int i=0; i < data.size(); i++) {
-        pItem[i] -> ReceiveContents(data[i]);
-        pItem[i] -> SetTitle(vTitle[i]);
+        EnsureSlotType(i, PlotData::Plot1D);
+        HistoItem *item = static_cast<HistoItem*>(pItem[i].item);
+        item -> ReceiveContents(data[i]);
+        item -> SetTitle(vTitle[i]);
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// draw mixed 1D/2D histograms
+
+void HistoWidget::DrawCanvas(const std::vector<PlotData> &data, int row, int col)
+{
+    if(row != fRow || col != fCol)
+        Divide(row, col);
+
+    assert(static_cast<int>(data.size()) <= fRow * fCol);
+
+    for(int i=0;i<fRow*fCol;i++) {
+        if(i >= static_cast<int>(data.size())) {
+            EnsureSlotType(i, PlotData::Plot1D);
+            static_cast<HistoItem*>(pItem[i].item)->clearContent();
+            continue;
+        }
+
+        const PlotData &plot = data[i];
+        EnsureSlotType(i, plot.type);
+        if(plot.type == PlotData::Plot2D) {
+            HistoItem2D *item = static_cast<HistoItem2D*>(pItem[i].item);
+            item->SetTitle(plot.title);
+            item->SetStats(plot.stats);
+            item->SetData(plot.nx, plot.xMin, plot.xMax,
+                          plot.ny, plot.yMin, plot.yMax, plot.z);
+        } else {
+            HistoItem *item = static_cast<HistoItem*>(pItem[i].item);
+            item->SetTitle(plot.title);
+            item->SetStats(plot.stats);
+            item->ReceiveContents(plot.y);
+        }
+    }
+
+    ReDistributePaintingArea();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,7 +251,8 @@ void HistoWidget::DrawCanvas(const std::vector<std::vector<int>> &data,
 
 void HistoWidget::Clear()
 {
-    for(int i=0;i<fRow*fCol;i++)
-        pItem[i] -> clearContent();
+    for(int i=0;i<fRow*fCol;i++) {
+        EnsureSlotType(i, PlotData::Plot1D);
+        static_cast<HistoItem*>(pItem[i].item)->clearContent();
+    }
 }
-
