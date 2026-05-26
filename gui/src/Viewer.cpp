@@ -898,7 +898,14 @@ void Viewer::DrawGEMOnlineHits(int num)
             continue;
         }
 
-        apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
+#ifdef USE_SRS
+        apv -> FillRawDataSRS(i.second);
+#else
+        auto flag_it = event_data_flag.find(i.first);
+        APVDataType flags = (flag_it != event_data_flag.end())
+            ? flag_it->second : APVDataType();
+        apv -> FillRawDataMPD(i.second, flags);
+#endif
         apv -> ZeroSuppression();
         apv -> CollectZeroSupHits();
         collect_nzs(apv);
@@ -906,7 +913,11 @@ void Viewer::DrawGEMOnlineHits(int num)
         // fill ghost apv data
         GEMAPV *ghost_apv = pGEMReplay -> GetGEMSystem() -> GetGhostAPV(i.first);
         if( ghost_apv != nullptr) {
-            ghost_apv -> FillRawDataMPD(i.second, event_data_flag.at(i.first));
+#ifdef USE_SRS
+            ghost_apv -> FillRawDataSRS(i.second);
+#else
+            ghost_apv -> FillRawDataMPD(i.second, flags);
+#endif
             ghost_apv -> ZeroSuppression();
             ghost_apv -> CollectZeroSupHits();
             collect_nzs(ghost_apv);
