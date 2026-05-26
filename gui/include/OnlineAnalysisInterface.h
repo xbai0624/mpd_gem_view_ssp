@@ -18,6 +18,7 @@
 #include <QMainWindow>
 #include <QStringList>
 #include <QList>
+#include <QMap>
 #include <QString>
 
 #include <vector>
@@ -57,6 +58,7 @@ private slots:
     void OnMergeFinished(int exitCode, int exitStatus);
 
     void ShowPage(int idx);
+    void ConfigureVisibleHistograms();
 
 private:
     struct AnalysisRequest {
@@ -104,6 +106,12 @@ private:
     void Plot();
     QString DataQualityFilePath() const;
     bool LoadHistograms(const QString &path);
+    void LoadHistogramVisibilityConfig();
+    void SaveHistogramVisibilityConfig() const;
+    QString HistogramVisibilityConfigPath() const;
+    static QString EncodeConfigKey(const QString &key);
+    static QString DecodeConfigKey(const QString &key);
+    void RebuildVisibleHistogramList();
     void PopulatePageCombo();
     void SetControlsEnabled(bool on);
     void ClearHistos();
@@ -130,7 +138,10 @@ private:
     QPlainTextEdit *m_log       = nullptr;
     HistoWidget    *m_plotWidget = nullptr;
     QComboBox      *m_pageCombo    = nullptr;
+    QPushButton    *m_btnSelectHistos = nullptr;
     std::vector<TH1*> m_histos;        // owned; deleted in ClearHistos()
+    std::vector<int>  m_visibleHistoIndices;
+    QMap<QString, bool> m_histoVisible;
 
     // ---- runtime state ----
     QList<QProcess*> m_workers;
