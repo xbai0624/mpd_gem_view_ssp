@@ -106,6 +106,8 @@ void QRootCanvas::resizeEvent(QResizeEvent *e)
 {
     if(!fCanvas) return;
 
+    if(e->size().width() <= 0 || e->size().height() <= 0) return;
+
     fCanvas->SetCanvasSize(e->size().width(), e->size().height());
     fCanvas->Resize();
     fCanvas->Update();
@@ -117,6 +119,8 @@ void QRootCanvas::resizeEvent(QResizeEvent *e)
 void QRootCanvas::paintEvent([[maybe_unused]] QPaintEvent *e)
 {
     if(!fCanvas) return;
+
+    if(width() <= 0 || height() <= 0) return;
 
     fCanvas->Resize();
     fCanvas->Update();

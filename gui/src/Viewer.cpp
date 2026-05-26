@@ -164,6 +164,9 @@ QWidget* Viewer::createTopToolbar()
             tr("Online Hits"),
             tr("Detector 2D Strips")});
 
+    // bring up analysis interface
+    QPushButton *anaInterfaceBtn = new QPushButton(tr("Analysis Interface"), w);
+
     // Event Selector
     QLabel *evtLabel = new QLabel(tr("Event:"), w);
     m_eventSpin = new QSpinBox(w);
@@ -179,6 +182,8 @@ QWidget* Viewer::createTopToolbar()
     h -> addSpacing(16);
     h -> addWidget(viewLabel);
     h -> addWidget(m_viewCombo);
+    h -> addSpacing(16);
+    h -> addWidget(anaInterfaceBtn);
     h -> addStretch(1);
     h -> addWidget(evtLabel);
     h -> addWidget(m_eventSpin);
@@ -189,6 +194,7 @@ QWidget* Viewer::createTopToolbar()
     connect(browseBtn, &QPushButton::clicked, this, &Viewer::OpenFile);
     connect(m_eventSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::DrawEvent);
     connect(saveEvtBtn, &QPushButton::pressed, this, &Viewer::SaveCurrentEvent);
+    connect(anaInterfaceBtn, &QPushButton::pressed, this, &Viewer::OpenOnlineAnalysisInterface);
 
     return w;
 }

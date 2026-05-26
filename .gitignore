@@ -93,6 +93,7 @@ gui/.qmake.stash
 
 .DS_Store
 .claude
+AGENTS.md
 
 database/CommonModeRange_*.txt
 database/gem_ped*.dat
