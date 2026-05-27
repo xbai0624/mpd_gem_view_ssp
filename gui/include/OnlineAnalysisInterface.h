@@ -94,6 +94,11 @@ private:
     static QString ShellQuote(const QString &s);   // single-quote-escape for bash
     QString ResolveReplayBinary() const;     // returns "" if not found
     QString DetectRepoRoot() const;          // walks up from app dir
+    // Given the absolute path to one EVIO split file (e.g.
+    // ".../cern_beamtest_exp1_218.evio.0"), fill the four related
+    // settings: Raw data folder / Run number / Raw file pattern /
+    // Output prefix. Returns true if a run number was deduced.
+    bool DeduceFromEvioPath(const QString &absPath);
     bool PrepareAnalysisRequest(AnalysisRequest &request);
     void LogAnalysisPreamble(const AnalysisRequest &request);
     QString BuildWorkerCommand(const AnalysisRequest &request,

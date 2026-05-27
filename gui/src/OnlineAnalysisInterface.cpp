@@ -43,6 +43,8 @@
 #include <QFontMetrics>
 
 #include <cmath>
+#include <algorithm>
+#include <cctype>
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor / dtor
@@ -297,9 +299,66 @@ void OnlineAnalysisInterface::BrowseCommonMode()
 
 void OnlineAnalysisInterface::BrowseRawDir()
 {
-    QString d = QFileDialog::getExistingDirectory(this, tr("Raw data folder"),
-            m_edRawDir->text().isEmpty() ? QString("./") : m_edRawDir->text());
-    if(!d.isEmpty()) m_edRawDir->setText(d);
+    // Pick ONE evio split file; the helper below derives Raw folder,
+    // Pattern, Output prefix and Run number from it -- the user no longer
+    // has to type any of those by hand.
+    const QString start = m_edRawDir->text().isEmpty()
+                          ? QString("./") : m_edRawDir->text();
+    const QString f = QFileDialog::getOpenFileName(
+            this, tr("Pick one EVIO split file"), start,
+            tr("EVIO files (*.evio *.evio.*);;All files (*)"));
+    if(f.isEmpty()) return;
+    DeduceFromEvioPath(f);
+}
+
+bool OnlineAnalysisInterface::DeduceFromEvioPath(const QString &absPath)
+{
+    // Mirrors GEMDataHandler::ParseOutputFileName's split logic: cut the
+    // input at ".evio" and strip the leading directory.
+    const std::string s = absPath.toStdString();
+    const size_t pos_evio = s.find(".evio");
+    const QString folder = QFileInfo(absPath).absolutePath();
+
+    if(pos_evio == std::string::npos) {
+        // Not an evio file: only the folder is reliable.
+        m_edRawDir->setText(folder);
+        return false;
+    }
+    const size_t pos_dir = s.find_last_of('/');
+    const size_t name_start = (pos_dir == std::string::npos) ? 0 : pos_dir + 1;
+    // stem = filename between dir and ".evio", typically "<base>_<run>"
+    const std::string stem = s.substr(name_start, pos_evio - name_start);
+
+    // Pull trailing "_<digits>" off the stem to separate base & run.
+    int run = 0;
+    std::string base = stem;
+    const size_t us = stem.find_last_of('_');
+    if(us != std::string::npos) {
+        const std::string tail = stem.substr(us + 1);
+        const bool all_digits = !tail.empty()
+            && std::all_of(tail.begin(), tail.end(),
+                           [](unsigned char c){ return std::isdigit(c); });
+        if(all_digits) {
+            try { run = std::stoi(tail); } catch(...) { run = 0; }
+            base = stem.substr(0, us);
+        }
+    }
+
+    m_edRawDir->setText(folder);
+    if(run > 0) {
+        m_spRun->setValue(run);
+        m_edPattern->setText(QString::fromStdString(base) + "_{RUN}.evio.*");
+        m_edPrefix ->setText(QString::fromStdString(base) + "_run");
+        AppendLog(QString("Deduced from %1: run=%2, base=%3")
+                  .arg(absPath).arg(run).arg(QString::fromStdString(base)));
+    } else {
+        // No "_<run>" tail; leave the spinbox alone and use stem literally.
+        m_edPattern->setText(QString::fromStdString(stem) + ".evio.*");
+        m_edPrefix ->setText(QString::fromStdString(stem) + "_run");
+        AppendLog(QString("Picked %1 (no run number deduced; "
+                          "edit Run number by hand).").arg(absPath));
+    }
+    return run > 0;
 }
 
 void OnlineAnalysisInterface::BrowseOutDir()
