@@ -27,15 +27,24 @@ public:
     void DecodeFEC(const std::vector<unsigned int> &);
     void DecodeFEC(unsigned int *, int &);
     void decode_impl(unsigned int *buf, int &n, std::vector<int> &apv);
-    std::vector<int> cleanup_srs_apv_header_words(const std::vector<int>&,
-            size_t &time_sample);
+    // Strip the 3-sync + 10-header-word prefix preceding each time sample
+    // in an SRS APV frame, returning a vector of (128 channels + 1 TS-id)
+    // per time sample. Static so downstream consumers (e.g.
+    // GEMAPV::FillRawDataSRS) can call it without needing a decoder
+    // instance -- one canonical implementation of the SRS frame layout
+    // lives here, by the rest of the SRS parser.
+    static std::vector<int> cleanup_srs_apv_header_words(
+            const std::vector<int>&, size_t &time_sample);
     void FillAPVRaw(std::vector<int> &, unsigned int);
 
     //std::unordered_map<int, std::unordered_map<int, std::vector<unsigned int>>> &GetDecoded();
     std::unordered_map<APVAddress, std::vector<int>> &GetDecoded();
     std::unordered_map<int, std::vector<unsigned int>> &GetFECDecoded();
 
-    // general interface
+    // general interface. Returns the RAW SRS payload (APV header words still
+    // present). Header stripping happens in the downstream consumer
+    // (GEMAPV::FillRawDataSRS) so the Viewer can display the raw frame and
+    // analysis still gets cleaned data -- one decoder map, one getter.
     const std::unordered_map<APVAddress, std::vector<int>> &GetAPV() const;
     const std::unordered_map<APVAddress, APVDataType> & GetAPVDataFlags() const;
     const std::unordered_map<APVAddress, std::vector<int>> & GetAPVOnlineCommonMode() const;

@@ -123,10 +123,11 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
                 APVAddress addr(nCrateID, nFECID, nADCCh);
                 if(mAPVRawSingleEvent.find(addr) == mAPVRawSingleEvent.end())
                 {
-                    //mAPVRawSingleEvent[addr] = apv;
-                    auto tmp = cleanup_srs_apv_header_words(apv, nTimeSample);
-                    if(tmp.size() == (size_t)129 * nTimeSample)
-                        mAPVRawSingleEvent[addr] = tmp;
+                    // Store the raw SRS payload (APV header words still in
+                    // place). Header stripping happens in
+                    // GEMAPV::FillRawDataSRS for downstream analysis;
+                    // Viewer's raw-frame view reads this map as-is.
+                    mAPVRawSingleEvent[addr] = apv;
                     flags.SetAPVAddress(addr);
                     mAPVDataFlags[addr] = flags;
                 }
@@ -156,10 +157,9 @@ void SRSRawEventDecoder::decode_impl(unsigned int *buf, int &n, vector<int> &apv
                     APVAddress addr(nCrateID, nFECID, nADCCh);
                     if(mAPVRawSingleEvent.find(addr) == mAPVRawSingleEvent.end())
                     {
-                        //mAPVRawSingleEvent[addr] = apv;
-                        auto tmp = cleanup_srs_apv_header_words(apv, nTimeSample);
-                        if(tmp.size() == (size_t)129*nTimeSample)
-                            mAPVRawSingleEvent[addr] = tmp;
+                        // Store the raw SRS payload (header words intact);
+                        // cleanup runs downstream in GEMAPV::FillRawDataSRS.
+                        mAPVRawSingleEvent[addr] = apv;
                         flags.SetAPVAddress(addr);
                         mAPVDataFlags[addr] = flags;
                     }

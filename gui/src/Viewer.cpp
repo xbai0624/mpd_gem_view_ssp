@@ -30,8 +30,8 @@
 #include <thread>
 
 //#define SHOW_APV_BY_MPD
-#define APVS_PER_TAB_X 6
-#define APVS_PER_TAB_Y 6
+#define APVS_PER_TAB_X 4
+#define APVS_PER_TAB_Y 4
 #define EYE_BALL_TRACKING
 #define SHOW_PRAD_SETUP
 
@@ -739,7 +739,7 @@ void Viewer::DrawGEMRawHistos(int num)
         current_event_number = num;
         event_cache.push_back(mData);
         event_flag_cache.push_back(mDataFlags);
-        if(event_cache.size() > max_cache_events) 
+        if(event_cache.size() > max_cache_events)
         {
             event_cache.pop_front();
             event_flag_cache.pop_front();

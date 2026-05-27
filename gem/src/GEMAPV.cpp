@@ -16,6 +16,7 @@
 #include "GEMPlane.h"
 #include "GEMAPV.h"
 #include "APVStripMapping.h"
+#include "SRSRawEventDecoder.h"   // for cleanup_srs_apv_header_words
 #include "TF1.h"
 #include "TH1.h"
 #include "hardcode.h"
@@ -556,8 +557,17 @@ inline void split_data(const uint32_t &data, float &val1, float &val2)
 // this is for SRS. In SRS, each 32-bit word contains two 16-bit words, each 
 // 16-bit word corresponds to one ADC value
 
-void GEMAPV::FillRawDataSRS(const std::vector<int> &buf)
+void GEMAPV::FillRawDataSRS(const std::vector<int> &raw_buf)
 {
+    // The SRS decoder hands us the raw APV payload with header words still
+    // in place (so the Viewer can render the full frame, sync dips and
+    // all). Strip them here, at the analysis entry point, before copying
+    // into raw_data -- everything downstream (pedestal, common-mode, zero
+    // suppression, hit finding) was written against the MPD-shape vector.
+    size_t time_samples = 0;
+    const std::vector<int> buf =
+        SRSRawEventDecoder::cleanup_srs_apv_header_words(raw_buf, time_samples);
+
     uint32_t size = buf.size();
 
     if(size > buffer_size) {
