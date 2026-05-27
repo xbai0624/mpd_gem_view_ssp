@@ -80,12 +80,22 @@ bool OnlineMonitor::Connect(const std::string &etFile, const std::string &host,
     et_id = id;
 
     // --- create (or join) a non-blocking monitoring station ---
-    // Non-blocking so the monitor never back-pressures the DAQ: when the
-    // station queue is full new events simply bypass it.
+    // 1:1 with SRS_GEM_View/src/ETChannel.cpp:46-53. The critical pair is
+    // setcue(10) + setrestore(RESTORE_OUT): without RESTORE_OUT the default
+    // RESTORE_GC keeps un-put events in our station until the GC thread
+    // reclaims them, which at a slow GUI poll cadence drains the ET buffer
+    // pool and back-pressures the producer (trigger rate drops). The other
+    // three (SELECT_ALL, USER_MULTI, prescale=1) match ET defaults on most
+    // versions but the reference sets them explicitly -- mirror that for
+    // byte-exact parity with the proven-working client.
     et_statconfig sconfig;
     et_station_config_init(&sconfig);
-    et_station_config_setblock(sconfig, ET_STATION_NONBLOCKING);
-    et_station_config_setcue(sconfig, 100);
+    et_station_config_setselect  (sconfig, ET_STATION_SELECT_ALL);
+    et_station_config_setblock   (sconfig, ET_STATION_NONBLOCKING);
+    et_station_config_setcue     (sconfig, 10);
+    et_station_config_setuser    (sconfig, ET_STATION_USER_MULTI);
+    et_station_config_setrestore (sconfig, ET_STATION_RESTORE_OUT);
+    et_station_config_setprescale(sconfig, 1);
 
     et_stat_id stat;
     status = et_station_create(id, &stat, station.c_str(), sconfig);
