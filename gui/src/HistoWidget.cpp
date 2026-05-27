@@ -2,6 +2,7 @@
 #include <iostream>
 #include <QHBoxLayout>
 #include <cassert>
+#include <algorithm>
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
@@ -239,7 +240,22 @@ void HistoWidget::DrawCanvas(const std::vector<PlotData> &data, int row, int col
             HistoItem *item = static_cast<HistoItem*>(pItem[i].item);
             item->SetTitle(plot.title);
             item->SetStats(plot.stats);
-            item->ReceiveContents(plot.y);
+            // If the caller supplied a real X axis (xMin < xMax), pass
+            // (bin_center, content) pairs so axis labels show the booked
+            // range; otherwise fall back to bin-index X for callers that
+            // only sent bare bin contents (e.g. raw-frame views).
+            if(plot.xMax > plot.xMin && plot.nx > 0) {
+                QVector<QPair<double, double>> pts;
+                pts.reserve(static_cast<int>(plot.y.size()));
+                const double w = (plot.xMax - plot.xMin) / plot.nx;
+                for(size_t b = 0; b < plot.y.size(); ++b) {
+                    const double xc = plot.xMin + (b + 0.5) * w;
+                    pts.append({xc, plot.y[b]});
+                }
+                item->ReceiveContents(pts);
+            } else {
+                item->ReceiveContents(plot.y);
+            }
         }
     }
 

@@ -92,6 +92,12 @@ void HistoItem::PassData()
     updateDrawingContent();
 }
 
+void HistoItem::ReceiveContents(const QVector<QPair<double, double>> &xy)
+{
+    original_data2 = xy;
+    updateDrawingContent();
+}
+
 void HistoItem::updateDrawingContent()
 {
     // clear previous event, drawing content is saved in _data2

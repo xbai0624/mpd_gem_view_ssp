@@ -953,6 +953,11 @@ void OnlineAnalysisInterface::ShowPage(int idx)
             std::snprintf(buf, sizeof(buf), "Std Dev %.3g", h->GetStdDev());
             plot.stats.push_back(buf);
             const int nBins = h->GetNbinsX();
+            // Pass the real X-axis range so the renderer can show ADC units
+            // / cluster counts instead of bin indices.
+            plot.nx   = nBins;
+            plot.xMin = h->GetXaxis()->GetXmin();
+            plot.xMax = h->GetXaxis()->GetXmax();
             plot.y.reserve(nBins);
             for(int bin = 1; bin <= nBins; ++bin)
                 plot.y.push_back(h->GetBinContent(bin));

@@ -41,6 +41,10 @@ public:
 
         updateDrawingContent();
     }
+    // Overload that preserves real X-axis values (bin centers). Used by the
+    // data-quality plot path where the booked ROOT histogram range matters;
+    // the template above is fine for raw-frame views where X = sample index.
+    void ReceiveContents(const QVector<QPair<double, double>> &xy);
     void PassData();
     void updateDrawingRange();
     void updateDrawingContent();
