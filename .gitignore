@@ -99,9 +99,12 @@ database/CommonModeRange_*.txt
 database/gem_ped*.dat
 database/*bkp
 
+config/online_analysis_histogram_visibility.conf
+
 gui/include/HistoItem.h_bkp
 gui/src/HistoItem.cpp_bkp
 
 tracks.txt
 log_tracks.txt
+
 
