@@ -30,8 +30,8 @@
 #include <thread>
 
 //#define SHOW_APV_BY_MPD
-#define APVS_PER_TAB_X 4
-#define APVS_PER_TAB_Y 4
+#define APVS_PER_TAB_X 6
+#define APVS_PER_TAB_Y 6
 #define EYE_BALL_TRACKING
 #define SHOW_PRAD_SETUP
 
@@ -397,8 +397,10 @@ QWidget* Viewer::createPedestalCommonModePage()
     h1 -> setSpacing(4);
     QPushButton *genPed = new QPushButton(tr("Generate"), btnRow);
     QPushButton *loadPed = new QPushButton(tr("Load"), btnRow);
+    QPushButton *plotPed = new QPushButton(tr("Plot"), btnRow);
     h1 -> addWidget(genPed);
     h1 -> addWidget(loadPed);
+    h1 -> addWidget(plotPed);
     h1 -> addStretch(1);
 
     pedForm -> addRow(tr("Max Events:"), maxEvt);
@@ -412,6 +414,7 @@ QWidget* Viewer::createPedestalCommonModePage()
     // signal-slot
     connect(genPed, &QPushButton::pressed, this, &Viewer::GeneratePedestal);
     connect(loadPed, &QPushButton::pressed, this, &Viewer::ReloadPedestal);
+    connect(plotPed, &QPushButton::pressed, this, &Viewer::PlotPedestal);
     connect(m_pedOut, &QLineEdit::textChanged, this, &Viewer::SetPedestalOutputPath);
     connect(m_cmOut, &QLineEdit::textChanged, this, &Viewer::SetCommonModeOutputPath);
     connect(maxEvt, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::SetPedestalMaxEvents);
@@ -1402,6 +1405,36 @@ void Viewer::GeneratePedestal()
             .arg(fPedestalOutputPath.c_str())
             .arg(fCommonModeOutputPath.c_str())
             );
+}
+
+////////////////////////////////////////////////////////////////
+// plot pedestal -- pop up a PedestalPlotWindow showing per-APV offset
+// and noise 1D histograms parsed from fPedestalInputPath.
+void Viewer::PlotPedestal()
+{
+    // Read the path live from the Pedestal/CommonMode page's line edit
+    // (m_pedOut). This is the field the user is editing on screen; using
+    // it directly avoids stale state from fPedestalInputPath, which only
+    // tracks a separate "input pedestal" field.
+    const QString pedPath = m_pedOut ? m_pedOut->text().trimmed() : QString();
+    if(pedPath.isEmpty()) {
+        QMessageBox::warning(this, tr("Plot Pedestal"),
+                tr("Pedestal file path is empty. Fill it in the "
+                   "Pedestal/CommonMode page first."));
+        return;
+    }
+    // Always rebuild against the current field value so editing the path
+    // and clicking the button refreshes the plots (otherwise a cached
+    // window would keep showing the old file).
+    if(winPedestalPlot) {
+        winPedestalPlot->close();
+        winPedestalPlot->deleteLater();
+        winPedestalPlot = nullptr;
+    }
+    winPedestalPlot = new PedestalPlotWindow(pedPath, this);
+    winPedestalPlot->show();
+    winPedestalPlot->raise();
+    winPedestalPlot->activateWindow();
 }
 
 ////////////////////////////////////////////////////////////////

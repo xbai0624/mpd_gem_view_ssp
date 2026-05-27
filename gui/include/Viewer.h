@@ -9,6 +9,7 @@
 #include "HistoWidget.h"
 #include "Detector2DView.h"
 #include "OnlineAnalysisInterface.h"
+#include "PedestalPlotWindow.h"
 
 #include <QMainWindow>
 #include <QPushButton>
@@ -92,6 +93,7 @@ public slots:
     void OpenFile();
     void GeneratePedestal_obsolete();
     void GeneratePedestal();
+    void PlotPedestal();
     void ReplayHit();
     void ReplayCluster();
     void OpenOnlineAnalysisInterface();
@@ -135,6 +137,9 @@ private:
 
     // online analysis interface window
     OnlineAnalysisInterface *winOnlineInterface;
+
+    // pedestal plot popup window (lazy-created on first PlotPedestal())
+    PedestalPlotWindow *winPedestalPlot = nullptr;
 
     // number of tabs
     int nTab = 12; // number of tabs for apv raw histos
