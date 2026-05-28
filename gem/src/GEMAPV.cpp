@@ -913,7 +913,7 @@ void GEMAPV::CollectRawHits(std::vector<GEM_Strip_Data> &hits)
 // binary insert to a sorted vector and keep that vector to a fixed length
 // sorting costs too much running time
 
-static void binary_insert_find_high(std::vector<float> &vec, const float &val, size_t start, size_t end)
+static void binary_insert_find_high(float *vec, const float &val, size_t start, size_t end)
 {
     if(start + 1 == end)
     {
@@ -932,7 +932,7 @@ static void binary_insert_find_high(std::vector<float> &vec, const float &val, s
         binary_insert_find_high(vec, val, pos, end);
 }
 
-static void binary_insert_find_low(std::vector<float> &vec, const float &val, size_t start, size_t end)
+static void binary_insert_find_low(float *vec, const float &val, size_t start, size_t end)
 {
     if(start + 1 == end)
     {
@@ -1109,40 +1109,37 @@ void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_
 ////////////////////////////////////////////////////////////////////////////////
 // calculate dynamic common mode sorting method
 
-float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, [[maybe_unused]]const uint32_t &_size)
+float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, const uint32_t &_size)
 {
     float average = 0.;
     int count = 0;
 
-    std::vector<float> buf;
-    size_t size = 0;
-
-    // remove the unused channels
-    for(int i=0; i<(int)_size; i++) {
-        if(m_unused_mask[i]) continue;
-
-        buf.push_back(_buf[i]);
-        size++;
-    }
-
+    // top/bottom-N tracker on the stack -- no per-call heap allocation
 #ifdef USE_SRS
     // remove the lowest 20 strips for common mode calculation
-    std::vector<float> high_adc(NUM_HIGH_STRIPS, 9999.);
+    float high_adc[NUM_HIGH_STRIPS];
+    for(int k = 0; k < NUM_HIGH_STRIPS; ++k) high_adc[k] = 9999.;
 #else
     // remove the highest 20 strips for common mode calculation
-    std::vector<float> high_adc(NUM_HIGH_STRIPS, -9999.);
+    float high_adc[NUM_HIGH_STRIPS];
+    for(int k = 0; k < NUM_HIGH_STRIPS; ++k) high_adc[k] = -9999.;
 #endif
 
-    for(uint32_t i = 0; i < size; ++i)
+    // iterate the caller's buffer in place, skipping unused channels
+    // (preserves the exact filtering done for experiments that have them)
+    for(uint32_t i = 0; i < _size; ++i)
     {
-        average += buf[i];
+        if(m_unused_mask[i]) continue;
+
+        const float v = _buf[i];
+        average += v;
         count++;
 #ifdef USE_SRS
-        if(buf[i] <= high_adc.front())
-            binary_insert_find_low(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
+        if(v <= high_adc[0])
+            binary_insert_find_low(high_adc, v, 0, NUM_HIGH_STRIPS);
 #else
-        if(buf[i] > high_adc[0])
-            binary_insert_find_high(high_adc, buf[i], 0, NUM_HIGH_STRIPS);
+        if(v > high_adc[0])
+            binary_insert_find_high(high_adc, v, 0, NUM_HIGH_STRIPS);
 #endif
     }
 
