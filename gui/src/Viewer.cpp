@@ -290,21 +290,23 @@ QWidget* Viewer::createOnlineHitsView(QWidget *w)
     QTabWidget* tabW = new QTabWidget(w);
 
     auto layer_id_vec = apv_strip_mapping::Mapping::Instance() -> GetLayerIDVec();
+    const int nLayers = static_cast<int>(layer_id_vec.size());
 
-    // for gem chamber online hits
-    for(int i=0; i<nTabOnlineHits; ++i)
-    {
-        QWidget *w = new QWidget(tabW);
-        QVBoxLayout *wLayout = new QVBoxLayout(w);
-        wLayout -> setContentsMargins(0, 0, 0, 0);
-        wLayout -> setSpacing(0);
-        HistoWidget *c = new HistoWidget(w);
-        c -> Divide(4, 2); // each layer has 4 chambers
-        wLayout -> addWidget(c);
-        vTabCanvasOnlineHits.push_back(c);
+    // All layers share ONE tab. Grid: 2 columns (col 0 = X plane,
+    // col 1 = Y plane); each layer occupies TWO rows (top = before zero
+    // suppression, bottom = after). So rows = 2 * nLayers, ordered
+    // layer 1, layer 2, ... top to bottom.
+    if(nLayers > 0) {
+        QWidget *page = new QWidget(tabW);
+        QVBoxLayout *pageLayout = new QVBoxLayout(page);
+        pageLayout -> setContentsMargins(0, 0, 0, 0);
+        pageLayout -> setSpacing(0);
+        HistoWidget *c = new HistoWidget(page);
+        c -> Divide(2 * nLayers, 2);
+        pageLayout -> addWidget(c);
+        vTabCanvasOnlineHits.push_back(c);   // exactly one element now
 
-        QString s = QString("Online Hits Layer: %1").arg(layer_id_vec[i]);
-        tabW -> addTab(w, s);
+        tabW -> addTab(page, tr("Online Hits"));
     }
 
     return tabW;
@@ -1063,30 +1065,40 @@ void Viewer::DrawGEMOnlineHits(int num)
             std::vector<int>>(x_online_hits_nzs, y_online_hits_nzs);
     }
 
-    // draw online hits
+    // draw online hits -- ALL layers in ONE canvas:
     //
-    // Per-layer layout, sized to the actual number of chambers in that
-    // layer (no placeholder pads):
+    //   columns : 0 = X plane, 1 = Y plane
+    //   rows    : 2 per layer, ordered layer1, layer2, ... top to bottom
+    //               row 2L     : before zero suppression (offset + CM subtracted)
+    //               row 2L + 1 : after zero suppression
     //
-    //   columns : 0 = X plane,        1 = Y plane
-    //   rows    : 2 per chamber.
-    //               row 2k     : non-zero-suppressed (offset + CM subtracted)
-    //               row 2k + 1 : zero-suppressed
-    //             So the pre-threshold view is on TOP and the
-    //             after-threshold view is directly below it for the
-    //             same plane.
-    //
-    // A layer with only 1 chamber therefore shows just 2x2 = 4 pads.
-    //
-    // Title format follows the convention from the mapping file:
-    //     layer{ID}_x before zero suppression / after zero suppression
-    //     layer{ID}_y before zero suppression / after zero suppression
-    // (chamber index is appended only when the layer has more than one
-    //  chamber, e.g. layer1_chamber2_x).
+    // Multiple chambers in a layer are COMBINED into one strip profile per
+    // plane (the per-chamber vectors are concatenated).
     //
     // HistoWidget indexes pItem as row * fCol + col, so the push order
-    // below MUST match that.
+    // below MUST match that: per layer push before-X, before-Y, after-X,
+    // after-Y (fills row 2L cols 0/1, then row 2L+1 cols 0/1).
     const auto & layer_map = apv_strip_mapping::Mapping::Instance() -> GetLayerMap();
+
+    // concatenate all chambers of a layer into one strip profile per plane
+    auto combine = [&](const std::vector<Hits2D> &chambers, int n, bool xPlane)
+        -> std::vector<int>
+    {
+        std::vector<int> out;
+        for(int j = 0; j < n; ++j) {
+            const std::vector<int> &v = xPlane ? chambers[j].first
+                                               : chambers[j].second;
+            out.insert(out.end(), v.begin(), v.end());
+        }
+        return out;
+    };
+
+    const int nLayers = static_cast<int>(layerID.size());
+    std::vector<std::vector<int>> data;
+    std::vector<std::string> title;
+    data.reserve(4 * nLayers);
+    title.reserve(4 * nLayers);
+
     for(size_t i=0; i<layerID.size(); ++i)
     {
         const int real_layer_id = layerID[i];
@@ -1098,36 +1110,26 @@ void Viewer::DrawGEMOnlineHits(int num)
         if(n_chambers <= 0) n_chambers = 1;
         if(n_chambers > 4)  n_chambers = 4;   // online_hits is sized to 4
 
-        const int rows = 2 * n_chambers;
-        const int cols = 2;
+        const std::string prefix = "layer" + std::to_string(real_layer_id);
 
-        std::vector<std::vector<int>> data;
-        std::vector<std::string> title;
-        data.reserve(rows * cols);
-        title.reserve(rows * cols);
+        // ---- before zero suppression (X | Y) on TOP row ----
+        data.push_back(combine(online_hits_nzs[i], n_chambers, true));
+        title.push_back(prefix + "_x before zero suppression");
+        data.push_back(combine(online_hits_nzs[i], n_chambers, false));
+        title.push_back(prefix + "_y before zero suppression");
 
-        for(int j=0; j<n_chambers; ++j)
-        {
-            std::string prefix = "layer" + std::to_string(real_layer_id);
-            if(n_chambers > 1)
-                prefix += "_chamber" + std::to_string(j);
+        // ---- after zero suppression (X | Y) on row below ----
+        data.push_back(combine(online_hits[i], n_chambers, true));
+        title.push_back(prefix + "_x after zero suppression");
+        data.push_back(combine(online_hits[i], n_chambers, false));
+        title.push_back(prefix + "_y after zero suppression");
+    }
 
-            // ---- non-zero-suppressed row (X | Y) on TOP ----
-            data.push_back(online_hits_nzs[i][j].first);
-            title.push_back(prefix + "_x before zero suppression");
-            data.push_back(online_hits_nzs[i][j].second);
-            title.push_back(prefix + "_y before zero suppression");
-
-            // ---- zero-suppressed row (X | Y) directly below ----
-            data.push_back(online_hits[i][j].first);
-            title.push_back(prefix + "_x after zero suppression");
-            data.push_back(online_hits[i][j].second);
-            title.push_back(prefix + "_y after zero suppression");
-        }
-
-        vTabCanvasOnlineHits[i] -> Clear();
-        vTabCanvasOnlineHits[i] -> DrawCanvas(data, title, rows, cols);
-        vTabCanvasOnlineHits[i] -> Refresh();
+    if(!vTabCanvasOnlineHits.empty())
+    {
+        vTabCanvasOnlineHits[0] -> Clear();
+        vTabCanvasOnlineHits[0] -> DrawCanvas(data, title, 2 * nLayers, 2);
+        vTabCanvasOnlineHits[0] -> Refresh();
     }
 
 #ifdef EYE_BALL_TRACKING
