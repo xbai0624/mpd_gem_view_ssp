@@ -484,7 +484,8 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     // best track, the one with minimum chi2
     if(chi2ndf < best_track_chi2ndf)
     {
-        best_track_index = (int)v_xtrack.size() - 1;
+        //best_track_index = (int)v_xtrack.size() - 1;
+        best_track_index = 0; // best track index will always be 0 since tracks are sorted using map
 
         best_track_chi2ndf = chi2ndf;
         best_xtrack = xtrack;
