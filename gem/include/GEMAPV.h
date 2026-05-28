@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <array>
 #include "MPDDataStruct.h"
 #include "GEMStruct.h"
 #include "MPDSSPRawEventDecoder.h"
@@ -201,6 +202,7 @@ private:
 
     // a list for APV unused channels
     std::vector<int> unused_channels;
+    std::array<bool, APV_STRIP_SIZE> m_unused_mask{};
 };
 
 #endif

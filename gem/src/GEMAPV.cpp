@@ -62,6 +62,9 @@ GEMAPV::GEMAPV(const int &o,
         noise_hist[i] = nullptr;
     }
 
+    unused_channels.clear();
+    m_unused_mask.fill(false);
+
     ClearData();
 }
 
@@ -140,6 +143,7 @@ GEMAPV::GEMAPV(const GEMAPV &that)
     unused_channels.clear();
     for(auto &i: that.unused_channels)
         unused_channels.push_back(i);
+    m_unused_mask = that.m_unused_mask;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -188,6 +192,7 @@ GEMAPV::GEMAPV(GEMAPV &&that)
     unused_channels.clear();
     for(auto &i: that.unused_channels)
         unused_channels.push_back(i);
+    m_unused_mask = that.m_unused_mask;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -269,6 +274,7 @@ GEMAPV &GEMAPV::operator= (GEMAPV &&rhs)
     unused_channels.clear();
     for(auto &i: rhs.unused_channels)
         unused_channels.push_back(i);
+    m_unused_mask = rhs.m_unused_mask;
 
     return *this;
 }
@@ -1113,8 +1119,7 @@ float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, [[maybe_unused]]const 
 
     // remove the unused channels
     for(int i=0; i<(int)_size; i++) {
-        bool found = std::binary_search(unused_channels.begin(), unused_channels.end(), i);
-        if(found) continue;
+        if(m_unused_mask[i]) continue;
 
         buf.push_back(_buf[i]);
         size++;
@@ -1625,6 +1630,8 @@ bool GEMAPV::IsCrossTalkStrip(const uint32_t &ch)
 void GEMAPV::SetUnusedChannels(const std::vector<int> &v)
 {
     unused_channels.clear();
+    m_unused_mask.fill(false);
+
     const std::string & detector_type = plane -> GetDetector() -> GetType();
 
     auto find_index = [&](int val) -> int
@@ -1675,6 +1682,10 @@ void GEMAPV::SetUnusedChannels(const std::vector<int> &v)
 
     // sort for fast search
     std::sort(unused_channels.begin(), unused_channels.end());
+
+    // fill unused channel mask
+    for(auto &i: unused_channels)
+        m_unused_mask[i] = true;
 }
  
 //============================================================================//
