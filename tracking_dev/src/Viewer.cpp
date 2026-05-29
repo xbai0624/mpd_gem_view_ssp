@@ -193,18 +193,22 @@ void Viewer::InitGui()
     QVBoxLayout *plotLayout = new QVBoxLayout(plotBox);
     plotLayout -> addWidget(fDet2DView);
 
+    QGroupBox *resultBox = new QGroupBox(tr("Tracking Histos"), central);
+    QVBoxLayout *resultLayout = new QVBoxLayout(resultBox);
+
     // left = main Det2D plots, right = result-histogram panel
-    result_panel = new TrackingResultPanel(central);
+    result_panel = new TrackingResultPanel(resultBox);
+    resultLayout -> addWidget(result_panel);
     // pre-create the category sections (empty placeholders) so the panel
     // shows the accordion headers at startup instead of a blank box;
     // Replay 50K (UpdateResultHistos) clears and refills them with data.
-    result_panel -> AddSection("Tracking Histos");
+    result_panel -> AddSection("Tracking");
     for(int i = 0; i < NDetector_Implemented; ++i)
         result_panel -> AddSection(Form("GEM %d", i));
 
     QSplitter *split = new QSplitter(Qt::Horizontal, central);
     split -> addWidget(plotBox);
-    split -> addWidget(result_panel);
+    split -> addWidget(resultBox);
     split -> setStretchFactor(0, 3);
     split -> setStretchFactor(1, 1);
     vMain -> addWidget(split, 1);
