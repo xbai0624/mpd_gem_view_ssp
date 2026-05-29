@@ -5,9 +5,12 @@
 #include "Tracking.h"
 #include "TrackingDataHandler.h"
 #include "TrackingUtility.h"
+#include "TrackingConfigWidget.h"
+#include "TrackingResultPanel.h"
 #include "Cuts.h"
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 #include <cmath>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -16,6 +19,14 @@
 #include <QLineEdit>
 #include <QFileDialog>
 #include <QSpinBox>
+#include <QScrollArea>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
+#include <QToolBar>
+#include <QGroupBox>
+#include <QStatusBar>
+#include <QSplitter>
 #include <TRandom.h>
 #include <chrono>
 
@@ -23,7 +34,7 @@ namespace tracking_dev {
 
 //#define USE_SIM_DATA
 
-Viewer::Viewer(QWidget *parent) : QWidget(parent)
+Viewer::Viewer(QWidget *parent) : QMainWindow(parent)
 {
     // root
     gen = new TRandom(0);
@@ -45,6 +56,8 @@ Viewer::Viewer(QWidget *parent) : QWidget(parent)
 
 Viewer::~Viewer()
 {
+    if(m_replay50KThread.joinable())
+        m_replay50KThread.join();
 }
 
 void Viewer::InitToyDetectorSetup()
@@ -113,27 +126,154 @@ void Viewer::InitGui()
 
     btn_next = new QSpinBox(this);
     btn_next -> setRange(0, 9999999);
+    btn_prev = new QPushButton(QString::fromUtf8("◀ Prev"), this);
+    btn_next_step = new QPushButton(QString::fromUtf8("Next ▶"), this);
     btn_50K = new QPushButton("Replay 50K", this);
     btn_open_file = new QPushButton("Open File", this);
-    label_counter = new QLabel("Event Number: 0", this);
     //label_file = new QLineEdit("../data/hallc_fadc_ssp_4818.evio.1", this);
     label_file = new QLineEdit("../data/fermilab_run_1018.evio.1", this);
 
-    global_layout = new QVBoxLayout(this);
-    global_layout -> addWidget(fDet2DView);
+    // theme matching gui/src/Viewer.cpp (buttons/inputs stay native)
+    setStyleSheet(R"(
+            QMainWindow {
+                 background: #FFFFEF;
+            }
+            QGroupBox {
+                 border: 1px solid #D0D3D8;
+                 border-radius: 6px;
+                 margin-top: 12px;
+                 background: #FFFFFF;
+            }
+            QGroupBox::title {
+                 subcontrol-origin: margin;
+                 left: 10px;
+            }
+            QToolBox::tab {
+                 background: #E8EAED;
+                 border-radius: 4px;
+                 padding: 0px, 0px;
+                 margin: 2px;
+            }
+            QPlainTextEdit {
+                background: #FFFFFF;
+                color: #000000;
+                border-radius: 0px;
+            }
+            )");
 
-    QHBoxLayout *_tmplayout = new QHBoxLayout();
-    _tmplayout -> addWidget(btn_open_file);
-    _tmplayout -> addWidget(label_file);
-    _tmplayout -> addWidget(label_counter);
-    _tmplayout -> addWidget(btn_50K);
-    _tmplayout -> addWidget(btn_next);
-    global_layout -> addLayout(_tmplayout);
+    // ---- menu bar: Settings -> Tracking Configuration... (pop-up) ----
+    QMenu *settingsMenu = menuBar()->addMenu(tr("Settings"));
+    QAction *cfgAction = settingsMenu->addAction(tr("Tracking Configuration..."));
+    connect(cfgAction, &QAction::triggered, this, &Viewer::OpenSettings);
+
+    // ---- top toolbar as a plain widget row (matches gui/src/Viewer.cpp:
+    //      a QHBoxLayout of native widgets, not a QToolBar) ----
+    QWidget *topToolbar = new QWidget(this);
+    QHBoxLayout *tbar = new QHBoxLayout(topToolbar);
+    label_file -> setMinimumWidth(300);
+    tbar -> addWidget(new QLabel(tr("File:"), topToolbar));
+    tbar -> addWidget(label_file);
+    tbar -> addWidget(btn_open_file);
+    tbar -> addSpacing(16);
+    tbar -> addWidget(new QLabel(tr("Event:"), topToolbar));
+    tbar -> addWidget(btn_prev);
+    tbar -> addWidget(btn_next);
+    tbar -> addWidget(btn_next_step);
+    tbar -> addStretch(1);
+    tbar -> addWidget(btn_50K);
+
+    // ---- central area: toolbar row + framed plot view ----
+    QWidget *central = new QWidget(this);
+    QVBoxLayout *vMain = new QVBoxLayout(central);
+    vMain -> setContentsMargins(8, 8, 8, 8);
+    vMain -> setSpacing(8);
+    vMain -> addWidget(topToolbar);
+
+    QGroupBox *plotBox = new QGroupBox(tr("GEM Hits"), central);
+    QVBoxLayout *plotLayout = new QVBoxLayout(plotBox);
+    plotLayout -> addWidget(fDet2DView);
+
+    // left = main Det2D plots, right = result-histogram panel
+    result_panel = new TrackingResultPanel(central);
+    // pre-create the category sections (empty placeholders) so the panel
+    // shows the accordion headers at startup instead of a blank box;
+    // Replay 50K (UpdateResultHistos) clears and refills them with data.
+    result_panel -> AddSection("Tracking Histos");
+    for(int i = 0; i < NDetector_Implemented; ++i)
+        result_panel -> AddSection(Form("GEM %d", i));
+
+    QSplitter *split = new QSplitter(Qt::Horizontal, central);
+    split -> addWidget(plotBox);
+    split -> addWidget(result_panel);
+    split -> setStretchFactor(0, 3);
+    split -> setStretchFactor(1, 1);
+    vMain -> addWidget(split, 1);
+
+    setCentralWidget(central);
+
+    // ---- status bar readout ----
+    m_statEvent  = new QLabel(tr(" Event: 0 "), this);
+    m_statTracks = new QLabel(tr(" Tracks: 0 "), this);
+    m_statChi2   = new QLabel(tr(" best chi2/ndf: - "), this);
+    m_statTiming = new QLabel(tr("idle"), this);
+    m_statTiming -> setMinimumWidth(240);   // room for the progress text
+    statusBar() -> addWidget(m_statEvent);
+    statusBar() -> addWidget(m_statTracks);
+    statusBar() -> addWidget(m_statChi2);
+    // timing/progress on the right (permanent so a transient showMessage
+    // never hides it)
+    statusBar() -> addPermanentWidget(m_statTiming);
 
     connect(btn_open_file, SIGNAL(clicked()), this, SLOT(OpenFile()));
     connect(label_file, SIGNAL(textChanged(const QString &)), this, SLOT(ProcessNewFile(const QString &)));
     connect(btn_next, SIGNAL(valueChanged(int)), this, SLOT(DrawEvent(int)));
     connect(btn_50K, SIGNAL(clicked()), this, SLOT(Replay50K()));
+    connect(this, &Viewer::ReplayProgress,
+            this, &Viewer::UpdateReplayProgress, Qt::QueuedConnection);
+    connect(this, &Viewer::ReplayFinished,
+            this, &Viewer::FinishReplay50K, Qt::QueuedConnection);
+
+    // Prev/Next just nudge the spinbox -> reuses the DrawEvent path
+    connect(btn_prev, &QPushButton::clicked, this,
+            [this]{ btn_next->setValue(btn_next->value() - 1); });
+    connect(btn_next_step, &QPushButton::clicked, this,
+            [this]{ btn_next->setValue(btn_next->value() + 1); });
+}
+
+////////////////////////////////////////////////////////////////
+// Settings menu -> tracking configuration pop-up window
+
+void Viewer::OpenSettings()
+{
+    if(!settings_window) {
+        settings_window = new QWidget(this, Qt::Window);
+        settings_window -> setWindowTitle(tr("Tracking Settings"));
+        settings_window -> resize(440, 640);
+
+        QVBoxLayout *lay = new QVBoxLayout(settings_window);
+        lay -> setContentsMargins(0, 0, 0, 0);
+
+        config_panel = new TrackingConfigWidget(
+                QString::fromStdString(Cuts::Instance().GetConfigPath()),
+                settings_window);
+        QScrollArea *sc = new QScrollArea(settings_window);
+        sc -> setWidget(config_panel);
+        sc -> setWidgetResizable(true);
+        lay -> addWidget(sc);
+
+        // applying the config re-applies it to the running tracking setup;
+        // takes effect on the next event.
+#ifndef USE_SIM_DATA
+        connect(config_panel, &TrackingConfigWidget::applied, this, [this]{
+            if(tracking_data_handler)
+                tracking_data_handler -> ReapplyConfig();
+        });
+#endif
+    }
+
+    settings_window -> show();
+    settings_window -> raise();
+    settings_window -> activateWindow();
 }
 
 void Viewer::LoadFermiData()
@@ -280,6 +420,7 @@ void Viewer::DrawEvent(int event_number)
     if(event_diff <= 0) {
         fDet2DView -> BringUpPreviousEvent(event_diff);
         fDet2DView -> Refresh();
+        UpdateStatusBar(event_number);   // show that event's cached result
         return;
     }
 
@@ -305,13 +446,40 @@ void Viewer::DrawEvent(int event_number)
     std::cout<<std::endl;
 
     fEventNumber++;
-    label_counter -> setText((std::string("Event Number: ")+std::to_string(fEventNumber)).c_str());
+
+    // record this event's tracking result so Prev can show it later
+    double xt, yt, xp, yp, chi2;
+    bool ok = tracking -> GetBestTrack(xt, yt, xp, yp, chi2);
+    m_hist_ntracks.push_back(tracking -> GetNGoodTrackCandidates());
+    m_hist_chi2.push_back(ok ? chi2 : 0.0);
+    m_hist_found.push_back(ok);
+
+    UpdateStatusBar(fEventNumber);
 
     auto t1 = Time::now();
     fsec fs = t1 - t0;
     std::cout << fs.count() << " s\n";
 
     fDet2DView -> Refresh();
+}
+
+// show the cached tracking result for a given event ordinal (1-based).
+void Viewer::UpdateStatusBar(int event_ordinal)
+{
+    if(!m_statEvent) return;
+
+    m_statEvent -> setText(QString(" Event: %1 ").arg(event_ordinal));
+
+    int idx = event_ordinal - 1;
+    if(idx >= 0 && idx < (int)m_hist_found.size()) {
+        m_statTracks -> setText(QString(" Tracks: %1 ").arg(m_hist_ntracks[idx]));
+        m_statChi2   -> setText(m_hist_found[idx]
+                ? QString(" best chi2/ndf: %1 ").arg(m_hist_chi2[idx], 0, 'g', 3)
+                : QString(" best chi2/ndf: - "));
+    } else {
+        m_statTracks -> setText(QString(" Tracks: 0 "));
+        m_statChi2   -> setText(QString(" best chi2/ndf: - "));
+    }
 }
 
 void Viewer::ProcessTrackingResult()
@@ -411,11 +579,27 @@ bool Viewer::ProcessRawGEMResult()
 
 void Viewer::Replay50K()
 {
+    if(m_replay50KRunning)
+        return;
+
+    if(m_replay50KThread.joinable())
+        m_replay50KThread.join();
+
     std::cout<<"processing 50K replay..."<<std::endl;
+    m_replay50KRunning = true;
+    SetReplayControlsEnabled(false);
+    if(m_statTiming)
+        m_statTiming->setText(tr(" replay running... "));
+
+    m_replay50KThread = std::thread(&Viewer::RunReplay50KWorker, this);
+}
+
+void Viewer::RunReplay50KWorker()
+{
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::duration<float> fsec;
-    auto t0 = Time::now();
-    auto t1 = t0;
+    auto replay_start = Time::now();
+    auto t0 = replay_start;
 
     int event_counter = 0;
 
@@ -423,16 +607,8 @@ void Viewer::Replay50K()
     tracking_data_handler -> SetReplayMode(true);
 #endif
 
-    while(event_counter++ < 50000)
+    while(event_counter < 50000)
     {
-        if(event_counter % 1000 == 0) {
-            t1 = Time::now();
-            fsec fs_ = t1 - t0;
-
-            std::cout<<"\r"<<event_counter<<" events, time used: "<<fs_.count() <<" s"<<std::flush;
-            t0 = t1;
-        }
-
 #ifdef USE_SIM_DATA
         ClearPrevEvent();
         GenerateToyTrackEvent();
@@ -445,15 +621,64 @@ void Viewer::Replay50K()
         ProcessTrackingResult();
         [[maybe_unused]]bool t = ProcessRawGEMResult();
         //if(t) break;
+
+        event_counter++;
+
+        if(event_counter % 1000 == 0) {
+            auto t1 = Time::now();
+            fsec fs_ = t1 - t0;
+
+            std::cout<<"\r"<<event_counter<<" events, time used: "<<fs_.count() <<" s"<<std::flush;
+            emit ReplayProgress(event_counter, fs_.count());
+            t0 = t1;
+        }
     }
 
     std::cout<<std::endl<<"50K finished. Total time used: ";
-    t1 = Time::now();
-    fsec fs = t1 - t0;
+    auto t1 = Time::now();
+    fsec fs = t1 - replay_start;
     std::cout << fs.count() << " s\n";
 
-    fDet2DView -> Refresh();
+    FinalizeReplay50KHistos();
+    emit ReplayFinished(event_counter, fs.count());
+}
 
+void Viewer::UpdateReplayProgress(int events, double seconds_per_1000)
+{
+    if(m_statTiming) {
+        m_statTiming->setText(QString(" %1 events, %2 s / 1000 ")
+                .arg(events).arg(seconds_per_1000, 0, 'f', 2));
+    }
+}
+
+void Viewer::FinishReplay50K(int events, double total_seconds)
+{
+    if(m_replay50KThread.joinable())
+        m_replay50KThread.join();
+
+    if(m_statTiming) {
+        m_statTiming->setText(QString(" replay done (%1 events, %2 s total) ")
+                .arg(events).arg(total_seconds, 0, 'f', 1));
+    }
+
+    m_replay50KRunning = false;
+    SetReplayControlsEnabled(true);
+    fDet2DView -> Refresh();
+    UpdateResultHistos();
+}
+
+void Viewer::SetReplayControlsEnabled(bool enabled)
+{
+    if(btn_50K) btn_50K -> setEnabled(enabled);
+    if(btn_next) btn_next -> setEnabled(enabled);
+    if(btn_prev) btn_prev -> setEnabled(enabled);
+    if(btn_next_step) btn_next_step -> setEnabled(enabled);
+    if(btn_open_file) btn_open_file -> setEnabled(enabled);
+    if(label_file) label_file -> setEnabled(enabled);
+}
+
+void Viewer::FinalizeReplay50KHistos()
+{
     for(int i=0; i<NDetector_Implemented; i++) {
         for(int xbins = 1; xbins < 120; xbins++)
         {
@@ -469,6 +694,68 @@ void Viewer::Replay50K()
     }
 
     hist_m.save("Rootfiles/tracking_result.root");
+}
+
+////////////////////////////////////////////////////////////////
+// copy the selected result histograms from hist_m into the right-side
+// TrackingResultPanel (the in-memory histos are identical to those just written
+// to Rootfiles/tracking_result.root).
+
+void Viewer::UpdateResultHistos()
+{
+    if(!result_panel) return;
+    result_panel -> Clear();
+
+    // build stats via snprintf into local buffers (NOT Form(): Form reuses a
+    // shared ring buffer, so several calls in one expression can alias).
+    auto add1d = [&](const char *name)
+    {
+        TH1F *h = hist_m.histo_1d<float>(name);
+        if(!h) return;
+        int n = h -> GetNbinsX();
+        std::vector<double> y; y.reserve(n);
+        for(int b = 1; b <= n; ++b) y.push_back(h -> GetBinContent(b));
+
+        char buf[64];
+        std::vector<std::string> stats;
+        std::snprintf(buf, sizeof(buf), "Entries %.0f", h -> GetEntries()); stats.push_back(buf);
+        std::snprintf(buf, sizeof(buf), "Mean %.3g",    h -> GetMean());    stats.push_back(buf);
+        std::snprintf(buf, sizeof(buf), "Std %.3g",     h -> GetStdDev());  stats.push_back(buf);
+
+        result_panel -> AddHisto1D(name, stats, n,
+                h -> GetXaxis() -> GetXmin(), h -> GetXaxis() -> GetXmax(), y);
+    };
+
+    auto add2d = [&](const char *name)
+    {
+        TH2F *h = hist_m.histo_2d<float>(name);
+        if(!h) return;
+        int nx = h -> GetNbinsX(), ny = h -> GetNbinsY();
+        std::vector<double> z; z.reserve(nx * ny);
+        for(int iy = 1; iy <= ny; ++iy)
+            for(int ix = 1; ix <= nx; ++ix)
+                z.push_back(h -> GetBinContent(ix, iy));
+
+        char buf[64];
+        std::vector<std::string> stats;
+        std::snprintf(buf, sizeof(buf), "Entries %.0f", h -> GetEntries()); stats.push_back(buf);
+
+        result_panel -> AddHisto2D(name, stats,
+                nx, h -> GetXaxis() -> GetXmin(), h -> GetXaxis() -> GetXmax(),
+                ny, h -> GetYaxis() -> GetXmin(), h -> GetYaxis() -> GetXmax(), z);
+    };
+
+    result_panel -> AddSection("Tracking");
+    add1d("h_chi2ndf");
+    add1d("h_ntracks_found");
+    add1d("h_ntrack_candidates");
+    add1d("h_nhits_on_best_track");
+    for(int i = 0; i < NDetector_Implemented; ++i) {
+        result_panel -> AddSection(Form("GEM %d", i));
+        add2d(Form("h_2defficiency_xy_gem%d", i));
+        add1d(Form("h_x_offset_gem%d", i));
+        add1d(Form("h_y_offset_gem%d", i));
+    }
 }
 
 void Viewer::FillEventHistos()

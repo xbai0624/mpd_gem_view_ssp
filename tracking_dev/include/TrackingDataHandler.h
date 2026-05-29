@@ -20,6 +20,7 @@ namespace tracking_dev {
 
         void Init();
         void SetupDetector();
+        void ReapplyConfig();   // runtime: reload gem_tracking.conf + re-apply in place
         void Configure();
         void SetOnlineMode(bool b);
         void SetReplayMode(bool b);

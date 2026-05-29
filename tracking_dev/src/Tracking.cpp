@@ -31,7 +31,25 @@ void Tracking::AddLayer(int index, VirtualDetector* det)
     detector[index] = det;
 }
 
+void Tracking::ClearLayers()
+{
+    detector.clear();
+    layer_index.clear();
+    group_nlayer.clear();
+}
+
 void Tracking::CompleteSetup()
+{
+    ReadCuts();
+
+    initLayerGroups();
+    //PrintLayerGroups();
+
+    std::cout<<"INFO:: Tracking setup completed."<<std::endl;
+}
+
+// read the scalar tracking cuts from the Cuts singleton into members
+void Tracking::ReadCuts()
 {
     minimum_hits_on_track = (Cuts::Instance().__get("minimum hits on track")).val<int>();
     chi2_cut = (Cuts::Instance().__get("track max chi2")).val<float>();
@@ -42,11 +60,19 @@ void Tracking::CompleteSetup()
     k_max_xz = (Cuts::Instance().__get("track x-z slope range")).arr<double>()[1];
     k_min_yz = (Cuts::Instance().__get("track y-z slope range")).arr<double>()[0];
     k_max_yz = (Cuts::Instance().__get("track y-z slope range")).arr<double>()[1];
+}
 
-    initLayerGroups();
-    //PrintLayerGroups();
-   
-    std::cout<<"INFO:: Tracking setup completed."<<std::endl;
+// re-read cuts at runtime (after gem_tracking.conf was edited). Rebuild the
+// layer-group combinations only if the minimum-hits threshold changed, since
+// that's the only cut that affects group_nlayer.
+void Tracking::ReloadCuts()
+{
+    int prev_minimum = minimum_hits_on_track;
+
+    ReadCuts();
+
+    if(minimum_hits_on_track != prev_minimum)
+        initLayerGroups();
 }
 
 void Tracking::FindTracks()

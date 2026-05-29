@@ -43,10 +43,24 @@ void Cuts::Init()
     std::string path = txt_parser.Value<std::string>("GEM Tracking Config");
 
     std::cout<<"Cuts:: Loading tracking config from : "<<path<<std::endl;
- 
+
     SetFile(path.c_str());
     LoadFile();
 
+    __convert_map();
+}
+
+// Re-read the tracking config file from scratch. Clears all cached maps
+// first so removed/changed entries don't linger, then reloads + converts.
+// Used by the GUI to pick up edits to gem_tracking.conf at runtime.
+void Cuts::Reload()
+{
+    m_cache.clear();
+    m_cut.clear();
+    m_block.clear();
+    m_tracking_detector_switch.clear();
+
+    LoadFile();        // re-reads from the path set during Init()
     __convert_map();
 }
 

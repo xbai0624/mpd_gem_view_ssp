@@ -12,6 +12,10 @@ public:
 
     // functions that to be overloaded
     void Configure(const std::string &path = "");
+    // re-read only the Cuts-derived cached values (min/max cluster size,
+    // xy matching mode) so a runtime gem_tracking.conf edit takes effect
+    // without rebuilding the whole cluster object
+    void ReloadCuts();
 
     bool IsGoodStrip(const StripHit &hit) const;
     bool IsGoodCluster(const StripCluster &cluster) const;

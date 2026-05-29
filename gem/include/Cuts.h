@@ -25,6 +25,8 @@ public:
     void SetFile(const char* path);
     void LoadFile();
     void Init();
+    void Reload();     // re-read the config file at runtime (clears caches first)
+    const std::string &GetConfigPath() const {return path;}  // gem_tracking.conf path
     void Print();
 
 private:

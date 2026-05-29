@@ -21,7 +21,9 @@ public:
     ~Tracking();
 
     void AddLayer(int index, VirtualDetector*);
+    void ClearLayers();          // drop all registered layers (for runtime re-config)
     void CompleteSetup();
+    void ReloadCuts();           // re-read scalar cuts at runtime
     void FindTracks();
     void ClearPreviousEvent();
 
@@ -58,6 +60,7 @@ public:
     TrackingUtility* GetTrackingUtility() {return tracking_utility;}
 
 private:
+    void ReadCuts();
     void initHitStatus();
     void initLayerGroups();
     void loopAllLayerGroups();

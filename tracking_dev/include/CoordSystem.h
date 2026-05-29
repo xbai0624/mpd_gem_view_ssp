@@ -13,6 +13,7 @@ namespace tracking_dev
         ~CoordSystem();
 
         void Init();
+        void Reload();   // clear + re-read block geometry from Cuts (runtime config edit)
 
         void Rotate(point_t &p, const point_t &rot);
         void Translate(point_t &p, const point_t &t);

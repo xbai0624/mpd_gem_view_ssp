@@ -179,6 +179,85 @@ namespace tracking_dev
         tracking -> CompleteSetup();
     }
 
+    // Runtime re-configuration after gem_tracking.conf was edited in the GUI.
+    // Reloads Cuts + geometry and re-applies everything IN PLACE -- the
+    // VirtualDetector objects are reused (the Viewer's Detector2DHitItems hold
+    // pointers to them), only their geometry/grid is updated. The tracking
+    // layer membership is rebuilt to honor any changed "participate tracking".
+    // Takes effect on the next decoded event.
+    void TrackingDataHandler::ReapplyConfig()
+    {
+        // 1) reload config sources
+        Cuts::Instance().Reload();
+        if(coord_system) coord_system->Reload();
+        if(gem_sys) gem_sys->GetClusterMethod()->ReloadCuts();
+
+        double xw = Cuts::Instance().__get("grid width").arr<double>()[0];
+        double yw = Cuts::Instance().__get("grid width").arr<double>()[1];
+        double s  = Cuts::Instance().__get("grid shift").val<double>();
+
+        // 2) update per-module detector geometry in place
+        std::unordered_map<int, bool> layer_id_set;
+        for(auto &kv : fDet)
+        {
+            int mod_id = kv.first;
+            VirtualDetector *det = kv.second;
+            if(!det) continue;
+            if(!coord_system->HasDetectorConfig(mod_id)) continue;
+
+            det->SetOrigin(coord_system->GetDetectorPosition(mod_id));
+            det->SetGridWidth(xw, yw);
+            det->SetGridShift(s);
+            det->SetDimension(coord_system->GetDetectorDimension(mod_id)); // rebuilds grids
+
+            int layer_id = det->GetLayerID();
+            if(layer_id_set.find(layer_id) == layer_id_set.end())
+                layer_id_set[layer_id] = false;
+            if(coord_system->IsInTrackerSystem(mod_id))
+                layer_id_set[layer_id] = true;
+        }
+
+        // 3) update per-layer virtual detector geometry in place
+        auto deduct_layer_dimension = [&](int layer_id) -> point_t
+        {
+            double x_l = 0, x_r = 0, y_b = 0, y_t = 0;
+            double z = -99999.;
+            for(auto &i: fDet) {
+                auto & det = i.second;
+                if(!det || det->GetLayerID() != layer_id) continue;
+                auto origin = det->GetOrigin();
+                auto dim = det->GetDimension();
+                if(origin.x - dim.x/2 < x_l) x_l = origin.x - dim.x/2;
+                if(origin.x + dim.x/2 > x_r) x_r = origin.x + dim.x/2;
+                if(origin.y - dim.y/2 < y_b) y_b = origin.y - dim.y/2;
+                if(origin.y + dim.y/2 > y_t) y_t = origin.y + dim.y/2;
+                if(z == -99999.) z = origin.z;
+            }
+            return point_t(x_r - x_l, y_t - y_b, z);
+        };
+
+        for(auto &kv : fLayer)
+        {
+            VirtualDetector *lyr = kv.second;
+            if(!lyr) continue;
+            auto dim = deduct_layer_dimension(kv.first);
+            lyr->SetOrigin(point_t(0, 0, dim.z));
+            lyr->SetGridWidth(xw, yw);
+            lyr->SetGridShift(s);
+            lyr->SetDimension(dim);
+        }
+
+        // 4) rebuild tracking layer membership + re-read cuts
+        if(tracking) {
+            tracking->ClearLayers();
+            for(auto &it : layer_id_set) {
+                if(it.second && fLayer.find(it.first) != fLayer.end())
+                    tracking->AddLayer(it.first, fLayer[it.first]);
+            }
+            tracking->CompleteSetup();   // re-reads cuts + rebuilds layer groups
+        }
+    }
+
     VirtualDetector* TrackingDataHandler::GetDetector(int i) const
     {
         // find detector by detector module_id

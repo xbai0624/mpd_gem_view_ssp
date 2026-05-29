@@ -124,7 +124,6 @@ QGroupBox *OnlineAnalysisInterface::BuildSettingsGroup(QWidget *parent)
     // Cap the settings pane width to ~40 average characters of the actual
     // UI font; survives high-DPI scaling better than a hardcoded 320 px.
     const int em = gbSet->fontMetrics().averageCharWidth();
-    gbSet->setMaximumWidth(qMax(320, em * 40));
     QFormLayout *form = new QFormLayout(gbSet);
 
     QWidget *rowPed = BuildPathRow(gbSet, m_edPed, m_btnBrowsePed,

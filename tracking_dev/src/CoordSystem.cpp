@@ -12,6 +12,19 @@ namespace tracking_dev {
     {
     }
 
+    void CoordSystem::Reload()
+    {
+        // clear cached per-detector geometry, then re-read from Cuts
+        // (the caller is expected to Cuts::Reload() first)
+        offset_gem.clear();
+        angle_gem.clear();
+        position_gem.clear();
+        dimension_gem.clear();
+        tracker_config_gem.clear();
+
+        Init();
+    }
+
     void CoordSystem::Init()
     {
         auto gem_setup = Cuts::Instance().__get_block_data();

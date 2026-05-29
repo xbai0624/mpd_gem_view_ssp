@@ -21,7 +21,7 @@ QT += core gui widgets
 
 ######################################################################
 # self headers
-INCLUDEPATH += . ./include
+INCLUDEPATH += . ./include ../gui/include
 
 ######################################################################
 # decoder headers
@@ -76,6 +76,10 @@ HEADERS += include/VirtualDetector.h \
            include/tracking_struct.h \
            include/TrackingDataHandler.h \
            include/TrackingUtility.h \
+           include/TrackingConfigWidget.h \
+           include/TrackingResultPanel.h \
+           ../gui/include/HistoItem.h \
+           ../gui/include/HistoItem2D.h \
            include/Viewer.h
 
 
@@ -86,6 +90,10 @@ SOURCES += src/VirtualDetector.cpp \
            src/Detector2DHitItem.cpp \
            src/Detector2DHitView.cpp \
            #src/main.cpp \
+           src/TrackingConfigWidget.cpp \
+           src/TrackingResultPanel.cpp \
+           ../gui/src/HistoItem.cpp \
+           ../gui/src/HistoItem2D.cpp \
            src/Tracking.cpp \
            src/tracking_struct.cpp \
            src/TrackingDataHandler.cpp \

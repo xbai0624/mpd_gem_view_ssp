@@ -61,6 +61,11 @@ void GEMCluster::Configure([[maybe_unused]]const std::string &path)
     std::string dist_str = Value<std::string>("Characteristic Distance");
     charac_dists = ConfigParser::stofs(dist_str, ",", " \t");
 
+    ReloadCuts();
+}
+
+void GEMCluster::ReloadCuts()
+{
     min_cluster_hits = Cuts::Instance().__get("min cluster size").val<int>();
     max_cluster_hits = Cuts::Instance().__get("max cluster size").val<int>();
 
