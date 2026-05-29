@@ -18,7 +18,7 @@ TrackingResultPanel::TrackingResultPanel(QWidget *parent) : QWidget(parent)
     lay -> setContentsMargins(0, 0, 0, 0);
     lay -> addWidget(m_toolbox);
 
-    setMinimumWidth(280);
+    setMinimumWidth(100);
 
     // A QToolBox only sizes the *current* page; items added to a collapsed
     // section measured a stale (half) viewport width. Re-layout a section

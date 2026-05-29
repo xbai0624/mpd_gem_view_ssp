@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
 
     tracking_dev::Viewer *view = new tracking_dev::Viewer();
-    view -> resize(1000, 600);
+    view -> resize(1200, 750);
     view -> show();
 
     return app.exec();

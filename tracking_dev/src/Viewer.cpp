@@ -36,6 +36,8 @@ namespace tracking_dev {
 
 Viewer::Viewer(QWidget *parent) : QMainWindow(parent)
 {
+    setWindowTitle(tr("Tracking Viewer"));
+
     // root
     gen = new TRandom(0);
 
