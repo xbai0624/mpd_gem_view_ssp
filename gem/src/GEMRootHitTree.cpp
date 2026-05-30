@@ -27,9 +27,9 @@ GEMRootHitTree::GEMRootHitTree(const char* path)
     pTree->Branch("adc4",adc4,"adc4[nch]/I");
     pTree->Branch("adc5",adc5,"adc5[nch]/I");
 
-    pTree->Branch("adc6",adc3,"adc6[nch]/I");
-    pTree->Branch("adc7",adc4,"adc7[nch]/I");
-    pTree->Branch("adc8",adc5,"adc8[nch]/I");
+    pTree->Branch("adc6",adc6,"adc6[nch]/I");
+    pTree->Branch("adc7",adc7,"adc7[nch]/I");
+    pTree->Branch("adc8",adc8,"adc8[nch]/I");
 
 
     pTree->Branch("triggerTimeL", &triggerTimeL, "triggerTimeL/I");
