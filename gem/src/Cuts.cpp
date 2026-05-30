@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 
 using std::fstream;
 using std::cout;
@@ -50,18 +51,38 @@ void Cuts::Init()
     __convert_map();
 }
 
-// Re-read the tracking config file from scratch. Clears all cached maps
-// first so removed/changed entries don't linger, then reloads + converts.
-// Used by the GUI to pick up edits to gem_tracking.conf at runtime.
+// Re-read the tracking config file from scratch. Atomic w.r.t. failure:
+// the previous singleton state is swapped out into locals, the parse runs
+// against empty members, and on success the temporaries (now holding the
+// old values) are discarded. On any exception we swap back so the live
+// state is the previous-good config -- callers (the GUI Apply path) can
+// catch the throw without leaving the singleton corrupted.
 void Cuts::Reload()
 {
-    m_cache.clear();
-    m_cut.clear();
-    m_block.clear();
-    m_tracking_detector_switch.clear();
+    using std::swap;
 
-    LoadFile();        // re-reads from the path set during Init()
-    __convert_map();
+    decltype(m_cache) tmp_cache;
+    decltype(m_cut)   tmp_cut;
+    decltype(m_block) tmp_block;
+    decltype(m_tracking_detector_switch) tmp_switch;
+
+    swap(m_cache, tmp_cache);
+    swap(m_cut,   tmp_cut);
+    swap(m_block, tmp_block);
+    swap(m_tracking_detector_switch, tmp_switch);
+
+    try {
+        LoadFile();           // re-reads from the path set during Init()
+        __convert_map();
+    }
+    catch(...) {
+        // restore the previous-good state, then re-throw for the caller
+        swap(m_cache, tmp_cache);
+        swap(m_cut,   tmp_cut);
+        swap(m_block, tmp_block);
+        swap(m_tracking_detector_switch, tmp_switch);
+        throw;
+    }
 }
 
 void Cuts::LoadFile()
@@ -223,25 +244,17 @@ float Cuts::__get_mean_time(const StripHit &hit) const
 //
 const ValueType &Cuts::__get(const std::string &str) const
 {
-    if(m_cut.find(str) == m_cut.end()) {
-        std::cout<<"ERROR: Can't find cut :"<<str<<std::endl
-                 <<"       please check config/gem_tracking.conf file."
-                 <<"       make sure it is set up."<<std::endl;
-    }
-
-    return m_cut.at(str);
+    auto it = m_cut.find(str);
+    if(it == m_cut.end())
+        throw std::runtime_error("Cuts: missing key '" + str
+                                 + "' in gem_tracking.conf");
+    return it->second;
 }
 
 //
 const ValueType &Cuts::__get(const char* str) const
 {
-    if(m_cut.find(str) == m_cut.end()) {
-        std::cout<<"ERROR: Can't find cut :"<<str<<std::endl
-                 <<"       please check config/gem_tracking.conf file."
-                 <<"       make sure it is set up."<<std::endl;
-    }
-
-    return m_cut.at(str);
+    return __get(std::string(str));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

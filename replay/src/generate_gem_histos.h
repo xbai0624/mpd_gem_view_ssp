@@ -131,6 +131,9 @@ namespace quality_check_histos
                 const std::vector<StripHit> &x_strip_hits = pln_x -> GetStripHits();
                 int xs = static_cast<int>(x_strip_hits.size());
 
+                // NOTE: X axis is det_module_id. Its range is fixed by
+                // config/histo.conf; module_ids outside that range silently
+                // land in the overflow bin. PRad-II uses 1..6 -- fine.
                 histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(det_module_id, xs);
                 histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(
                         det_module_id, x_total_strips > 0 ? xs / x_total_strips : 0.);

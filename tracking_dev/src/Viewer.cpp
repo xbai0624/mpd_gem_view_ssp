@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QFileDialog>
 #include <QSpinBox>
+#include <QMessageBox>
 #include <QScrollArea>
 #include <QMenuBar>
 #include <QMenu>
@@ -118,7 +119,7 @@ void Viewer::InitGui()
         fDet2DItem[layer_id] -> PassDetectorHandle(fDet[layer_id]);
 #endif
 
-        std::string title = std::string("GEM Layer ") + std::to_string(layer_id)
+        std::string title = std::string("Layer ") + std::to_string(layer_id)
             + std::string(", z = ") + std::to_string((int)fDet[layer_id]->GetZPosition())
             + std::string(" mm");
         fDet2DItem[layer_id] -> SetTitle(title.c_str());
@@ -164,8 +165,16 @@ void Viewer::InitGui()
             }
             )");
 
+    // ---- menu bar: File ----
+    QMenu *fileMenu = menuBar()->addMenu(tr("File"));
+    QAction *openAction = fileMenu->addAction(tr("open"));
+
+     // ---- menu bar: Edit ----
+    QMenu *editMenu = menuBar()->addMenu(tr("Edit"));
+    QAction *undoAction = editMenu->addAction(tr("undo"));
+ 
     // ---- menu bar: Settings -> Tracking Configuration... (pop-up) ----
-    QMenu *settingsMenu = menuBar()->addMenu(tr("Settings"));
+    QMenu *settingsMenu = menuBar()->addMenu(tr("Parameters"));
     QAction *cfgAction = settingsMenu->addAction(tr("Tracking Configuration..."));
     connect(cfgAction, &QAction::triggered, this, &Viewer::OpenSettings);
 
@@ -206,8 +215,15 @@ void Viewer::InitGui()
     // shows the accordion headers at startup instead of a blank box;
     // Replay 50K (UpdateResultHistos) clears and refills them with data.
     result_panel -> AddSection("Tracking");
+#ifdef USE_SIM_DATA
     for(int i = 0; i < NDetector_Implemented; ++i)
         result_panel -> AddSection(Form("GEM %d", i));
+#else
+    // label placeholders by module_id so they match the names UpdateResultHistos
+    // uses after Replay 50K (no jump from "GEM 0..N-1" to "GEM <module_id>")
+    for(int module_id : tracking_data_handler -> GetDetectorModuleIDs())
+        result_panel -> AddSection(Form("GEM Module %d", module_id));
+#endif
 
     QSplitter *split = new QSplitter(Qt::Horizontal, central);
     split -> addWidget(plotBox);
@@ -269,11 +285,22 @@ void Viewer::OpenSettings()
         lay -> addWidget(sc);
 
         // applying the config re-applies it to the running tracking setup;
-        // takes effect on the next event.
+        // takes effect on the next event. Catch a bad config edit so a
+        // typo (missing key, dropped value) shows a modal dialog instead
+        // of terminating the app -- Cuts::Reload is atomic so the live
+        // singleton stays at the previous-good state when this throws.
 #ifndef USE_SIM_DATA
         connect(config_panel, &TrackingConfigWidget::applied, this, [this]{
-            if(tracking_data_handler)
+            if(!tracking_data_handler) return;
+            try {
                 tracking_data_handler -> ReapplyConfig();
+            }
+            catch(const std::exception &e) {
+                QMessageBox::critical(this, tr("Tracking Configuration"),
+                        tr("Cannot apply config:\n\n%1\n\n"
+                           "Previous configuration is still in effect.")
+                        .arg(QString::fromStdString(e.what())));
+            }
         });
 #endif
     }
@@ -449,7 +476,7 @@ void Viewer::DrawEvent(int event_number)
 
     std::cout<<"event number: "<<event_number<<std::endl;
     for(int i=0; i<NDetector_Implemented; i++)
-        std::cout<<" : det_"<<i<<" counts = "<<fDet[layer_ids[i]] -> Get2DHitCounts();
+        std::cout<<" : layer_"<<layer_ids[i]<<" counts = "<<fDet[layer_ids[i]] -> Get2DHitCounts();
     std::cout<<std::endl;
 
     fEventNumber++;
@@ -487,6 +514,15 @@ void Viewer::UpdateStatusBar(int event_ordinal)
         m_statTracks -> setText(QString(" Tracks: 0 "));
         m_statChi2   -> setText(QString(" best chi2/ndf: - "));
     }
+
+    // Force immediate paint of the labels. On Linux xcb the QLabel paint
+    // events get queued behind fDet2DView's repaint, which makes the status
+    // bar appear one event behind when stepping. macOS Cocoa coalesces so
+    // it wasn't visible there. repaint() is synchronous (no input events
+    // processed) so this is safe in the middle of DrawEvent.
+    m_statEvent  -> repaint();
+    m_statTracks -> repaint();
+    m_statChi2   -> repaint();
 }
 
 void Viewer::ProcessTrackingResult()
@@ -592,6 +628,9 @@ void Viewer::ProcessRawGEMResult()
                 y_occ = ys / total;
         }
 
+        // NOTE: the X axis here is module_id. The histo's X-axis range is
+        // fixed by config/histo.conf; module_ids outside that range
+        // silently land in the overflow bin. PRad-II uses 1..6 -- fine.
         hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(module_id, xs);
         hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(module_id, ys);
 
@@ -832,7 +871,7 @@ void Viewer::FillEventHistos()
 void Viewer::ShowGridHitStat()
 {
     for(int i=0; i<NDetector_Implemented; i++) {
-        std::cout<<"detector : "<<i<<std::endl;
+        std::cout<<"layer : "<<layer_ids[i]<<std::endl;
         fDet[layer_ids[i]] -> ShowGridHitStat();
     }
 }

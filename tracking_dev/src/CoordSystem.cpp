@@ -1,6 +1,8 @@
 #include "CoordSystem.h"
 #include "Cuts.h"
 #include <cmath>
+#include <stdexcept>
+#include <string>
 
 namespace tracking_dev {
     CoordSystem::CoordSystem()
@@ -27,45 +29,40 @@ namespace tracking_dev {
 
     void CoordSystem::Init()
     {
+        // Bounded read of a 3-component vector. Throws a useful message
+        // (block name + field name + missing index) instead of letting
+        // std::vector::at() throw "vector::_M_range_check" -- the GUI
+        // Apply slot catches this and shows a dialog.
+        auto need = [](const std::vector<double> &a, std::size_t i,
+                       const char *what, const std::string &block) -> double
+        {
+            if(i < a.size()) return a[i];
+            throw std::runtime_error(std::string("CoordSystem: '") + block
+                    + "' is missing component " + std::to_string(i)
+                    + " of '" + what + "' in gem_tracking.conf");
+        };
+
         auto gem_setup = Cuts::Instance().__get_block_data();
         for(auto &i: gem_setup)
         {
-            int module_id = i.second.module_id;
+            const std::string &name = i.first;          // e.g. "gem0"
+            const auto &b = i.second;
+            int module_id = b.module_id;
 
-            // offset
-            point_t offset(
-                    i.second.offset.at(0),
-                    i.second.offset.at(1),
-                    i.second.offset.at(2)
-                    );
-            offset_gem[module_id] = offset;
+            offset_gem[module_id]    = point_t(need(b.offset,     0, "offset",     name),
+                                               need(b.offset,     1, "offset",     name),
+                                               need(b.offset,     2, "offset",     name));
+            angle_gem[module_id]     = point_t(need(b.tilt_angle, 0, "tilt angle", name),
+                                               need(b.tilt_angle, 1, "tilt angle", name),
+                                               need(b.tilt_angle, 2, "tilt angle", name));
+            dimension_gem[module_id] = point_t(need(b.dimension,  0, "dimension",  name),
+                                               need(b.dimension,  1, "dimension",  name),
+                                               need(b.dimension,  2, "dimension",  name));
+            position_gem[module_id]  = point_t(need(b.position,   0, "position",   name),
+                                               need(b.position,   1, "position",   name),
+                                               need(b.position,   2, "position",   name));
 
-            // tilt angle
-            point_t angle(
-                    i.second.tilt_angle.at(0),
-                    i.second.tilt_angle.at(1),
-                    i.second.tilt_angle.at(2)
-                    );
-            angle_gem[module_id] = angle;
-
-            // size
-            point_t dim(
-                    i.second.dimension.at(0),
-                    i.second.dimension.at(1),
-                    i.second.dimension.at(2)
-                    );
-            dimension_gem[module_id] = dim;
-
-            // position
-            point_t pos(
-                    i.second.position.at(0),
-                    i.second.position.at(1),
-                    i.second.position.at(2)
-                    );
-            position_gem[module_id] = pos;
-
-            // is in tracker system or not
-            tracker_config_gem[module_id] = i.second.is_tracker;
+            tracker_config_gem[module_id] = b.is_tracker;
         }
     }
 

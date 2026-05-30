@@ -3,6 +3,7 @@
 #include "Tracking.h"
 #include "GEMPlane.h"
 #include "Cuts.h"
+#include <algorithm>
 
 namespace tracking_dev
 {
@@ -175,6 +176,12 @@ namespace tracking_dev
             if(it.second)
                 tracking -> AddLayer(i, fLayer[i]);
         }
+
+        // sort so consumers (Viewer's per-layer display order, the result
+        // panel's per-module sections) see a deterministic ordering across
+        // launches -- the layer_id_set / fDet iteration above is unordered.
+        std::sort(vLayerIDs.begin(), vLayerIDs.end());
+        std::sort(vDetModuleIDs.begin(), vDetModuleIDs.end());
 
         tracking -> CompleteSetup();
     }
