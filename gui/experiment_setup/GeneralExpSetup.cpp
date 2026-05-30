@@ -247,7 +247,7 @@ void GeneralExpSetup::PassData(const QMap<int, QVector<QPointF>> &data)
     }
 
     // 2) dispatch new hits (keyed by detector_id) to the matching layer
-    const double dot_mm = 70.0;
+    const double dot_mm = 20.0;
     for(auto it = data.begin(); it != data.end(); ++it)
     {
         const int det_id = it.key();
