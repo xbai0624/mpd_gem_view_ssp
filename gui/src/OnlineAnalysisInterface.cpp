@@ -329,7 +329,10 @@ bool OnlineAnalysisInterface::DeduceFromEvioPath(const QString &absPath)
     const std::string stem = s.substr(name_start, pos_evio - name_start);
 
     // Pull trailing "_<digits>" off the stem to separate base & run.
+    // tail_w is the raw digit-string width, kept so the pattern can
+    // preserve any leading zeros the std::stoi conversion would drop.
     int run = 0;
+    int tail_w = 0;
     std::string base = stem;
     const size_t us = stem.find_last_of('_');
     if(us != std::string::npos) {
@@ -339,6 +342,7 @@ bool OnlineAnalysisInterface::DeduceFromEvioPath(const QString &absPath)
                            [](unsigned char c){ return std::isdigit(c); });
         if(all_digits) {
             try { run = std::stoi(tail); } catch(...) { run = 0; }
+            tail_w = static_cast<int>(tail.length());
             base = stem.substr(0, us);
         }
     }
@@ -346,10 +350,19 @@ bool OnlineAnalysisInterface::DeduceFromEvioPath(const QString &absPath)
     m_edRawDir->setText(folder);
     if(run > 0) {
         m_spRun->setValue(run);
-        m_edPattern->setText(QString::fromStdString(base) + "_{RUN}.evio.*");
+        // Real filenames zero-pad the run number to a fixed width
+        // (e.g. "prad_024200.evio.00663", where the run is 6-wide).
+        // QString::number(run) loses the padding zeros, so we bake the
+        // leading zeros into the pattern as literals before "{RUN}".
+        const int digits = QString::number(run).length();
+        const int pad    = std::max(0, tail_w - digits);
+        const QString zeros(pad, QChar('0'));
+        m_edPattern->setText(QString::fromStdString(base) + "_"
+                             + zeros + "{RUN}.evio.*");
         m_edPrefix ->setText(QString::fromStdString(base) + "_run");
-        AppendLog(QString("Deduced from %1: run=%2, base=%3")
-                  .arg(absPath).arg(run).arg(QString::fromStdString(base)));
+        AppendLog(QString("Deduced from %1: run=%2, base=%3, run-width=%4")
+                  .arg(absPath).arg(run)
+                  .arg(QString::fromStdString(base)).arg(tail_w));
     } else {
         // No "_<run>" tail; leave the spinbox alone and use stem literally.
         m_edPattern->setText(QString::fromStdString(stem) + ".evio.*");
