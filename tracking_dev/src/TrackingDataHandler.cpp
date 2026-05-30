@@ -318,7 +318,17 @@ namespace tracking_dev
         for(unsigned int i=0; i<N; i++)
         {
             int module_id_ = detector_list[i] -> GetDetID();
-            TransferDetector(detector_list[i], fDet[module_id_]);
+
+            auto it = fDet.find(module_id_);
+            if(it == fDet.end() || it->second == nullptr) {
+                std::cout << "TrackingDataHandler::PackageEventData warning: detector "
+                          << module_id_
+                          << " has decoded GEM data but no tracking geometry. Skipping."
+                          << std::endl;
+                continue;
+            }
+
+            TransferDetector(detector_list[i], it->second);
         }
 
         CombineDetHitsToLayer();

@@ -123,53 +123,64 @@ namespace quality_check_histos
             GEMPlane *pln_x = det -> GetPlane(GEMPlane::Plane_X);
             GEMPlane *pln_y = det -> GetPlane(GEMPlane::Plane_Y);
 
-            // one APV has 128 channels
-            double x_total_strips = pln_x -> GetCapacity() * 128;
-            double y_total_strips = pln_y -> GetCapacity() * 128;
+            std::vector<StripCluster> x_clusters;
+            std::vector<StripCluster> y_clusters;
 
-            const std::vector<StripHit> &x_strip_hits = pln_x -> GetStripHits();
-            const std::vector<StripHit> &y_strip_hits = pln_y -> GetStripHits();
-            int xs = (int)x_strip_hits.size(), ys = (int)y_strip_hits.size();
+            if(pln_x != nullptr) {
+                double x_total_strips = pln_x -> GetCapacity() * 128;
+                const std::vector<StripHit> &x_strip_hits = pln_x -> GetStripHits();
+                int xs = static_cast<int>(x_strip_hits.size());
 
-            // raw occupancy
-            histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(det_module_id, xs);
-            histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(det_module_id, ys);
+                histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(det_module_id, xs);
+                histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(
+                        det_module_id, x_total_strips > 0 ? xs / x_total_strips : 0.);
+                histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 0)) -> Fill(xs);
 
-            histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(det_module_id, xs/x_total_strips);
-            histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(det_module_id, ys/y_total_strips);
+                for(auto &i: x_strip_hits) {
+                    histM.histo_1d<float>(Form("h_raw_xstrip_maxtimebin_layer%d", det_module_id)) -> Fill(i.max_timebin);
+                    histM.histo_1d<float>(Form("h_raw_xstrip_adc_layer%d", det_module_id)) -> Fill(i.charge);
+                    histM.histo_1d<float>(Form("h_raw_strip_mean_time_x_layer%d", det_module_id)) -> Fill(get_strip_mean_time(i));
+                    histM.histo_2d<float>(Form("h_raw_x_strip_adc_index_layer%d", det_module_id)) -> Fill(i.strip, i.charge);
+                }
 
-            // per-detector, per-plane fired-strip-count distributions (1D)
-            histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 0)) -> Fill(xs);
-            histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 1)) -> Fill(ys);
+                x_clusters = pln_x -> GetStripClusters();
 
-            // strip info x axis
-            for(auto &i: x_strip_hits) {
-                histM.histo_1d<float>(Form("h_raw_xstrip_maxtimebin_layer%d", det_module_id)) -> Fill(i.max_timebin);
-                histM.histo_1d<float>(Form("h_raw_xstrip_adc_layer%d", det_module_id)) -> Fill(i.charge);
-                histM.histo_1d<float>(Form("h_raw_strip_mean_time_x_layer%d", det_module_id)) -> Fill(get_strip_mean_time(i));
-                histM.histo_2d<float>(Form("h_raw_x_strip_adc_index_layer%d", det_module_id)) -> Fill(i.strip, i.charge);
+                if(x_clusters.size() > 0)
+                    histM.histo_1d<float>(Form("h_raw_x_cluster_multiplicity_layer%d", det_module_id)) -> Fill(x_clusters.size());
+            }
+            else {
+                histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(det_module_id, 0);
+                histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(det_module_id, 0);
+                histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 0)) -> Fill(0);
             }
 
-            // strip info y axis
-            for(auto &i: y_strip_hits) {
-                histM.histo_1d<float>(Form("h_raw_ystrip_maxtimebin_layer%d", det_module_id)) -> Fill(i.max_timebin);
-                histM.histo_1d<float>(Form("h_raw_ystrip_adc_layer%d", det_module_id)) -> Fill(i.charge);
-                histM.histo_1d<float>(Form("h_raw_strip_mean_time_y_layer%d", det_module_id)) -> Fill(get_strip_mean_time(i));
-                histM.histo_2d<float>(Form("h_raw_y_strip_adc_index_layer%d", det_module_id)) -> Fill(i.strip, i.charge);
+            if(pln_y != nullptr) {
+                double y_total_strips = pln_y -> GetCapacity() * 128;
+                const std::vector<StripHit> &y_strip_hits = pln_y -> GetStripHits();
+                int ys = static_cast<int>(y_strip_hits.size());
+
+                histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(det_module_id, ys);
+                histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(
+                        det_module_id, y_total_strips > 0 ? ys / y_total_strips : 0.);
+                histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 1)) -> Fill(ys);
+
+                for(auto &i: y_strip_hits) {
+                    histM.histo_1d<float>(Form("h_raw_ystrip_maxtimebin_layer%d", det_module_id)) -> Fill(i.max_timebin);
+                    histM.histo_1d<float>(Form("h_raw_ystrip_adc_layer%d", det_module_id)) -> Fill(i.charge);
+                    histM.histo_1d<float>(Form("h_raw_strip_mean_time_y_layer%d", det_module_id)) -> Fill(get_strip_mean_time(i));
+                    histM.histo_2d<float>(Form("h_raw_y_strip_adc_index_layer%d", det_module_id)) -> Fill(i.strip, i.charge);
+                }
+
+                y_clusters = pln_y -> GetStripClusters();
+
+                if(y_clusters.size() > 0)
+                    histM.histo_1d<float>(Form("h_raw_y_cluster_multiplicity_layer%d", det_module_id)) -> Fill(y_clusters.size());
             }
-
-            // clusters
-            std::vector<StripCluster> & x_strip_cluster_ = pln_x -> GetStripClusters();
-            std::vector<StripCluster> & y_strip_cluster_ = pln_y -> GetStripClusters();
-            // make a copy
-            std::vector<StripCluster> x_clusters = x_strip_cluster_;
-            std::vector<StripCluster> y_clusters = y_strip_cluster_;
-
-            // cluster multiplicity
-            if(x_strip_cluster_.size() > 0)
-                histM.histo_1d<float>(Form("h_raw_x_cluster_multiplicity_layer%d", det_module_id)) -> Fill(x_strip_cluster_.size());
-            if(y_strip_cluster_.size() > 0)
-                histM.histo_1d<float>(Form("h_raw_y_cluster_multiplicity_layer%d", det_module_id)) -> Fill(y_strip_cluster_.size());
+            else {
+                histM.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(det_module_id, 0);
+                histM.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(det_module_id, 0);
+                histM.histo_1d<float>(Form("h_raw_fired_strip_det%d_plane%d", det_module_id, 1)) -> Fill(0);
+            }
 
             // match x-y clusters according to their ADC values (tracking has its own histograms for this, which is more correct)
             std::sort(x_clusters.begin(), x_clusters.end(), [&](const StripCluster &c1, const StripCluster &c2) {

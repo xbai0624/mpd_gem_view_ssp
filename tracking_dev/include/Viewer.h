@@ -45,7 +45,7 @@ public:
         void GetOneFermiTrack(int i);
 
         void ProcessTrackingResult();
-        bool ProcessRawGEMResult();
+        void ProcessRawGEMResult();
         void UpdateStatusBar(int event_ordinal);
         void UpdateResultHistos();   // refresh right-panel histos after Replay 50K
 

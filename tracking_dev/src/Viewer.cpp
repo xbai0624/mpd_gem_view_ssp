@@ -8,6 +8,7 @@
 #include "TrackingConfigWidget.h"
 #include "TrackingResultPanel.h"
 #include "Cuts.h"
+#include "GEMStruct.h"
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
@@ -512,30 +513,42 @@ void Viewer::ProcessTrackingResult()
     point_t pt(xt, yt, 0);
     point_t dir(xp, yp, 1.);
 
-    // get offset
-    const std::vector<int> & layer_index = tracking -> GetBestTrackLayerIndex();
-    const std::vector<int> & hit_index = tracking -> GetBestTrackHitIndex();
+    const std::vector<point_t> &hits_on_best_track = tracking -> GetVHitsOnBestTrack();
 
-    for(unsigned int i=0; i<layer_index.size(); i++)
+    for(const auto &p: hits_on_best_track)
     {
-        int layer = layer_index[i];
-        int hit_id = hit_index[i];
+        int module_id = p.module_id;
 
-        point_t p = fDet[layer] -> Get2DHit(hit_id);
-        hist_m.histo_1d<float>(Form("h_max_timebin_x_plane_gem%d", layer)) -> Fill(p.x_max_timebin);
-        hist_m.histo_1d<float>(Form("h_max_timebin_y_plane_gem%d", layer)) -> Fill(p.y_max_timebin);
-        hist_m.histo_1d<float>(Form("h_cluster_size_x_plane_gem%d", layer)) -> Fill(p.x_size);
-        hist_m.histo_1d<float>(Form("h_cluster_size_y_plane_gem%d", layer)) -> Fill(p.y_size);
-        hist_m.histo_1d<float>(Form("h_cluster_adc_x_plane_gem%d", layer)) -> Fill(p.x_peak);
-        hist_m.histo_1d<float>(Form("h_cluster_adc_y_plane_gem%d", layer)) -> Fill(p.y_peak);
+        hist_m.histo_1d<float>(Form("h_max_timebin_x_plane_gem%d", module_id)) -> Fill(p.x_max_timebin);
+        hist_m.histo_1d<float>(Form("h_max_timebin_y_plane_gem%d", module_id)) -> Fill(p.y_max_timebin);
+        hist_m.histo_1d<float>(Form("h_cluster_size_x_plane_gem%d", module_id)) -> Fill(p.x_size);
+        hist_m.histo_1d<float>(Form("h_cluster_size_y_plane_gem%d", module_id)) -> Fill(p.y_size);
+        hist_m.histo_1d<float>(Form("h_cluster_adc_x_plane_gem%d", module_id)) -> Fill(p.x_peak);
+        hist_m.histo_1d<float>(Form("h_cluster_adc_y_plane_gem%d", module_id)) -> Fill(p.y_peak);
 
-        fDet[layer] -> AddRealHits(p);
+        VirtualDetector *module_det = tracking_data_handler -> GetDetector(module_id);
+        if(module_det != nullptr)
+            module_det -> AddRealHits(p);
+
+        auto layer_it = fDet.find(p.layer_id);
+        if(layer_it != fDet.end() && layer_it->second != nullptr)
+            layer_it->second -> AddRealHits(p);
     }
 
-    for(int i=0; i<NDetector_Implemented; i++)
+    const std::vector<int> &det_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
+    for(auto &module_id: det_module_ids)
     {
-        point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, fDet[layer_ids[i]]->GetZPosition());
-        fDet[layer_ids[i]] -> AddFittedHits(p);
+        VirtualDetector *module_det = tracking_data_handler -> GetDetector(module_id);
+        if(module_det == nullptr)
+            continue;
+
+        point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, module_det->GetZPosition());
+        module_det -> AddFittedHits(p);
+
+        int layer_id = module_det -> GetLayerID();
+        auto layer_it = fDet.find(layer_id);
+        if(layer_it != fDet.end() && layer_it->second != nullptr)
+            layer_it->second -> AddFittedHits(p);
     }
 
     int n_good_track_candidates = tracking -> GetNGoodTrackCandidates();
@@ -546,41 +559,45 @@ void Viewer::ProcessTrackingResult()
     FillEventHistos();
 }
 
-bool Viewer::ProcessRawGEMResult()
+void Viewer::ProcessRawGEMResult()
 {
-    bool res = true;
-
     GEMSystem *gem_sys = tracking_data_handler -> GetGEMSystem();
     std::vector<GEMDetector*> detectors = gem_sys -> GetDetectorList();
     for(auto &det: detectors)
     {
-        int layer = det -> GetLayerID();
+        int module_id = det -> GetDetID();
         GEMPlane *pln_x = det -> GetPlane(GEMPlane::Plane_X);
         GEMPlane *pln_y = det -> GetPlane(GEMPlane::Plane_Y);
 
-        std::vector<StripHit> &x_hits = pln_x -> GetStripHits();
-        std::vector<StripHit> &y_hits = pln_y -> GetStripHits();
-        int xs = (int)x_hits.size(), ys = (int)y_hits.size();
+        int xs = 0;
+        int ys = 0;
+        double x_occ = 0.;
+        double y_occ = 0.;
 
-        hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(layer, xs);
-        hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(layer, ys);
+        if(pln_x != nullptr) {
+            const std::vector<StripHit> &x_hits = pln_x -> GetStripHits();
+            xs = static_cast<int>(x_hits.size());
 
-        hist_m.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(layer, xs/256.);
-        hist_m.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(layer, ys/256.);
+            double total = pln_x -> GetCapacity() * APV_STRIP_SIZE;
+            if(total > 0)
+                x_occ = xs / total;
+        }
+
+        if(pln_y != nullptr) {
+            const std::vector<StripHit> &y_hits = pln_y -> GetStripHits();
+            ys = static_cast<int>(y_hits.size());
+
+            double total = pln_y -> GetCapacity() * APV_STRIP_SIZE;
+            if(total > 0)
+                y_occ = ys / total;
+        }
+
+        hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 0)) -> Fill(module_id, xs);
+        hist_m.histo_2d<float>(Form("h_raw_fired_strip_plane%d", 1)) -> Fill(module_id, ys);
+
+        hist_m.histo_2d<float>(Form("h_raw_occupancy_plane%d", 0)) -> Fill(module_id, x_occ);
+        hist_m.histo_2d<float>(Form("h_raw_occupancy_plane%d", 1)) -> Fill(module_id, y_occ);
     }
-
-    std::vector<int> v_nhits;
-    for(auto &i: detectors)
-    {
-        size_t s = (i -> GetHits()).size();
-        v_nhits.push_back(s);
-    }
-    for(auto &i: v_nhits) {
-        if(res)
-            res = (i==1);
-    }
-
-    return res;
 }
 
 void Viewer::Replay50K()
@@ -625,7 +642,7 @@ void Viewer::RunReplay50KWorker()
 
         tracking -> FindTracks();
         ProcessTrackingResult();
-        [[maybe_unused]]bool t = ProcessRawGEMResult();
+        ProcessRawGEMResult();
         //if(t) break;
 
         event_counter++;
@@ -685,16 +702,35 @@ void Viewer::SetReplayControlsEnabled(bool enabled)
 
 void Viewer::FinalizeReplay50KHistos()
 {
-    for(int i=0; i<NDetector_Implemented; i++) {
-        for(int xbins = 1; xbins < 120; xbins++)
+    const std::vector<int> &det_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
+
+    for(auto &module_id: det_module_ids) {
+        TH2F *did_h = hist_m.histo_2d<float>(Form("h_didhit_xy_gem%d", module_id));
+        TH2F *should_h = hist_m.histo_2d<float>(Form("h_shouldhit_xy_gem%d", module_id));
+        TH2F *eff_h = hist_m.histo_2d<float>(Form("h_2defficiency_xy_gem%d", module_id));
+
+        if(did_h == nullptr || should_h == nullptr || eff_h == nullptr)
+            continue;
+
+        int nx = did_h -> GetNbinsX();
+        int ny = did_h -> GetNbinsY();
+
+        if(should_h -> GetNbinsX() != nx || should_h -> GetNbinsY() != ny ||
+           eff_h -> GetNbinsX() != nx || eff_h -> GetNbinsY() != ny) {
+            std::cout<<"Viewer::FinalizeReplay50KHistos warning: bin mismatch for GEM "
+                     <<module_id<<std::endl;
+            continue;
+        }
+
+        for(int xbins = 1; xbins <= nx; xbins++)
         {
-            for(int ybins = 1; ybins < 120; ybins++) {
-                float did = hist_m.histo_2d<float>((Form("h_didhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
-                float should = hist_m.histo_2d<float>((Form("h_shouldhit_xy_gem%d", i))) -> GetBinContent(xbins, ybins);
+            for(int ybins = 1; ybins <= ny; ybins++) {
+                float did = did_h -> GetBinContent(xbins, ybins);
+                float should = should_h -> GetBinContent(xbins, ybins);
 
                 float eff = 0;
                 if(should >0) eff = (did / should < 1) ? did / should : 1.;
-                hist_m.histo_2d<float>(Form("h_2defficiency_xy_gem%d", i)) -> SetBinContent(xbins, ybins, eff);
+                eff_h -> SetBinContent(xbins, ybins, eff);
             }
         }
     }
@@ -756,30 +792,39 @@ void Viewer::UpdateResultHistos()
     add1d("h_ntracks_found");
     add1d("h_ntrack_candidates");
     add1d("h_nhits_on_best_track");
-    for(int i = 0; i < NDetector_Implemented; ++i) {
-        result_panel -> AddSection(Form("GEM %d", i));
-        add2d(Form("h_2defficiency_xy_gem%d", i));
-        add1d(Form("h_x_offset_gem%d", i));
-        add1d(Form("h_y_offset_gem%d", i));
+    const std::vector<int> &det_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
+    for(auto &module_id: det_module_ids) {
+        result_panel -> AddSection(Form("GEM %d", module_id));
+        add2d(Form("h_2defficiency_xy_gem%d", module_id));
+        add1d(Form("h_x_offset_gem%d", module_id));
+        add1d(Form("h_y_offset_gem%d", module_id));
     }
 }
 
 void Viewer::FillEventHistos()
 {
-    for(int i=0; i<NDetector_Implemented; i++)
+    const std::vector<int> &det_module_ids = tracking_data_handler -> GetDetectorModuleIDs();
+
+    for(auto &module_id: det_module_ids)
     {
-        const std::vector<point_t> & real_hits = fDet[layer_ids[i]] -> GetRealHits();
-        const std::vector<point_t> & fitted_hits = fDet[layer_ids[i]] -> GetFittedHits();
+        VirtualDetector *det = tracking_data_handler -> GetDetector(module_id);
+        if(det == nullptr)
+            continue;
 
-        for(unsigned int hitid=0; hitid<real_hits.size(); hitid++){
-            hist_m.histo_1d<float>(Form("h_x_offset_gem%d", i)) -> Fill(real_hits[hitid].x - fitted_hits[hitid].x);
-            hist_m.histo_1d<float>(Form("h_y_offset_gem%d", i)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
+        const std::vector<point_t> & real_hits = det -> GetRealHits();
+        const std::vector<point_t> & fitted_hits = det -> GetFittedHits();
 
-            hist_m.histo_2d<float>(Form("h_didhit_xy_gem%d", i)) -> Fill(real_hits[hitid].x, real_hits[hitid].y);
+        size_t n = real_hits.size() < fitted_hits.size() ? real_hits.size() : fitted_hits.size();
+
+        for(size_t hitid=0; hitid<n; hitid++){
+            hist_m.histo_1d<float>(Form("h_x_offset_gem%d", module_id)) -> Fill(real_hits[hitid].x - fitted_hits[hitid].x);
+            hist_m.histo_1d<float>(Form("h_y_offset_gem%d", module_id)) -> Fill(real_hits[hitid].y - fitted_hits[hitid].y);
+
+            hist_m.histo_2d<float>(Form("h_didhit_xy_gem%d", module_id)) -> Fill(real_hits[hitid].x, real_hits[hitid].y);
         }
 
         for(auto &h: fitted_hits) {
-            hist_m.histo_2d<float>(Form("h_shouldhit_xy_gem%d", i)) -> Fill(h.x, h.y);
+            hist_m.histo_2d<float>(Form("h_shouldhit_xy_gem%d", module_id)) -> Fill(h.x, h.y);
         }
     }
 }
