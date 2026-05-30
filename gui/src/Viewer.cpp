@@ -165,7 +165,7 @@ QWidget* Viewer::createTopToolbar()
     QLabel *fileLabel = new QLabel(tr("File:"), w);
     m_fileCombo = new QComboBox(w);
     m_fileCombo -> setEditable(true);
-    m_fileCombo -> setMinimumWidth(400);
+    m_fileCombo -> setMinimumWidth(300);
 
     QPushButton *browseBtn = new QPushButton(tr("Browse..."), w);
 
