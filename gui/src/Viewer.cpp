@@ -3,6 +3,7 @@
 #include "APVStripMapping.h"
 #include "hardcode.h"
 #include "experiment_setup/PRadSetup.h"
+#include "experiment_setup/GeneralExpSetup.h"
 #ifdef HAVE_ET
 #include "OnlineMonitor.h"
 #endif
@@ -35,7 +36,17 @@
 #define APVS_PER_TAB_X 6
 #define APVS_PER_TAB_Y 6
 #define EYE_BALL_TRACKING
-#define SHOW_PRAD_SETUP
+
+// Pick exactly one experiment-setup view for the toolbox page.
+// SHOW_PRAD_SETUP    : original two-chamber PRad-II schematic.
+// SHOW_GENERAL_SETUP : generic N-layer view driven by APVStripMapping.
+// (Both unset is allowed; the page is then omitted entirely.)
+//#define SHOW_PRAD_SETUP
+#define SHOW_GENERAL_SETUP
+
+#if defined(SHOW_PRAD_SETUP) && defined(SHOW_GENERAL_SETUP)
+#error "Define only one of SHOW_PRAD_SETUP or SHOW_GENERAL_SETUP"
+#endif
 
 ////////////////////////////////////////////////////////////////
 // ctor
@@ -348,7 +359,9 @@ QWidget* Viewer::createSettingsPanel()
 
     QToolBox *toolBox = new QToolBox(box);
 #ifdef SHOW_PRAD_SETUP
-    toolBox -> addItem(createPRadSetupPage(), tr("PRad GEM Setup"));
+    toolBox -> addItem(createPRadSetupPage(),    tr("PRad GEM Setup"));
+#elif defined(SHOW_GENERAL_SETUP)
+    toolBox -> addItem(createGeneralSetupPage(), tr("General GEM Setup"));
 #endif
     toolBox -> addItem(createPedestalCommonModePage(), tr("Pedestal / Common Mode"));
     toolBox -> addItem(createMappingFilePage(), tr("Mapping File"));
@@ -376,7 +389,28 @@ QWidget* Viewer::createPRadSetupPage()
     // connect signals
     connect(this, &Viewer::onlineHitsDrawn, layer1, &PRadSetup::DrawEventHits2D);
     connect(this, &Viewer::onlineHitsDrawn, layer2, &PRadSetup::DrawEventHits2D);
- 
+
+    return page;
+}
+
+////////////////////////////////////////////////////////////////
+// generic N-layer experiment view (driven by APVStripMapping).
+// Selected at compile time via SHOW_GENERAL_SETUP (see top of file).
+
+QWidget* Viewer::createGeneralSetupPage()
+{
+    QWidget *page = new QWidget(this);
+    QHBoxLayout *v = new QHBoxLayout(page);
+    v -> setContentsMargins(0, 0, 0, 0);
+    v -> setSpacing(20);
+
+    GeneralExpSetup *setup = new GeneralExpSetup(page);
+    v -> addWidget(setup);
+
+    // same signal that drives the PRad view -- no hit-collection change.
+    connect(this, &Viewer::onlineHitsDrawn,
+            setup, &GeneralExpSetup::DrawEventHits2D);
+
     return page;
 }
 

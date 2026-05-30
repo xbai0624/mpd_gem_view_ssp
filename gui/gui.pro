@@ -98,6 +98,7 @@ HEADERS += include/QRootCanvas.h \
            include/OnlineAnalysisInterface.h \
            include/PedestalPlotWindow.h \
            experiment_setup/PRadSetup.h \
+           experiment_setup/GeneralExpSetup.h \
 
 SOURCES += src/main.cpp \
            src/QRootCanvas.cpp \
@@ -117,3 +118,4 @@ SOURCES += src/main.cpp \
            src/OnlineAnalysisInterface.cpp \
            src/PedestalPlotWindow.cpp \
            experiment_setup/PRadSetup.cpp \
+           experiment_setup/GeneralExpSetup.cpp \

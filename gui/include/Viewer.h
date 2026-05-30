@@ -60,6 +60,7 @@ public:
 
     QWidget* createSettingsPanel();
     QWidget* createPRadSetupPage();
+    QWidget* createGeneralSetupPage();   // generic N-layer view; selected via SHOW_GENERAL_SETUP
     QWidget* createPedestalCommonModePage();
     QWidget* createMappingFilePage();
     QWidget* createReplayPage();

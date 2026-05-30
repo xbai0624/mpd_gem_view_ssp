@@ -386,6 +386,11 @@ public:
     const std::vector<APVAddress> & GetAPVAddressVec() const;
     const std::vector<int> & GetLayerIDVec() const;
     const std::map<int, LayerInfo> & GetLayerMap() const;
+    // expose the full APVAddress -> APVInfo map so views that need to walk
+    // per-APV metadata (e.g. building a detector_id -> layer_id table) don't
+    // have to duplicate the parsing.
+    const std::unordered_map<APVAddress, APVInfo> & GetAPVMap() const
+    { return apvs; }
 
 private:
     static Mapping* instance;
