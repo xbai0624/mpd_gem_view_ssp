@@ -358,6 +358,12 @@ void Viewer::ProcessNewFile(const QString &_s)
     // reset event counters
     fEventNumber = 0;
     btn_next -> setValue(0);
+
+    // clear the per-event status cache so Prev/Next on the new file
+    // doesn't show stale chi2 / track counts from the previous file.
+    m_hist_ntracks.clear();
+    m_hist_chi2.clear();
+    m_hist_found.clear();
 }
 
 void Viewer::ClearPrevEvent()

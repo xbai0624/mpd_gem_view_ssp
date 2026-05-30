@@ -143,9 +143,10 @@ namespace tracking_dev
                 if( z == -99999.)
                     z = origin.z;
                 else if(origin.z != z) {
-                    std::cout<<"ERROR: detectors in same layer must have same z. check you tracking config file."
-                        <<std::endl;
-                    exit(0);
+                    // throw rather than exit() so the GUI Apply slot can catch
+                    // this and show a dialog instead of dying.
+                    throw std::runtime_error("TrackingDataHandler: detectors in layer "
+                            + std::to_string(layer_id) + " disagree on z");
                 }
             }
 

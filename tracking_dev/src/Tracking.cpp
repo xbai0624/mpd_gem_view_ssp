@@ -4,6 +4,8 @@
 #include "Cuts.h"
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
+#include <string>
 
 namespace tracking_dev {
 
@@ -22,9 +24,10 @@ void Tracking::AddLayer(int index, VirtualDetector* det)
 {
     if(detector.find(index) != detector.end())
     {
-        std::cout<<"ERROR: duplicated detector index added to tracking."
-            <<std::endl;
-        exit(0);
+        // throw rather than exit() so the GUI Apply slot can catch this
+        // and show a dialog instead of dying.
+        throw std::runtime_error("Tracking: duplicate layer "
+                + std::to_string(index) + " added");
     }
 
     layer_index.push_back(index);
