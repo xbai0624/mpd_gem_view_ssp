@@ -97,6 +97,7 @@ public slots:
     void ReplayHit();
     void ReplayCluster();
     void OpenOnlineAnalysisInterface();
+    void LaunchTrackingViewer();
     void SaveCurrentEvent();
     void Prepare2DGeoHits(GEMDetector *);
 

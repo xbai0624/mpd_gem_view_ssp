@@ -16,6 +16,8 @@
 #include <QMessageBox>
 #include <QScrollBar>
 #include <QCoreApplication>
+#include <QDir>
+#include <QProcess>
 #include <QTimer>
 #include <QSplitter>
 #include <QStackedWidget>
@@ -167,6 +169,9 @@ QWidget* Viewer::createTopToolbar()
     // bring up analysis interface
     QPushButton *anaInterfaceBtn = new QPushButton(tr("Analysis Interface"), w);
 
+    // bring up tracking viewer (sibling executable)
+    QPushButton *trackingBtn = new QPushButton(tr("Tracking Viewer"), w);
+
     // Event Selector
     QLabel *evtLabel = new QLabel(tr("Event:"), w);
     m_eventSpin = new QSpinBox(w);
@@ -184,6 +189,7 @@ QWidget* Viewer::createTopToolbar()
     h -> addWidget(m_viewCombo);
     h -> addSpacing(16);
     h -> addWidget(anaInterfaceBtn);
+    h -> addWidget(trackingBtn);
     h -> addStretch(1);
     h -> addWidget(evtLabel);
     h -> addWidget(m_eventSpin);
@@ -195,6 +201,7 @@ QWidget* Viewer::createTopToolbar()
     connect(m_eventSpin, QOverload<int>::of(&QSpinBox::valueChanged), this, &Viewer::DrawEvent);
     connect(saveEvtBtn, &QPushButton::pressed, this, &Viewer::SaveCurrentEvent);
     connect(anaInterfaceBtn, &QPushButton::pressed, this, &Viewer::OpenOnlineAnalysisInterface);
+    connect(trackingBtn, &QPushButton::clicked, this, &Viewer::LaunchTrackingViewer);
 
     return w;
 }
@@ -1524,6 +1531,24 @@ void Viewer::OpenOnlineAnalysisInterface()
 {
     winOnlineInterface = new OnlineAnalysisInterface();
     winOnlineInterface -> show();
+}
+
+void Viewer::LaunchTrackingViewer()
+{
+    // Launch the sibling tracking_viewer binary detached so it outlives us.
+    // On Linux:  applicationDirPath() == <repo>/bin, sibling is bin/tracking_viewer
+    // On macOS:  applicationDirPath() == <repo>/bin/data_viewer.app/Contents/MacOS;
+    //            climb out, sibling is bin/tracking_viewer.app/Contents/MacOS/tracking_viewer
+    QDir d(QCoreApplication::applicationDirPath());
+#ifdef Q_OS_MAC
+    if(d.dirName() == "MacOS") { d.cdUp(); d.cdUp(); d.cdUp(); }
+    QString exe = d.absoluteFilePath("tracking_viewer.app/Contents/MacOS/tracking_viewer");
+#else
+    QString exe = d.absoluteFilePath("tracking_viewer");
+#endif
+    if(!QProcess::startDetached(exe, {}))
+        QMessageBox::warning(this, tr("Tracking Viewer"),
+                             tr("Failed to launch:\n%1").arg(exe));
 }
 
 void Viewer::Prepare2DGeoHits(GEMDetector *det)
