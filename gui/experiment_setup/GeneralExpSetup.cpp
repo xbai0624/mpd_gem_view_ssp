@@ -144,41 +144,56 @@ void GeneralExpSetup::BuildGrid()
         scene->addItem(frame);
 
         // ---- APV boxes around the frame ---------------------------------
-        // X-plane APVs along the top edge, Y-plane APVs along the left
-        // edge. Box widths match APV pitch so the schematic is to scale.
+        // Both planes honour invert (the side the APV physically sits on):
+        //   dim=0 invert=0 -> top,    dim=0 invert=1 -> bottom
+        //   dim=1 invert=0 -> right,  dim=1 invert=1 -> left
         const double apv_w_mm = info.x_pitch * APV_STRIP_SIZE;
         const double apv_h_mm = info.y_pitch * APV_STRIP_SIZE;
 
-        for(int i = 0; i < info.nb_apvs_x; ++i) {
-            const double x = panel->origin_x + i * apv_w_mm;
-            const double y = panel->origin_y - box_thickness - box_gap;
+        for(const auto &kv : mapping->GetAPVMap())
+        {
+            const auto &api = kv.second;
+            if(api.layer_id != layer_id) continue;
+            if(api.apv_pos  < 0)         continue;
 
-            auto *box = new QGraphicsRectItem(x, y, apv_w_mm, box_thickness);
-            box->setBrush(QColor("#FFD0D0"));
-            box->setPen(QPen(Qt::black, 4));
-            scene->addItem(box);
+            const bool inverted = (api.invert == 1);
 
-            auto *lbl = new QGraphicsTextItem(QString::number(i));
-            lbl->setFont(label_font);
-            lbl->setPos(x + apv_w_mm/2 - font_pt/2,
-                        y - font_pt - 4);
-            scene->addItem(lbl);
-        }
+            if(api.dimension == 0) {
+                const double x = panel->origin_x + api.apv_pos * apv_w_mm;
+                const double y = inverted
+                    ? panel->origin_y + panel->det_h_mm + box_gap
+                    : panel->origin_y - box_thickness   - box_gap;
 
-        for(int j = 0; j < info.nb_apvs_y; ++j) {
-            const double x = panel->origin_x - box_thickness - box_gap;
-            const double y = panel->origin_y + j * apv_h_mm;
+                auto *box = new QGraphicsRectItem(x, y, apv_w_mm, box_thickness);
+                box->setBrush(QColor("#FFD0D0"));
+                box->setPen(QPen(Qt::black, 4));
+                scene->addItem(box);
 
-            auto *box = new QGraphicsRectItem(x, y, box_thickness, apv_h_mm);
-            box->setBrush(QColor("#D0E0FF"));
-            box->setPen(QPen(Qt::black, 4));
-            scene->addItem(box);
+                auto *lbl = new QGraphicsTextItem(QString::number(api.apv_pos));
+                lbl->setFont(label_font);
+                lbl->setPos(x + apv_w_mm/2 - font_pt/2,
+                            inverted ? y + box_thickness + 4
+                                     : y - font_pt - 4);
+                scene->addItem(lbl);
+            }
+            else if(api.dimension == 1) {
+                const double y = panel->origin_y + api.apv_pos * apv_h_mm;
+                const double x = inverted
+                    ? panel->origin_x - box_thickness   - box_gap
+                    : panel->origin_x + panel->det_w_mm + box_gap;
 
-            auto *lbl = new QGraphicsTextItem(QString::number(j));
-            lbl->setFont(label_font);
-            lbl->setPos(x - font_pt - 8,
-                        y + apv_h_mm/2 - font_pt/2);
-            scene->addItem(lbl);
+                auto *box = new QGraphicsRectItem(x, y, box_thickness, apv_h_mm);
+                box->setBrush(QColor("#D0E0FF"));
+                box->setPen(QPen(Qt::black, 4));
+                scene->addItem(box);
+
+                auto *lbl = new QGraphicsTextItem(QString::number(api.apv_pos));
+                lbl->setFont(label_font);
+                lbl->setPos(inverted ? x - font_pt         - 8
+                                     : x + box_thickness   + 8,
+                            y + apv_h_mm/2 - font_pt/2);
+                scene->addItem(lbl);
+            }
         }
 
         // ---- layer-id title below the frame -----------------------------
