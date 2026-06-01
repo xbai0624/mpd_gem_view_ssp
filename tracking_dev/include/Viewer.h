@@ -20,6 +20,7 @@ namespace tracking_dev {
 class VirtualDetector;
 class Detector2DHitItem;
 class Detector2DHitView;
+class IsometricView;
 class Tracking;
 class TrackingDataHandler;
 class TrackingConfigWidget;
@@ -83,6 +84,8 @@ private:
         std::unordered_map<int, Detector2DHitItem*> fDet2DItem;
 
         Detector2DHitView *fDet2DView;
+        // sibling 3D isometric view (stacked layers, hits + track line)
+        IsometricView *fIsoView;
         TrackingConfigWidget *config_panel = nullptr;
         QWidget *settings_window = nullptr;   // pop-up holding config_panel
         TrackingResultPanel *result_panel = nullptr;  // right panel: result histograms

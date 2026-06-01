@@ -2,6 +2,7 @@
 #include "VirtualDetector.h"
 #include "Detector2DHitItem.h"
 #include "Detector2DHitView.h"
+#include "IsometricView.h"
 #include "Tracking.h"
 #include "TrackingDataHandler.h"
 #include "TrackingUtility.h"
@@ -128,6 +129,13 @@ void Viewer::InitGui()
     }
     fDet2DView -> InitView();
 
+    // Build the sibling 3D isometric view from the SAME detector list,
+    // so editing gem_mapping.txt updates both views with no extra wiring.
+    fIsoView = new IsometricView(this);
+    for(int i = 0; i < NDetector_Implemented; i++)
+        fIsoView -> AddLayer(fDet[layer_ids[i]]);
+    fIsoView -> InitView();
+
     btn_next = new QSpinBox(this);
     btn_next -> setRange(0, 9999999);
     btn_prev = new QPushButton(QString::fromUtf8("◀ Prev"), this);
@@ -205,16 +213,23 @@ void Viewer::InitGui()
     QVBoxLayout *plotLayout = new QVBoxLayout(plotBox);
     plotLayout -> addWidget(fDet2DView);
 
-    QGroupBox *resultBox = new QGroupBox(tr("Tracking Histos"), central);
+    QGroupBox *resultBox = new QGroupBox(tr("Tracking Results"), central);
     QVBoxLayout *resultLayout = new QVBoxLayout(resultBox);
 
     // left = main Det2D plots, right = result-histogram panel
     result_panel = new TrackingResultPanel(resultBox);
-    resultLayout -> addWidget(result_panel);
+    // wrap the 3D isometric view + result-histogram panel in a vertical
+    // splitter so the user can resize them.
+    QSplitter *rightSplit = new QSplitter(Qt::Vertical, resultBox);
+    rightSplit -> addWidget(fIsoView);
+    rightSplit -> addWidget(result_panel);
+    rightSplit -> setStretchFactor(0, 2);
+    rightSplit -> setStretchFactor(1, 1);
+    resultLayout -> addWidget(rightSplit);
     // pre-create the category sections (empty placeholders) so the panel
     // shows the accordion headers at startup instead of a blank box;
     // Replay 50K (UpdateResultHistos) clears and refills them with data.
-    result_panel -> AddSection("Tracking");
+    result_panel -> AddSection("Tracking Histos");
 #ifdef USE_SIM_DATA
     for(int i = 0; i < NDetector_Implemented; ++i)
         result_panel -> AddSection(Form("GEM %d", i));
@@ -460,6 +475,8 @@ void Viewer::DrawEvent(int event_number)
     if(event_diff <= 0) {
         fDet2DView -> BringUpPreviousEvent(event_diff);
         fDet2DView -> Refresh();
+        fIsoView -> BringUpPreviousEvent(event_diff);
+        fIsoView -> Refresh();
         UpdateStatusBar(event_number);   // show that event's cached result
         return;
     }
@@ -501,6 +518,7 @@ void Viewer::DrawEvent(int event_number)
     std::cout << fs.count() << " s\n";
 
     fDet2DView -> Refresh();
+    fIsoView -> Refresh();
 }
 
 // show the cached tracking result for a given event ordinal (1-based).
@@ -732,6 +750,7 @@ void Viewer::FinishReplay50K(int events, double total_seconds)
     m_replay50KRunning = false;
     SetReplayControlsEnabled(true);
     fDet2DView -> Refresh();
+    fIsoView -> Refresh();
     UpdateResultHistos();
 }
 

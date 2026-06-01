@@ -71,6 +71,7 @@ HEADERS += include/VirtualDetector.h \
            include/CoordSystem.h \
            include/Detector2DHitItem.h \
            include/Detector2DHitView.h \
+           include/IsometricView.h \
            include/histos.hpp \
            include/Tracking.h \
            include/tracking_struct.h \
@@ -89,6 +90,7 @@ SOURCES += src/VirtualDetector.cpp \
            src/CoordSystem.cpp \
            src/Detector2DHitItem.cpp \
            src/Detector2DHitView.cpp \
+           src/IsometricView.cpp \
            #src/main.cpp \
            src/TrackingConfigWidget.cpp \
            src/TrackingResultPanel.cpp \
