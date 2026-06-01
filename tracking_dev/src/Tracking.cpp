@@ -170,9 +170,26 @@ void Tracking::initHitStatus()
 // this algorithm favors tracks with more layers
 void Tracking::loopAllLayerGroups()
 {
+    initHitStatus();
+
+    std::map<double, double> accepted_xtrack, accepted_ytrack;
+    std::map<double, double> accepted_xptrack, accepted_yptrack, accepted_chi2;
+    std::map<double, int> accepted_nhits;
+    std::map<double, std::vector<double>> accepted_xlocal, accepted_ylocal, accepted_zlocal;
+    std::map<double, std::vector<int>> accepted_hit_track_index, accepted_hit_module;
+    int accepted_total_good_hits = 0;
+
+    std::vector<int> best_layer_cache;
+    std::vector<int> best_hitindex_cache;
+    std::vector<point_t> best_hits_cache;
+    double best_chi2_cache = LARGE_VALUE;
+    double best_x_cache = LARGE_VALUE, best_y_cache = LARGE_VALUE;
+    double best_xp_cache = LARGE_VALUE, best_yp_cache = LARGE_VALUE;
+    int best_nhits_cache = LARGE_VALUE;
+
     int nlayers = (int)layer_index.size();
 
-    while(nlayers >= minimum_hits_on_track)
+    while(nlayers >= minimum_hits_on_track && (int)accepted_xtrack.size() < max_track_save_quantity)
     {
         for(auto &i: group_nlayer[nlayers])
         {
@@ -186,9 +203,91 @@ void Tracking::loopAllLayerGroups()
         // if we found a track with higher number of layers,
         // then there's no need to continue search with less layer configurations
         if(found_tracks_with_nlayer(nlayers))
-            break;
+        {
+            double chi2 = best_track_chi2ndf;
+
+            if(accepted_xtrack.empty()) {
+                best_layer_cache = best_track_layer_index;
+                best_hitindex_cache = best_track_hit_index;
+                best_hits_cache = best_hits_on_track;
+                best_chi2_cache = best_track_chi2ndf;
+                best_x_cache = best_xtrack; best_y_cache = best_ytrack;
+                best_xp_cache = best_xptrack; best_yp_cache = best_yptrack;
+                best_nhits_cache = nhits_on_best_track;
+            }
+
+            accepted_xtrack[chi2] = m_xtrack[chi2];
+            accepted_ytrack[chi2] = m_ytrack[chi2];
+            accepted_xptrack[chi2] = m_xptrack[chi2];
+            accepted_yptrack[chi2] = m_yptrack[chi2];
+            accepted_chi2[chi2] = m_track_chi2ndf[chi2];
+            accepted_nhits[chi2] = m_track_nhits[chi2];
+
+            accepted_xlocal[chi2] = m_xlocal[chi2];
+            accepted_ylocal[chi2] = m_ylocal[chi2];
+            accepted_zlocal[chi2] = m_zlocal[chi2];
+            accepted_hit_track_index[chi2] = m_hit_track_index[chi2];
+            accepted_hit_module[chi2] = m_hit_module[chi2];
+            accepted_total_good_hits += (int)m_xlocal[chi2].size();
+
+            for(size_t i = 0; i < best_track_layer_index.size(); ++i)
+                hit_used[best_track_layer_index[i]][best_track_hit_index[i]] = true;
+
+            m_xtrack.clear(), m_ytrack.clear(), m_xptrack.clear(), m_yptrack.clear();
+            m_track_chi2ndf.clear();
+            m_track_nhits.clear();
+            m_xlocal.clear(), m_ylocal.clear(), m_zlocal.clear();
+            m_hit_track_index.clear();
+            m_hit_module.clear();
+
+            best_track_index = -1;
+            best_track_chi2ndf = LARGE_VALUE;
+            best_xtrack = LARGE_VALUE; best_ytrack = LARGE_VALUE;
+            best_xptrack = LARGE_VALUE; best_yptrack = LARGE_VALUE;
+            nhits_on_best_track = LARGE_VALUE;
+            best_track_layer_index.clear();
+            best_track_hit_index.clear();
+            best_track_chi2ndf_by_nlayer.clear();
+            best_hits_on_track.clear();
+
+            nlayers = (int)layer_index.size();
+            continue;
+        }
 
         nlayers--;
+    }
+
+    int accepted_track_index = 0;
+    for(auto &entry: accepted_hit_track_index) {
+        double chi2 = entry.first;
+        entry.second.assign(accepted_hit_module[chi2].size(), accepted_track_index++);
+    }
+
+    // copy accepted tracks back to m_xxx caches, this is for saving results to ROOT files
+    m_xtrack = accepted_xtrack;
+    m_ytrack = accepted_ytrack;
+    m_xptrack = accepted_xptrack;
+    m_yptrack = accepted_yptrack;
+    m_track_chi2ndf = accepted_chi2;
+    m_track_nhits = accepted_nhits;
+    m_xlocal = accepted_xlocal;
+    m_ylocal = accepted_ylocal;
+    m_zlocal = accepted_zlocal;
+    m_hit_track_index = accepted_hit_track_index;
+    m_hit_module = accepted_hit_module;
+
+    n_tracks_found = (int)m_xtrack.size();
+    n_total_good_hits = accepted_total_good_hits;
+
+    if(n_tracks_found > 0) {
+        best_track_index = 0;
+        best_track_layer_index = best_layer_cache;
+        best_track_hit_index = best_hitindex_cache;
+        best_hits_on_track = best_hits_cache;
+        best_track_chi2ndf = best_chi2_cache;
+        best_xtrack = best_x_cache; best_ytrack = best_y_cache;
+        best_xptrack = best_xp_cache; best_yptrack = best_yp_cache;
+        nhits_on_best_track = best_nhits_cache;
     }
 }
 
@@ -274,8 +373,14 @@ void Tracking::nextLayerGroup_gridway(const std::vector<int> &group)
 
     for(int start_layer_hit_index=0; start_layer_hit_index<S; start_layer_hit_index++)
     {
+        if(hit_used[start_layer][start_layer_hit_index])
+            continue;
+
         for(int end_layer_hit_index=0; end_layer_hit_index<E; end_layer_hit_index++)
         {
+            if(hit_used[end_layer][end_layer_hit_index])
+                continue;
+
             scanCandidate_gridway(start_layer, start_layer_hit_index,
                     end_layer, end_layer_hit_index, middle_layers);
         }
@@ -365,11 +470,13 @@ void Tracking::getMiddleLayerGridHitIndex(const int &start_layer,
         std::vector<int> tmp_vhits;
 
         for(auto &addr: home_grids) {
-            if(vhits_by_grid.find(addr) == vhits_by_grid.end())
+            auto vit = vhits_by_grid.find(addr);
+            if(vit == vhits_by_grid.end())
                 continue;
 
-            tmp_vhits.insert(tmp_vhits.end(), vhits_by_grid.at(addr).begin(),
-                    vhits_by_grid.at(addr).end());
+            for(int hit_id: vit->second)
+                if(!hit_used[i][hit_id])
+                    tmp_vhits.push_back(hit_id);
         }
 
         hit_index_by_layer[i] = tmp_vhits;
@@ -482,7 +589,6 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     if((int)m_xtrack.size() <= max_track_save_quantity || chi2ndf < (std::prev(m_xtrack.end()) -> first))
     {
         n_good_track_candidates++;
-        n_tracks_found++;
         m_xtrack[chi2ndf] = xtrack, m_ytrack[chi2ndf] = ytrack;
         m_xptrack[chi2ndf] = xptrack, m_yptrack[chi2ndf] = yptrack;
         m_track_chi2ndf[chi2ndf] = chi2ndf; // for consistency
@@ -502,7 +608,6 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     // erase the current biggest chi2 track
     if((int)m_xtrack.size() > max_track_save_quantity)
     {
-        n_tracks_found--;
         m_xtrack.erase(std::prev(m_xtrack.end())), m_ytrack.erase(std::prev(m_ytrack.end()));
         m_xptrack.erase(std::prev(m_xptrack.end())), m_yptrack.erase(std::prev(m_yptrack.end()));
         m_track_chi2ndf.erase(std::prev(m_track_chi2ndf.end()));

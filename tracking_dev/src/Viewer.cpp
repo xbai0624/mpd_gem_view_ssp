@@ -507,7 +507,7 @@ void Viewer::DrawEvent(int event_number)
     // record this event's tracking result so Prev can show it later
     double xt, yt, xp, yp, chi2;
     bool ok = tracking -> GetBestTrack(xt, yt, xp, yp, chi2);
-    m_hist_ntracks.push_back(tracking -> GetNGoodTrackCandidates());
+    m_hist_ntracks.push_back(tracking -> GetNTracksFound());
     m_hist_chi2.push_back(ok ? chi2 : 0.0);
     m_hist_found.push_back(ok);
 
