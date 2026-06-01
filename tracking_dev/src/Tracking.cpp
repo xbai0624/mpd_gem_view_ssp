@@ -472,6 +472,12 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     // chi2ndf too big
     if(chi2ndf > chi2_cut) return;
 
+    // in case two combinations have exactly the same chi2ndf,
+    // to avoid overwriting candidates with identical chi2 map keys,
+    // we slightly add a tiny offset to the later combination
+    while(m_xtrack.find(chi2ndf) != m_xtrack.end())
+        chi2ndf += 1e-9;
+
     // using map here is only for sorting purpose, keep the 20 lowest chi2 tracks
     if((int)m_xtrack.size() <= max_track_save_quantity || chi2ndf < (std::prev(m_xtrack.end()) -> first))
     {
