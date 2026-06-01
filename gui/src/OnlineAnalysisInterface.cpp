@@ -160,9 +160,9 @@ QGroupBox *OnlineAnalysisInterface::BuildSettingsGroup(QWidget *parent)
     m_spCores->setRange(1, 256);
     m_spCores->setValue(1);
 
+    form->addRow(tr("Raw data folder:"), rowDir);
     form->addRow(tr("Pedestal file:"), rowPed);
     form->addRow(tr("Common-mode file:"), rowCm);
-    form->addRow(tr("Raw data folder:"), rowDir);
     form->addRow(tr("Output folder:"), rowOut);
     form->addRow(tr("Raw file pattern:"), m_edPattern);
     form->addRow(tr("Output prefix:"), m_edPrefix);
