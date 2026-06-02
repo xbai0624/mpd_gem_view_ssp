@@ -585,10 +585,24 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
     while(m_xtrack.find(chi2ndf) != m_xtrack.end())
         chi2ndf += 1e-9;
 
-    // using map here is only for sorting purpose, keep the 20 lowest chi2 tracks
-    if((int)m_xtrack.size() <= max_track_save_quantity || chi2ndf < (std::prev(m_xtrack.end()) -> first))
+    n_good_track_candidates++;
+
+    // In exclusive-track mode, this map is only the current-pass cache.
+    // Keep the best candidate from this pass; accepted tracks are copied
+    // out by loopAllLayerGroups() before the next pass starts.
+    if(m_xtrack.empty() || chi2ndf < m_xtrack.begin() -> first)
     {
-        n_good_track_candidates++;
+        if(!m_xtrack.empty()) {
+            n_total_good_hits -= (int)m_xlocal.begin() -> second.size();
+
+            m_xtrack.clear(), m_ytrack.clear(), m_xptrack.clear(), m_yptrack.clear();
+            m_track_chi2ndf.clear();
+            m_track_nhits.clear();
+            m_xlocal.clear(), m_ylocal.clear(), m_zlocal.clear();
+            m_hit_track_index.clear();
+            m_hit_module.clear();
+        }
+
         m_xtrack[chi2ndf] = xtrack, m_ytrack[chi2ndf] = ytrack;
         m_xptrack[chi2ndf] = xptrack, m_yptrack[chi2ndf] = yptrack;
         m_track_chi2ndf[chi2ndf] = chi2ndf; // for consistency
@@ -603,22 +617,6 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
             m_hit_track_index[chi2ndf].emplace_back(track_index_);
             m_hit_module[chi2ndf].emplace_back(i.module_id);
         }
-    }
-
-    // erase the current biggest chi2 track
-    if((int)m_xtrack.size() > max_track_save_quantity)
-    {
-        m_xtrack.erase(std::prev(m_xtrack.end())), m_ytrack.erase(std::prev(m_ytrack.end()));
-        m_xptrack.erase(std::prev(m_xptrack.end())), m_yptrack.erase(std::prev(m_yptrack.end()));
-        m_track_chi2ndf.erase(std::prev(m_track_chi2ndf.end()));
-        m_track_nhits.erase(std::prev(m_track_nhits.end()));
-
-        int nhits_in_last_track = m_xlocal.rbegin() -> second.size();
-        n_total_good_hits -= nhits_in_last_track;
-        m_xlocal.erase(std::prev(m_xlocal.end())), m_ylocal.erase(std::prev(m_ylocal.end()));
-        m_zlocal.erase(std::prev(m_zlocal.end()));
-        m_hit_track_index.erase(std::prev(m_hit_track_index.end()));
-        m_hit_module.erase(std::prev(m_hit_module.end()));
     }
 
     // best track, the one with minimum chi2
