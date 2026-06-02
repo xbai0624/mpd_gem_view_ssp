@@ -251,7 +251,7 @@ void Viewer::InitGui()
 
     // ---- status bar readout ----
     m_statEvent  = new QLabel(tr(" Event: 0 "), this);
-    m_statTracks = new QLabel(tr(" Tracks: 0 "), this);
+    m_statTracks = new QLabel(tr(" Tracks found: 0 (out of 0 good candidates)"), this);
     m_statChi2   = new QLabel(tr(" best chi2/ndf: - "), this);
     m_statTiming = new QLabel(tr("idle"), this);
     m_statTiming -> setMinimumWidth(240);   // room for the progress text
@@ -377,6 +377,7 @@ void Viewer::ProcessNewFile(const QString &_s)
     // clear the per-event status cache so Prev/Next on the new file
     // doesn't show stale chi2 / track counts from the previous file.
     m_hist_ntracks.clear();
+    m_hist_ncandidates.clear();
     m_hist_chi2.clear();
     m_hist_found.clear();
 }
@@ -508,6 +509,7 @@ void Viewer::DrawEvent(int event_number)
     double xt, yt, xp, yp, chi2;
     bool ok = tracking -> GetBestTrack(xt, yt, xp, yp, chi2);
     m_hist_ntracks.push_back(tracking -> GetNTracksFound());
+    m_hist_ncandidates.push_back(tracking -> GetNGoodTrackCandidates());
     m_hist_chi2.push_back(ok ? chi2 : 0.0);
     m_hist_found.push_back(ok);
 
@@ -530,12 +532,14 @@ void Viewer::UpdateStatusBar(int event_ordinal)
 
     int idx = event_ordinal - 1;
     if(idx >= 0 && idx < (int)m_hist_found.size()) {
-        m_statTracks -> setText(QString(" Tracks: %1 ").arg(m_hist_ntracks[idx]));
+        m_statTracks -> setText(QString(" Tracks found: %1 (out of %2 good candidates) ")
+                .arg(m_hist_ntracks[idx])
+                .arg(m_hist_ncandidates[idx]));
         m_statChi2   -> setText(m_hist_found[idx]
                 ? QString(" best chi2/ndf: %1 ").arg(m_hist_chi2[idx], 0, 'g', 3)
                 : QString(" best chi2/ndf: - "));
     } else {
-        m_statTracks -> setText(QString(" Tracks: 0 "));
+        m_statTracks -> setText(QString(" Tracks found: 0 (out of 0 good candidates) "));
         m_statChi2   -> setText(QString(" best chi2/ndf: - "));
     }
 

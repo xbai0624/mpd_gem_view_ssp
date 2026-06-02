@@ -107,6 +107,7 @@ private:
         // tracking result (the backward path only redraws cached plots and
         // does not re-run tracking). Indexed by event ordinal - 1.
         std::vector<int>    m_hist_ntracks;
+        std::vector<int>    m_hist_ncandidates;
         std::vector<double> m_hist_chi2;
         std::vector<bool>   m_hist_found;
 
