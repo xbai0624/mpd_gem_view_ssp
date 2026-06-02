@@ -204,7 +204,13 @@ void Tracking::loopAllLayerGroups()
         // then there's no need to continue search with less layer configurations
         if(found_tracks_with_nlayer(nlayers))
         {
+            // accepted_* key: bump by 1e-9 if this pass's best chi2 happens
+            // to exactly match a previously-accepted track (rare floating-
+            // point coincidence across passes). Use best_track_chi2ndf to
+            // look up the per-pass m_*; use chi2 as the accepted_* key.
             double chi2 = best_track_chi2ndf;
+            while(accepted_xtrack.find(chi2) != accepted_xtrack.end())
+                chi2 += 1e-9;
 
             if(accepted_xtrack.empty()) {
                 best_layer_cache = best_track_layer_index;
@@ -216,19 +222,19 @@ void Tracking::loopAllLayerGroups()
                 best_nhits_cache = nhits_on_best_track;
             }
 
-            accepted_xtrack[chi2] = m_xtrack[chi2];
-            accepted_ytrack[chi2] = m_ytrack[chi2];
-            accepted_xptrack[chi2] = m_xptrack[chi2];
-            accepted_yptrack[chi2] = m_yptrack[chi2];
-            accepted_chi2[chi2] = m_track_chi2ndf[chi2];
-            accepted_nhits[chi2] = m_track_nhits[chi2];
+            accepted_xtrack[chi2] = m_xtrack[best_track_chi2ndf];
+            accepted_ytrack[chi2] = m_ytrack[best_track_chi2ndf];
+            accepted_xptrack[chi2] = m_xptrack[best_track_chi2ndf];
+            accepted_yptrack[chi2] = m_yptrack[best_track_chi2ndf];
+            accepted_chi2[chi2] = m_track_chi2ndf[best_track_chi2ndf];
+            accepted_nhits[chi2] = m_track_nhits[best_track_chi2ndf];
 
-            accepted_xlocal[chi2] = m_xlocal[chi2];
-            accepted_ylocal[chi2] = m_ylocal[chi2];
-            accepted_zlocal[chi2] = m_zlocal[chi2];
-            accepted_hit_track_index[chi2] = m_hit_track_index[chi2];
-            accepted_hit_module[chi2] = m_hit_module[chi2];
-            accepted_total_good_hits += (int)m_xlocal[chi2].size();
+            accepted_xlocal[chi2] = m_xlocal[best_track_chi2ndf];
+            accepted_ylocal[chi2] = m_ylocal[best_track_chi2ndf];
+            accepted_zlocal[chi2] = m_zlocal[best_track_chi2ndf];
+            accepted_hit_track_index[chi2] = m_hit_track_index[best_track_chi2ndf];
+            accepted_hit_module[chi2] = m_hit_module[best_track_chi2ndf];
+            accepted_total_good_hits += (int)m_xlocal[best_track_chi2ndf].size();
 
             for(size_t i = 0; i < best_track_layer_index.size(); ++i)
                 hit_used[best_track_layer_index[i]][best_track_hit_index[i]] = true;
@@ -578,12 +584,6 @@ void Tracking::nextTrackCandidate(const std::vector<point_t> &hits)
 
     // chi2ndf too big
     if(chi2ndf > chi2_cut) return;
-
-    // in case two combinations have exactly the same chi2ndf,
-    // to avoid overwriting candidates with identical chi2 map keys,
-    // we slightly add a tiny offset to the later combination
-    while(m_xtrack.find(chi2ndf) != m_xtrack.end())
-        chi2ndf += 1e-9;
 
     n_good_track_candidates++;
 
