@@ -315,16 +315,19 @@ QWidget* Viewer::createOnlineHitsView(QWidget *w)
     // suppression, bottom = after). So rows = 2 * nLayers, ordered
     // layer 1, layer 2, ... top to bottom.
     if(nLayers > 0) {
-        QWidget *page = new QWidget(tabW);
-        QVBoxLayout *pageLayout = new QVBoxLayout(page);
-        pageLayout -> setContentsMargins(0, 0, 0, 0);
-        pageLayout -> setSpacing(0);
-        HistoWidget *c = new HistoWidget(page);
-        c -> Divide(2 * nLayers, 2);
-        pageLayout -> addWidget(c);
-        vTabCanvasOnlineHits.push_back(c);   // exactly one element now
-
-        tabW -> addTab(page, tr("Online Hits"));
+        const char *titles[] = { "Before Zero Suppression",
+                                 "After Zero Suppression" };
+        for(const char *t : titles) {
+            QWidget *page = new QWidget(tabW);
+            QVBoxLayout *pageLayout = new QVBoxLayout(page);
+            pageLayout -> setContentsMargins(0, 0, 0, 0);
+            pageLayout -> setSpacing(0);
+            HistoWidget *c = new HistoWidget(page);
+            c -> Divide(nLayers, 2);
+            pageLayout -> addWidget(c);
+            vTabCanvasOnlineHits.push_back(c);
+            tabW -> addTab(page, tr(t));
+        }
     }
 
     return tabW;
@@ -1135,10 +1138,10 @@ void Viewer::DrawGEMOnlineHits(int num)
     };
 
     const int nLayers = static_cast<int>(layerID.size());
-    std::vector<std::vector<int>> data;
-    std::vector<std::string> title;
-    data.reserve(4 * nLayers);
-    title.reserve(4 * nLayers);
+    std::vector<std::vector<int>> data_before, data_after;
+    std::vector<std::string>      title_before, title_after;
+    data_before.reserve(2 * nLayers); data_after.reserve(2 * nLayers);
+    title_before.reserve(2 * nLayers); title_after.reserve(2 * nLayers);
 
     for(size_t i=0; i<layerID.size(); ++i)
     {
@@ -1153,24 +1156,27 @@ void Viewer::DrawGEMOnlineHits(int num)
 
         const std::string prefix = "layer" + std::to_string(real_layer_id);
 
-        // ---- before zero suppression (X | Y) on TOP row ----
-        data.push_back(combine(online_hits_nzs[i], n_chambers, true));
-        title.push_back(prefix + "_x before zero suppression");
-        data.push_back(combine(online_hits_nzs[i], n_chambers, false));
-        title.push_back(prefix + "_y before zero suppression");
+        // ---- before zero suppression (X | Y) ----
+        data_before.push_back(combine(online_hits_nzs[i], n_chambers, true));
+        title_before.push_back(prefix + "_x before zero suppression");
+        data_before.push_back(combine(online_hits_nzs[i], n_chambers, false));
+        title_before.push_back(prefix + "_y before zero suppression");
 
-        // ---- after zero suppression (X | Y) on row below ----
-        data.push_back(combine(online_hits[i], n_chambers, true));
-        title.push_back(prefix + "_x after zero suppression");
-        data.push_back(combine(online_hits[i], n_chambers, false));
-        title.push_back(prefix + "_y after zero suppression");
+        // ---- after zero suppression (X | Y) ----
+        data_after.push_back(combine(online_hits[i], n_chambers, true));
+        title_after.push_back(prefix + "_x after zero suppression");
+        data_after.push_back(combine(online_hits[i], n_chambers, false));
+        title_after.push_back(prefix + "_y after zero suppression");
     }
 
-    if(!vTabCanvasOnlineHits.empty())
+    if((int)vTabCanvasOnlineHits.size() >= 2)
     {
         vTabCanvasOnlineHits[0] -> Clear();
-        vTabCanvasOnlineHits[0] -> DrawCanvas(data, title, 2 * nLayers, 2);
+        vTabCanvasOnlineHits[0] -> DrawCanvas(data_before, title_before, nLayers, 2);
         vTabCanvasOnlineHits[0] -> Refresh();
+        vTabCanvasOnlineHits[1] -> Clear();
+        vTabCanvasOnlineHits[1] -> DrawCanvas(data_after, title_after, nLayers, 2);
+        vTabCanvasOnlineHits[1] -> Refresh();
     }
 
 #ifdef EYE_BALL_TRACKING
