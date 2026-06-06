@@ -200,8 +200,6 @@ void Tracking::loopAllLayerGroups()
 #endif  
         }
 
-        // if we found a track with higher number of layers,
-        // then there's no need to continue search with less layer configurations
         if(found_tracks_with_nlayer(nlayers))
         {
             // accepted_* key: bump by 1e-9 if this pass's best chi2 happens
@@ -256,9 +254,15 @@ void Tracking::loopAllLayerGroups()
             best_track_chi2ndf_by_nlayer.clear();
             best_hits_on_track.clear();
 
-            nlayers = (int)layer_index.size();
+            // stay at the current (highest productive) layer count to
+            // exhaust all disjoint tracks at this level before descending
             continue;
         }
+
+        // if we found a track with higher number of layers,
+        // then there's no need to continue search with less layer configurations
+        if(!accepted_xtrack.empty())
+            break;
 
         nlayers--;
     }
