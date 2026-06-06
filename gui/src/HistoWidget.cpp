@@ -3,6 +3,7 @@
 #include <QHBoxLayout>
 #include <cassert>
 #include <algorithm>
+#include <QOpenGLWidget>
 
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
@@ -12,6 +13,7 @@ HistoWidget::HistoWidget(QWidget *parent): QWidget(parent)
     scene = new QGraphicsScene(this);
     //view = new HistoView(scene);
     view = new QGraphicsView(this);
+    view -> setViewport(new QOpenGLWidget());
     view -> setScene(scene);
 
     QHBoxLayout *layout = new QHBoxLayout(this);

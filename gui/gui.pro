@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = ../bin/data_viewer
 
-QT += core gui widgets
+QT += core gui widgets opengl openglwidgets
 
 ######################################################################
 # compiler configs
