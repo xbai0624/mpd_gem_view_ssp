@@ -5,7 +5,9 @@
 TEMPLATE = app
 TARGET = ../bin/data_viewer
 
-QT += core gui widgets opengl openglwidgets
+QT += core gui widgets opengl
+
+greaterThan(QT_MAJOR_VERSION, 5): QT += openglwidgets
 
 ######################################################################
 # compiler configs
