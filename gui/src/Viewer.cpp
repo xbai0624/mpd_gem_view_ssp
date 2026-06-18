@@ -1194,7 +1194,13 @@ void Viewer::DrawGEMOnlineHits(int num)
 
 void Viewer::SaveCurrentEvent()
 {
-    std::string file_name = "./Rootfiles/event_" + 
+    // no event decoded yet -> event_cache is empty; back()/at() would be UB
+    if(event_cache.empty()) {
+        m_logEdit -> appendPlainText("[warn] no event loaded; nothing to save.");
+        return;
+    }
+
+    std::string file_name = "./Rootfiles/event_" +
         std::to_string(current_event_number) + ".txt";
 
     std::map<APVAddress, std::vector<int>> _event;
