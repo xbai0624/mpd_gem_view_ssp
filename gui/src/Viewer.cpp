@@ -556,6 +556,39 @@ QWidget* Viewer::createAdvancedPage()
     v -> addWidget(m_cbOffline);
     v -> addWidget(m_cbOnline);
 
+    // online playback controls: pause the live feed (ET stays connected)
+    // and step back through recently cached events. Enabled only while
+    // online mode is active.
+    m_btnPause = new QPushButton(tr("Pause"), box);
+    m_btnPause -> setCheckable(true);
+    m_btnPause -> setEnabled(false);
+    m_btnPrevEvt = new QPushButton(QString::fromUtf8("◀ Prev Event"), box);
+    m_btnPrevEvt -> setEnabled(false);
+    v -> addWidget(m_btnPause);
+    v -> addWidget(m_btnPrevEvt);
+
+    connect(m_btnPause, &QPushButton::toggled, this, [this](bool paused) {
+        if(!online_timer) return;
+        if(paused) {
+            online_timer -> stop();
+            m_btnPause -> setText(tr("Resume"));
+            m_logEdit -> appendPlainText("[info] online feed paused (ET still connected).");
+        } else {
+            online_timer -> start(fOnlinePollMs);
+            m_btnPause -> setText(tr("Pause"));
+            m_logEdit -> appendPlainText("[info] online feed resumed.");
+        }
+    });
+
+    connect(m_btnPrevEvt, &QPushButton::clicked, this, [this]() {
+        // stepping back implies pausing the live feed first
+        if(m_btnPause && !m_btnPause -> isChecked())
+            m_btnPause -> setChecked(true);
+        int cur = m_eventSpin -> value();
+        if(cur > 0)
+            m_eventSpin -> setValue(cur - 1);   // triggers DrawEvent -> cached branch
+    });
+
     form -> addRow(box);
 
     // signal-slot: selecting "Online Mode" starts the live ET feed,
@@ -707,6 +740,8 @@ void Viewer::ToggleOnline([[maybe_unused]] bool on)
 
         online_mode = true;
         online_timer -> start(fOnlinePollMs);
+        m_btnPause   -> setEnabled(true);
+        m_btnPrevEvt -> setEnabled(true);
         m_logEdit -> appendPlainText("[info] online monitoring started.");
     }
     else
@@ -716,6 +751,16 @@ void Viewer::ToggleOnline([[maybe_unused]] bool on)
         if(pOnlineMonitor)
             pOnlineMonitor -> Disconnect();
         online_mode = false;
+        // reset playback controls (blockSignals: un-checking Pause must not
+        // restart the stopped timer)
+        if(m_btnPause) {
+            m_btnPause -> blockSignals(true);
+            m_btnPause -> setChecked(false);
+            m_btnPause -> setText(tr("Pause"));
+            m_btnPause -> blockSignals(false);
+            m_btnPause -> setEnabled(false);
+        }
+        if(m_btnPrevEvt) m_btnPrevEvt -> setEnabled(false);
         m_logEdit -> appendPlainText("[info] online monitoring stopped.");
     }
 #endif

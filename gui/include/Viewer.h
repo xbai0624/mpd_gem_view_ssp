@@ -182,6 +182,8 @@ private:
     // "Online Mode" starts the ET feed (disabled when built without ET).
     QRadioButton *m_cbOnline  = nullptr;
     QRadioButton *m_cbOffline = nullptr;
+    QPushButton *m_btnPause   = nullptr;  // pause/resume live feed (keeps ET connected)
+    QPushButton *m_btnPrevEvt = nullptr;  // step back one cached online event
 #ifdef HAVE_ET
     online_monitor::OnlineMonitor *pOnlineMonitor = nullptr;
 #endif
