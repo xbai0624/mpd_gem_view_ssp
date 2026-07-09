@@ -51,6 +51,7 @@ struct GeneralExpSetup::LayerPanel
 
     double det_w_mm = 0.0;
     double det_h_mm = 0.0;
+    double draw_scale = 1.0;   // enlargement for small detectors
 
     double x_offset = 0.0;
     double y_offset = 0.0;
@@ -125,6 +126,11 @@ void GeneralExpSetup::BuildGrid()
         panel->layer_id = layer_id;
         panel->det_w_mm = double(info.chambers_per_layer) * info.nb_apvs_x * info.x_pitch * APV_STRIP_SIZE;
         panel->det_h_mm = double(info.nb_apvs_y) * info.y_pitch * APV_STRIP_SIZE;
+        // decorations (APV boxes, fonts, title) are sized for ~500 mm frames;
+        // blow small detectors up so the drawing stays proportionate
+        panel->draw_scale = std::max(1.0, 512.0 / std::max(panel->det_w_mm, panel->det_h_mm));
+        panel->det_w_mm *= panel->draw_scale;
+        panel->det_h_mm *= panel->draw_scale;
         panel->x_offset = info.x_offset;
         panel->y_offset = info.y_offset;
         panel->x_flip = info.x_flip;
@@ -147,8 +153,8 @@ void GeneralExpSetup::BuildGrid()
         // Both planes honour invert (the side the APV physically sits on):
         //   dim=0 invert=0 -> top,    dim=0 invert=1 -> bottom
         //   dim=1 invert=0 -> right,  dim=1 invert=1 -> left
-        const double apv_w_mm = info.x_pitch * APV_STRIP_SIZE;
-        const double apv_h_mm = info.y_pitch * APV_STRIP_SIZE;
+        const double apv_w_mm = info.x_pitch * APV_STRIP_SIZE * panel->draw_scale;
+        const double apv_h_mm = info.y_pitch * APV_STRIP_SIZE * panel->draw_scale;
 
         for(const auto &kv : mapping->GetAPVMap())
         {
@@ -202,12 +208,16 @@ void GeneralExpSetup::BuildGrid()
         tfont.setBold(true);
         title->setFont(tfont);
         title->setDefaultTextColor(panel->hit_color);
+        // place the title BELOW the bottom APV band (box + label) so it can
+        // never sit on top of inverted X-plane APV boxes
+        const double title_y = panel->origin_y + panel->det_h_mm
+                             + box_gap + box_thickness + font_pt + 16;
         title->setPos(panel->origin_x + panel->det_w_mm/2 - title->boundingRect().width()/2,
-                      panel->origin_y + panel->det_h_mm + box_gap);
+                      title_y);
         scene->addItem(title);
 
         max_x = std::max(max_x, panel->origin_x + panel->det_w_mm + margin);
-        max_y = std::max(max_y, panel->origin_y + panel->det_h_mm + margin + 44 + 20);
+        max_y = std::max(max_y, title_y + 180);
 
         panels.push_back(panel);
         by_layer_id[layer_id] = panel;
@@ -278,9 +288,9 @@ void GeneralExpSetup::PassData(const QMap<int, QVector<QPointF>> &data)
             // Hits arrive in detector-local mm with origin at the centre;
             // translate so (0,0) is the top-left of the frame for drawing.
             const double sx = panel->origin_x + panel->det_w_mm / 2
-                            + panel->x_flip * (hit.x() - panel->x_offset);
+                            + panel->x_flip * (hit.x() - panel->x_offset) * panel->draw_scale;
             const double sy = panel->origin_y + panel->det_h_mm / 2
-                            - panel->y_flip * (hit.y() - panel->y_offset);
+                            - panel->y_flip * (hit.y() - panel->y_offset) * panel->draw_scale;
 
             auto *dot = new QGraphicsEllipseItem(
                 sx - dot_mm/2, sy - dot_mm/2, dot_mm, dot_mm);
