@@ -52,7 +52,12 @@ public:
     void clearContent();
     void SetTitle(const std::string &);
     void SetStats(const std::vector<std::string> &stats);
+    void SetAxisTitles(const std::string &x, const std::string &y) {
+        _x_axis_title = QString::fromStdString(x);
+        _y_axis_title = QString::fromStdString(y);
+    }
     void drawTitle(QPainter *painter);
+    void drawAxisTitles(QPainter *painter);
     void drawStatsBox(QPainter *painter);
 
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -83,6 +88,7 @@ private:
 
     // title
     QString _title = "hist";
+    QString _x_axis_title, _y_axis_title;
     QStringList _stats;
 };
 

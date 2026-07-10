@@ -18,6 +18,7 @@ public:
         enum Type { Plot1D, Plot2D } type = Plot1D;
         std::string title;
         std::vector<std::string> stats;
+        std::string xTitle, yTitle;   // axis titles (empty = not drawn)
 
         std::vector<double> y;    // 1D bin contents
 

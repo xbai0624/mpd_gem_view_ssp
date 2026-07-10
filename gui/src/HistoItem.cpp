@@ -228,6 +228,7 @@ void HistoItem::paint(QPainter *painter,
 
     // draw a title
     drawTitle(painter);
+    drawAxisTitles(painter);
     drawStatsBox(painter);
 }
 
@@ -484,6 +485,39 @@ void HistoItem::drawTitle(QPainter *painter)
     painter -> drawText(drawing_range.x() + drawing_range.width()/2 - font_width/2,
             title_baseline,
             _title);
+}
+
+// draw x/y axis titles; no-op when titles were never set, so views
+// that don't call SetAxisTitles render exactly as before
+void HistoItem::drawAxisTitles(QPainter *painter)
+{
+    if(_x_axis_title.isEmpty() && _y_axis_title.isEmpty())
+        return;
+
+    QFont font;
+    int font_size = bounding_rect.width() / 50 > 6 ? bounding_rect.width() / 50 : 6;
+    font.setPixelSize(font_size);
+    QFontMetrics fm(font);
+    painter -> setFont(font);
+    painter -> setPen(QPen(Qt::black));
+
+    // x title: centered below the tick labels
+    if(!_x_axis_title.isEmpty())
+        painter -> drawText(drawing_range.x() + drawing_range.width()/2
+                - fm.horizontalAdvance(_x_axis_title)/2,
+                drawing_range.y() + drawing_range.height() + 2.0*fm.height(),
+                _x_axis_title);
+
+    // y title: rotated 90 degrees, in the left margin
+    if(!_y_axis_title.isEmpty()) {
+        painter -> save();
+        painter -> translate(drawing_range.x() * 0.35,
+                drawing_range.y() + drawing_range.height()/2
+                + fm.horizontalAdvance(_y_axis_title)/2);
+        painter -> rotate(-90);
+        painter -> drawText(0, 0, _y_axis_title);
+        painter -> restore();
+    }
 }
 
 void HistoItem::drawStatsBox(QPainter *painter)

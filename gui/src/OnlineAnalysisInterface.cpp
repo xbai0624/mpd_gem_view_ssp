@@ -989,6 +989,8 @@ void OnlineAnalysisInterface::ShowPage(int idx)
         plot.title = h->GetTitle() && std::string(h->GetTitle()).size() > 0
             ? std::string(h->GetTitle())
             : std::string(h->GetName());
+        plot.xTitle = h->GetXaxis()->GetTitle();
+        plot.yTitle = h->GetYaxis()->GetTitle();
 
         if(TH2 *h2 = dynamic_cast<TH2*>(h)) {
             plot.type = HistoWidget::PlotData::Plot2D;

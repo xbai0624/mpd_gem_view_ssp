@@ -34,6 +34,10 @@ public:
     void SetBoundingRect(const QRectF &f);
     void SetTitle(const std::string &t);
     void SetStats(const std::vector<std::string> &stats);
+    void SetAxisTitles(const std::string &x, const std::string &y) {
+        m_xAxisTitle = QString::fromStdString(x);
+        m_yAxisTitle = QString::fromStdString(y);
+    }
     // row-major z[iy*nx + ix]
     void SetData(int nx, double xMin, double xMax,
                  int ny, double yMin, double yMax,
@@ -57,6 +61,7 @@ private:
     void   drawAxes(QPainter *painter);
     void   drawColorbar(QPainter *painter);
     void   drawTitle(QPainter *painter);
+    void   drawAxisTitles(QPainter *painter);
     void   drawStatsBox(QPainter *painter);
     void   drawSelectBox(QPainter *painter);
     QRgb   paletteColor(double zNorm) const;
@@ -87,6 +92,7 @@ private:
     QPointF m_selEnd;
 
     QString m_title = "hist";
+    QString m_xAxisTitle, m_yAxisTitle;
     QStringList m_stats;
 };
 

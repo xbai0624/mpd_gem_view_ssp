@@ -236,12 +236,14 @@ void HistoWidget::DrawCanvas(const std::vector<PlotData> &data, int row, int col
             HistoItem2D *item = static_cast<HistoItem2D*>(pItem[i].item);
             item->SetTitle(plot.title);
             item->SetStats(plot.stats);
+            item->SetAxisTitles(plot.xTitle, plot.yTitle);
             item->SetData(plot.nx, plot.xMin, plot.xMax,
                           plot.ny, plot.yMin, plot.yMax, plot.z);
         } else {
             HistoItem *item = static_cast<HistoItem*>(pItem[i].item);
             item->SetTitle(plot.title);
             item->SetStats(plot.stats);
+            item->SetAxisTitles(plot.xTitle, plot.yTitle);
             // If the caller supplied a real X axis (xMin < xMax), pass
             // (bin_center, content) pairs so axis labels show the booked
             // range; otherwise fall back to bin-index X for callers that

@@ -108,6 +108,7 @@ void HistoItem2D::paint(QPainter *painter,
     drawAxes(painter);
     drawColorbar(painter);
     drawTitle(painter);
+    drawAxisTitles(painter);
     drawStatsBox(painter);
     drawSelectBox(painter);
 }
@@ -258,6 +259,38 @@ void HistoItem2D::drawTitle(QPainter *painter)
     painter->drawText(QPointF(drawing_range.center().x() - fm.horizontalAdvance(m_title) / 2.0,
                               drawing_range.top() - fm.height() * 0.35),
                       m_title);
+}
+
+// draw x/y axis titles; no-op when titles were never set, so views
+// that don't call SetAxisTitles render exactly as before
+void HistoItem2D::drawAxisTitles(QPainter *painter)
+{
+    if(m_xAxisTitle.isEmpty() && m_yAxisTitle.isEmpty())
+        return;
+
+    QFont font;
+    font.setPixelSize(std::max(7, static_cast<int>(bounding_rect.width() / 55)));
+    painter->setFont(font);
+    QFontMetrics fm(font);
+    painter->setPen(Qt::black);
+
+    // x title: centered below the tick labels
+    if(!m_xAxisTitle.isEmpty())
+        painter->drawText(QPointF(drawing_range.center().x()
+                    - fm.horizontalAdvance(m_xAxisTitle) / 2.0,
+                    drawing_range.bottom() + 2.0 * fm.height()),
+                m_xAxisTitle);
+
+    // y title: rotated 90 degrees, in the left margin
+    if(!m_yAxisTitle.isEmpty()) {
+        painter->save();
+        painter->translate(drawing_range.left() * 0.35,
+                drawing_range.center().y()
+                + fm.horizontalAdvance(m_yAxisTitle) / 2.0);
+        painter->rotate(-90);
+        painter->drawText(0, 0, m_yAxisTitle);
+        painter->restore();
+    }
 }
 
 void HistoItem2D::drawStatsBox(QPainter *painter)
