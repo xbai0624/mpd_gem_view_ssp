@@ -269,7 +269,8 @@ void HistoItem2D::drawAxisTitles(QPainter *painter)
         return;
 
     QFont font;
-    font.setPixelSize(std::max(7, static_cast<int>(bounding_rect.width() / 55)));
+    font.setBold(true);
+    font.setPixelSize(std::max(8, static_cast<int>(bounding_rect.width() / 45)));
     painter->setFont(font);
     QFontMetrics fm(font);
     painter->setPen(Qt::black);

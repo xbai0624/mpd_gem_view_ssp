@@ -99,6 +99,19 @@ void Viewer::InitToyDetectorSetup()
 
 void Viewer::InitGui()
 {
+    InitDetectorViews();                    // 2D items + iso view
+    ApplyTheme();                           // stylesheet
+    createMenuBar();                        // File / Edit / Parameters
+    setCentralWidget(createCentralArea());  // toolbar row + splitters
+    createStatusBar();                      // Event / Tracks / chi2 / timing
+    InitConnections();                      // all signal wiring
+}
+
+////////////////////////////////////////////////////////////////
+// 2D detector items + 3D isometric view
+
+void Viewer::InitDetectorViews()
+{
     fDet2DView = new Detector2DHitView(this);
 
 #ifdef USE_SIM_DATA
@@ -135,16 +148,13 @@ void Viewer::InitGui()
     for(int i = 0; i < NDetector_Implemented; i++)
         fIsoView -> AddLayer(fDet[layer_ids[i]]);
     fIsoView -> InitView();
+}
 
-    btn_next = new QSpinBox(this);
-    btn_next -> setRange(0, 9999999);
-    btn_prev = new QPushButton(QString::fromUtf8("◀ Prev"), this);
-    btn_next_step = new QPushButton(QString::fromUtf8("Next ▶"), this);
-    btn_50K = new QPushButton("Replay 50K", this);
-    btn_open_file = new QPushButton("Open File", this);
-    //label_file = new QLineEdit("../data/hallc_fadc_ssp_4818.evio.1", this);
-    label_file = new QLineEdit("../data/fermilab_run_1018.evio.1", this);
+////////////////////////////////////////////////////////////////
+// window stylesheet
 
+void Viewer::ApplyTheme()
+{
     // theme matching gui/src/Viewer.cpp (buttons/inputs stay native)
     setStyleSheet(R"(
             QMainWindow {
@@ -172,7 +182,13 @@ void Viewer::InitGui()
                 border-radius: 0px;
             }
             )");
+}
 
+////////////////////////////////////////////////////////////////
+// menu bar
+
+void Viewer::createMenuBar()
+{
     // ---- menu bar: File ----
     QMenu *fileMenu = menuBar()->addMenu(tr("File"));
     QAction *openAction = fileMenu->addAction(tr("open"));
@@ -180,11 +196,26 @@ void Viewer::InitGui()
      // ---- menu bar: Edit ----
     QMenu *editMenu = menuBar()->addMenu(tr("Edit"));
     QAction *undoAction = editMenu->addAction(tr("undo"));
- 
+
     // ---- menu bar: Settings -> Tracking Configuration... (pop-up) ----
     QMenu *settingsMenu = menuBar()->addMenu(tr("Parameters"));
     QAction *cfgAction = settingsMenu->addAction(tr("Tracking Configuration..."));
     connect(cfgAction, &QAction::triggered, this, &Viewer::OpenSettings);
+}
+
+////////////////////////////////////////////////////////////////
+// top toolbar: file selector + event navigation + replay
+
+QWidget* Viewer::createTopToolbar()
+{
+    btn_next = new QSpinBox(this);
+    btn_next -> setRange(0, 9999999);
+    btn_prev = new QPushButton(QString::fromUtf8("◀ Prev"), this);
+    btn_next_step = new QPushButton(QString::fromUtf8("Next ▶"), this);
+    btn_50K = new QPushButton("Replay 50K", this);
+    btn_open_file = new QPushButton("Open File", this);
+    //label_file = new QLineEdit("../data/hallc_fadc_ssp_4818.evio.1", this);
+    label_file = new QLineEdit("../data/fermilab_run_1018.evio.1", this);
 
     // ---- top toolbar as a plain widget row (matches gui/src/Viewer.cpp:
     //      a QHBoxLayout of native widgets, not a QToolBar) ----
@@ -202,12 +233,19 @@ void Viewer::InitGui()
     tbar -> addStretch(1);
     tbar -> addWidget(btn_50K);
 
-    // ---- central area: toolbar row + framed plot view ----
+    return topToolbar;
+}
+
+////////////////////////////////////////////////////////////////
+// central area: toolbar row + GEM Hits pane + Tracking Results pane
+
+QWidget* Viewer::createCentralArea()
+{
     QWidget *central = new QWidget(this);
     QVBoxLayout *vMain = new QVBoxLayout(central);
     vMain -> setContentsMargins(8, 8, 8, 8);
     vMain -> setSpacing(8);
-    vMain -> addWidget(topToolbar);
+    vMain -> addWidget(createTopToolbar());
 
     QGroupBox *plotBox = new QGroupBox(tr("GEM Hits"), central);
     QVBoxLayout *plotLayout = new QVBoxLayout(plotBox);
@@ -247,9 +285,14 @@ void Viewer::InitGui()
     split -> setStretchFactor(1, 1);
     vMain -> addWidget(split, 1);
 
-    setCentralWidget(central);
+    return central;
+}
 
-    // ---- status bar readout ----
+////////////////////////////////////////////////////////////////
+// status bar readout
+
+void Viewer::createStatusBar()
+{
     m_statEvent  = new QLabel(tr(" Event: 0 "), this);
     m_statTracks = new QLabel(tr(" Tracks found: 0 (out of 0 good candidates)"), this);
     m_statChi2   = new QLabel(tr(" best chi2/ndf: - "), this);
@@ -261,7 +304,13 @@ void Viewer::InitGui()
     // timing/progress on the right (permanent so a transient showMessage
     // never hides it)
     statusBar() -> addPermanentWidget(m_statTiming);
+}
 
+////////////////////////////////////////////////////////////////
+// signal wiring
+
+void Viewer::InitConnections()
+{
     connect(btn_open_file, SIGNAL(clicked()), this, SLOT(OpenFile()));
     connect(label_file, SIGNAL(textChanged(const QString &)), this, SLOT(ProcessNewFile(const QString &)));
     connect(btn_next, SIGNAL(valueChanged(int)), this, SLOT(DrawEvent(int)));
@@ -833,7 +882,8 @@ void Viewer::UpdateResultHistos()
         std::snprintf(buf, sizeof(buf), "Std %.3g",     h -> GetStdDev());  stats.push_back(buf);
 
         result_panel -> AddHisto1D(name, stats, n,
-                h -> GetXaxis() -> GetXmin(), h -> GetXaxis() -> GetXmax(), y);
+                h -> GetXaxis() -> GetXmin(), h -> GetXaxis() -> GetXmax(), y,
+                h -> GetXaxis() -> GetTitle(), h -> GetYaxis() -> GetTitle());
     };
 
     auto add2d = [&](const char *name)
@@ -852,7 +902,8 @@ void Viewer::UpdateResultHistos()
 
         result_panel -> AddHisto2D(name, stats,
                 nx, h -> GetXaxis() -> GetXmin(), h -> GetXaxis() -> GetXmax(),
-                ny, h -> GetYaxis() -> GetXmin(), h -> GetYaxis() -> GetXmax(), z);
+                ny, h -> GetYaxis() -> GetXmin(), h -> GetYaxis() -> GetXmax(), z,
+                h -> GetXaxis() -> GetTitle(), h -> GetYaxis() -> GetTitle());
     };
 
     result_panel -> AddSection("Tracking");
@@ -864,6 +915,8 @@ void Viewer::UpdateResultHistos()
     for(auto &module_id: det_module_ids) {
         result_panel -> AddSection(Form("GEM %d", module_id));
         add2d(Form("h_2defficiency_xy_gem%d", module_id));
+        add2d(Form("h_shouldhit_xy_gem%d", module_id));
+        add2d(Form("h_didhit_xy_gem%d", module_id));
         add1d(Form("h_x_offset_gem%d", module_id));
         add1d(Form("h_y_offset_gem%d", module_id));
     }

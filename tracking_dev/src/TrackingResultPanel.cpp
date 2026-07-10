@@ -86,7 +86,9 @@ void TrackingResultPanel::AddSection(const std::string &name)
 void TrackingResultPanel::AddHisto1D(const std::string &title,
                                      const std::vector<std::string> &stats,
                                      int nbins, double xMin, double xMax,
-                                     const std::vector<double> &y)
+                                     const std::vector<double> &y,
+                                     const std::string &xTitle,
+                                     const std::string &yTitle)
 {
     if(m_sections.empty()) return;
     Section &s = m_sections.back();
@@ -103,6 +105,7 @@ void TrackingResultPanel::AddHisto1D(const std::string &title,
     item -> ReceiveContents(pts);
     item -> SetTitle(title);
     item -> SetStats(stats);
+    item -> SetAxisTitles(xTitle, yTitle);
 
     s.scene -> addItem(item);
     s.items.push_back(item);
@@ -113,7 +116,9 @@ void TrackingResultPanel::AddHisto2D(const std::string &title,
                                      const std::vector<std::string> &stats,
                                      int nx, double xMin, double xMax,
                                      int ny, double yMin, double yMax,
-                                     const std::vector<double> &z)
+                                     const std::vector<double> &z,
+                                     const std::string &xTitle,
+                                     const std::string &yTitle)
 {
     if(m_sections.empty()) return;
     Section &s = m_sections.back();
@@ -122,6 +127,7 @@ void TrackingResultPanel::AddHisto2D(const std::string &title,
     item -> SetData(nx, xMin, xMax, ny, yMin, yMax, z);
     item -> SetTitle(title);
     item -> SetStats(stats);
+    item -> SetAxisTitles(xTitle, yTitle);
 
     s.scene -> addItem(item);
     s.items.push_back(item);

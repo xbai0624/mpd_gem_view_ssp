@@ -72,6 +72,15 @@ public:
         void LoadFermiData();
 
 private:
+        // InitGui sub-steps (pure UI assembly, one job each)
+        void InitDetectorViews();
+        void ApplyTheme();
+        void createMenuBar();
+        QWidget* createTopToolbar();
+        QWidget* createCentralArea();
+        void createStatusBar();
+        void InitConnections();
+
         void RunReplay50KWorker();
         void FinalizeReplay50KHistos();
         void SetReplayControlsEnabled(bool enabled);

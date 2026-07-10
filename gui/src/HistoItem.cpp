@@ -461,7 +461,8 @@ void HistoItem::drawTitle(QPainter *painter)
 {
     // text font below tick
     QFont font;
-    int font_size = bounding_rect.width() / 50 > 6 ? bounding_rect.width() / 50 : 6;
+    font.setBold(true);
+    int font_size = bounding_rect.width() / 45 > 8 ? bounding_rect.width() / 45 : 8;
     font.setPixelSize(font_size);
     QFontMetrics fm(font);
     painter -> setFont(font);
@@ -495,7 +496,8 @@ void HistoItem::drawAxisTitles(QPainter *painter)
         return;
 
     QFont font;
-    int font_size = bounding_rect.width() / 50 > 6 ? bounding_rect.width() / 50 : 6;
+    font.setBold(true);
+    int font_size = bounding_rect.width() / 45 > 8 ? bounding_rect.width() / 45 : 8;
     font.setPixelSize(font_size);
     QFontMetrics fm(font);
     painter -> setFont(font);
