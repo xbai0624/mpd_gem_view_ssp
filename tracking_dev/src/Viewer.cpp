@@ -14,6 +14,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <algorithm>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -733,6 +736,54 @@ void Viewer::Replay50K()
     m_replay50KThread = std::thread(&Viewer::RunReplay50KWorker, this);
 }
 
+////////////////////////////////////////////////////////////////
+// best-track txt log -- same file name and column format as bin/replay
+// (replay/src/log_tracks.hpp), so downstream scripts work unchanged.
+// The stream is opened ONCE per replay and kept open for the whole run.
+
+// truncate log_tracks.txt, write the header row, return the open stream
+static std::ofstream open_tracks_text_file()
+{
+    std::ofstream f("log_tracks.txt", std::ios::out | std::ios::trunc);
+    if(!f.is_open()) {
+        std::cout<<"ERROR: cannot open text file log_tracks.txt to write tracks."<<std::endl;
+        return f;   // subsequent writes are silently ignored
+    }
+    f<<std::setw(10)<<std::setfill(' ')<<"module_id"
+        <<std::setw(12)<<std::setfill(' ')<<"x"
+        <<std::setw(12)<<std::setfill(' ')<<"y"
+        <<std::setw(12)<<std::setfill(' ')<<"z"
+        <<std::endl;
+    return f;
+}
+
+// append one track (one line: module_id, x, y, z per hit) to the open stream
+static void append_track(std::ofstream &f,
+        const std::vector<point_t> &track)
+{
+    if(!f.is_open()) return;
+
+    // skip events with no reconstructed track (bin/replay only logs
+    // found tracks; without this every trackless event = a blank line)
+    if(track.empty()) return;
+
+    // write hits in layer order -- the tracking search visits layers in
+    // combination order (outer layers first), not geometric order
+    std::vector<point_t> sorted_track = track;
+    std::sort(sorted_track.begin(), sorted_track.end(),
+            [](const point_t &a, const point_t &b)
+            { return a.layer_id < b.layer_id; });
+
+    for(const auto &hit: sorted_track) {
+        f<<std::setw(10)<<std::setfill(' ')<<hit.module_id
+            <<std::setw(12)<<std::setfill(' ')<<hit.x
+            <<std::setw(12)<<std::setfill(' ')<<hit.y
+            <<std::setw(12)<<std::setfill(' ')<<hit.z
+            <<"        ";
+    }
+    f<<std::endl;
+}
+
 void Viewer::RunReplay50KWorker()
 {
     typedef std::chrono::high_resolution_clock Time;
@@ -745,6 +796,8 @@ void Viewer::RunReplay50KWorker()
 #ifndef USE_SIM_DATA
     tracking_data_handler -> SetReplayMode(true);
 #endif
+
+    std::ofstream track_log = open_tracks_text_file();
 
     while(event_counter < 50000)
     {
@@ -759,6 +812,7 @@ void Viewer::RunReplay50KWorker()
         tracking -> FindTracks();
         ProcessTrackingResult();
         ProcessRawGEMResult();
+        append_track(track_log, tracking -> GetVHitsOnBestTrack());
         //if(t) break;
 
         event_counter++;
