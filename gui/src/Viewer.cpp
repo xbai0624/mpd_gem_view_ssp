@@ -33,8 +33,8 @@
 #include <thread>
 
 //#define SHOW_APV_BY_MPD
-#define APVS_PER_TAB_X 6
-#define APVS_PER_TAB_Y 6
+#define APVS_PER_TAB_X 4
+#define APVS_PER_TAB_Y 4
 #define EYE_BALL_TRACKING
 
 // Pick exactly one experiment-setup view for the toolbox page.

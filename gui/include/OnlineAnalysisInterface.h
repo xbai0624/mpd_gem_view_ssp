@@ -157,6 +157,9 @@ private:
     QString m_repoRoot;       // cached at construction; ./setup_env.sh + ./bin/replay live here
     int     m_workerFailures = 0;
     QProcess *m_mergeProc = nullptr;
+
+    static constexpr int kPageRows = 4;
+    static constexpr int kPageCols = 4;
 };
 
 #endif

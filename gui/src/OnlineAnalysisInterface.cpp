@@ -958,7 +958,7 @@ void OnlineAnalysisInterface::PopulatePageCombo()
     m_pageCombo->clear();
 
     const int nHistos = static_cast<int>(m_visibleHistoIndices.size());
-    const int nPages = (nHistos + 3) / 4;
+    const int nPages = (nHistos + kPageRows*kPageCols-1) / (kPageRows*kPageCols);
     for(int p = 0; p < nPages; ++p)
         m_pageCombo->addItem(QString("page %1 / %2").arg(p + 1).arg(nPages));
 
@@ -977,9 +977,9 @@ void OnlineAnalysisInterface::ShowPage(int idx)
     if(!m_plotWidget) return;
     if(m_visibleHistoIndices.empty()) { m_plotWidget->Clear(); return; }
 
-    const int base = idx * 4;
+    const int base = idx * kPageRows*kPageCols;
     std::vector<HistoWidget::PlotData> plots;
-    for(int i = 0; i < 4; ++i) {
+    for(int i = 0; i < kPageRows*kPageCols; ++i) {
         const int visibleIdx = base + i;
         if(visibleIdx >= static_cast<int>(m_visibleHistoIndices.size())) break;
         const int hi = m_visibleHistoIndices[visibleIdx];
@@ -1038,7 +1038,7 @@ void OnlineAnalysisInterface::ShowPage(int idx)
 
         plots.push_back(plot);
     }
-    m_plotWidget->DrawCanvas(plots, 2, 2);
+    m_plotWidget->DrawCanvas(plots, kPageRows, kPageCols);
 }
 
 void OnlineAnalysisInterface::ConfigureVisibleHistograms()
