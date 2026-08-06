@@ -46,7 +46,8 @@ public:
            const float &common_threshold = 20.,
            const float &zero_threshold = 5.,
            const float &cross_threshold = 8.,
-           const bool &fpga_online_zero_suppression = false);
+           const bool &fpga_online_zero_suppression = false,
+           const int &sig_polarity = 0);
 
     // copy/move constructors
     GEMAPV(const GEMAPV &p);
@@ -78,8 +79,7 @@ public:
     void UpdatePedestal(const float &offset, const float &noise, const uint32_t &index);
     void UpdateCommonModeRange(const float &c_min, const float &c_max);
     void ZeroSuppression();
-    void CommonModeCorrection_MPD(float *buf, const uint32_t &size, const uint32_t &ts);
-    void CommonModeCorrection_SRS(float *buf, const uint32_t &size, const uint32_t &ts);
+    void CommonModeCorrection(float *buf, const uint32_t &size, const uint32_t &ts);
     float dynamic_ts_common_mode_sorting(float *buf, const uint32_t &size);
     float dynamic_ts_common_mode_danning(float *buf, const uint32_t &size);
     void CollectZeroSupHits(std::vector<GEM_Strip_Data> &hits);
@@ -164,6 +164,9 @@ private:
 
     int orient;
     int detector_position; // detector position in GEM layer [0 - 3]
+    // signal polarity of this APV: 0 = positive (MPD-like, pulse grows up),
+    // 1 = negative (SRS-like, pulse grows down); from the mapping file
+    int signal_polarity;
 
     // add an apv name
     std::string apv_name = "";

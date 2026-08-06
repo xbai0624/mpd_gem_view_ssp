@@ -271,12 +271,15 @@ struct APVInfo
     int adc_ch, i2c_ch, apv_pos, invert;
     std::string discriptor;
     int backplane_id, gem_pos;
+    // signal polarity: 0 = positive (MPD-like), 1 = negative (SRS-like);
+    // -1 = column absent in mapping file
+    int signal_polarity;
 
     APVInfo(){};
     APVInfo(const std::string &str)
         : crate_id(-1), layer_id(-1), mpd_id(-1), detector_id(-1), dimension(-1),
         adc_ch(-1), i2c_ch(-1), apv_pos(-1), invert(-1), discriptor(""),
-        backplane_id(-1), gem_pos(-1)
+        backplane_id(-1), gem_pos(-1), signal_polarity(-1)
     {
         if(str.find("APV") == std::string::npos)
             return;
@@ -290,9 +293,12 @@ struct APVInfo
             crate_id     = std::stoi(tmp[1]);    layer_id    = std::stoi(tmp[2]); 
             mpd_id       = std::stoi(tmp[3]);    detector_id = std::stoi(tmp[4]);
             dimension    = std::stoi(tmp[5]);    adc_ch      = std::stoi(tmp[6]); 
-            i2c_ch       = std::stoi(tmp[7]);    apv_pos     = std::stoi(tmp[8]);   
-            invert       = std::stoi(tmp[9]);    discriptor  = tmp[10];          
+            i2c_ch       = std::stoi(tmp[7]);    apv_pos     = std::stoi(tmp[8]);
+            invert       = std::stoi(tmp[9]);    discriptor  = tmp[10];
             backplane_id = std::stoi(tmp[11]);   gem_pos     = std::stoi(tmp[12]);
+            // optional trailing column
+            if(tmp.size() > 13)
+                signal_polarity = std::stoi(tmp[13]);
         }
         catch(...){
             std::cout<<__PRETTY_FUNCTION__<<" error enountered..."<<std::endl;

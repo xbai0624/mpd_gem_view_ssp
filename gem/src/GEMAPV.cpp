@@ -45,8 +45,9 @@ GEMAPV::GEMAPV(const int &o,
         const float &cth,
         const float &zth,
         const float &ctth,
-        const bool &fpga_onlinezerosup)
-    : orient(o), detector_position(det_pos),
+        const bool &fpga_onlinezerosup,
+        const int &sig_polarity)
+    : orient(o), detector_position(det_pos), signal_polarity(sig_polarity),
     common_thres(cth), zerosup_thres(zth), crosstalk_thres(ctth),
     online_zero_suppression(fpga_onlinezerosup)
 {
@@ -91,10 +92,11 @@ void GEMAPV::initialize()
 // copy constructor
 
 GEMAPV::GEMAPV(const GEMAPV &that)
-    : orient(that.orient), detector_position(that.detector_position), 
-    time_samples(that.time_samples), 
+    : orient(that.orient), detector_position(that.detector_position),
+    signal_polarity(that.signal_polarity),
+    time_samples(that.time_samples),
     common_thres(that.common_thres), zerosup_thres(that.zerosup_thres),
-    crosstalk_thres(that.crosstalk_thres), 
+    crosstalk_thres(that.crosstalk_thres),
     online_zero_suppression(that.online_zero_suppression)
 {
     initialize();
@@ -150,8 +152,9 @@ GEMAPV::GEMAPV(const GEMAPV &that)
 // move constructor
 
 GEMAPV::GEMAPV(GEMAPV &&that)
-    : orient(that.orient), detector_position(that.detector_position), 
-    time_samples(that.time_samples), 
+    : orient(that.orient), detector_position(that.detector_position),
+    signal_polarity(that.signal_polarity),
+    time_samples(that.time_samples),
     common_thres(that.common_thres), zerosup_thres(that.zerosup_thres),
     crosstalk_thres(that.crosstalk_thres),
     online_zero_suppression(that.online_zero_suppression)
@@ -235,6 +238,7 @@ GEMAPV &GEMAPV::operator= (GEMAPV &&rhs)
     // members
     time_samples = rhs.time_samples;
     orient = rhs.orient;
+    signal_polarity = rhs.signal_polarity;
     common_thres = rhs.common_thres;
     zerosup_thres = rhs.zerosup_thres;
     crosstalk_thres = rhs.crosstalk_thres;
@@ -821,11 +825,7 @@ void GEMAPV::ZeroSuppression()
     offline_common_mode.clear();
     for(uint32_t ts = 0; ts < time_samples; ++ts)
     {
-#ifdef USE_SRS
-        CommonModeCorrection_SRS(&raw_data[DATA_INDEX(0, ts)], APV_STRIP_SIZE, ts);
-#else
-        CommonModeCorrection_MPD(&raw_data[DATA_INDEX(0, ts)], APV_STRIP_SIZE, ts);
-#endif
+        CommonModeCorrection(&raw_data[DATA_INDEX(0, ts)], APV_STRIP_SIZE, ts);
     }
 
     for(uint32_t i = 0; i < APV_STRIP_SIZE; ++i)
@@ -953,157 +953,76 @@ static void binary_insert_find_low(float *vec, const float &val, size_t start, s
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// do common mode correction (bring the signal average to 0): MPD version
+// do common mode correction (bring the signal average to 0).
+// Polarity-aware: works for positive (MPD-like, pulse grows up) and negative
+// (SRS-like, pulse grows down) signals, selected per APV by the mapping
+// column "signal_polarity".
+//
+//   Step A: pedestal offset subtraction (identical for both polarities;
+//           skipped when the FPGA already subtracted it online)
+//   Step B: common mode calculation     (signal strips excluded by polarity)
+//   Step C: common mode subtraction     (for negative polarity this also
+//           flips the pulse UPWARD, so everything downstream --
+//           zero suppression, GetMaxCharge, etc. -- stays polarity-free)
 
 #define NUM_HIGH_STRIPS 20
-void GEMAPV::CommonModeCorrection_MPD(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
+void GEMAPV::CommonModeCorrection(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
 {
     float average = 0;
 
-    //-----------------------------------------------------------
-    // According to Ben, once the online_CM is calculated, the offset will be sutracted 
-    // from the raw data, event if you don't subtract cm from the raw data
-    // because if one wants to calculate cm, one has to subtract offset first, and it is
-    // hard to add the offset back to the raw data online
-    // So I add back the offset to reproduce the raw data
-    //for(uint32_t i=0; i<size; ++i)
-    //{
-    //    buf[i] = buf[i] + pedestal[i].offset;
-    //}
-
-    // SRS method
-    //for(uint32_t i = 0; i < size; ++i)
-    //{
-    //    //buf[i] = pedestal[i].offset - buf[i]; // for SRS, SRS is using negative ADC value
-    //    buf[i] = buf[i] - pedestal[i].offset;   // for MPD, MPD is using positive ADC value
-    //    // this is more reasonable than Kondo's initial version
-    //    if(buf[i] < pedestal[i].noise * common_thres) {
-    //        average += buf[i];
-    //        count++;
-    //    }
-    //}
-
-    // online_zero_suppression is an overall switch 
+    // Step A
+    // online_zero_suppression is an overall switch
     // (it decides whether raw_data_flags will be used or not)
     //     when online zero suppression is turned on,
     //     raw_data_flag has two states: 1) OnlineCommonModeSubtractioniEnabled &
     //                                   2) OnlineBuildAllSamples
-    //if(!online_zero_suppression || TEST_BIT(raw_data_flags, OnlineBuildAllSamples))
     if(!online_zero_suppression)
     {
-        // MPD algorithm -- TODO: needs to refine (absolutely)
         for(uint32_t i = 0; i < size; ++i)
         {
             buf[i] = buf[i] - pedestal[i].offset;
         }
     }
+
+    // Step B + C run offline unless the FPGA already subtracted the
+    // common mode online
+    bool do_offline_cm = !online_zero_suppression ||
+        !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled);
+
+    if(do_offline_cm)
+    {
 #ifdef SORTING_ALGORITHM
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
-    {
         average = dynamic_ts_common_mode_sorting(buf, size);
-    }
-    else {
-        std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
-            <<std::endl;
-    }
 #elif defined(DANNING_ALGORITHM)
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
-    {
         average = dynamic_ts_common_mode_danning(buf, size);
-    }
 #else
-    std::cout<<"ERROR: must specifiy one common mode calculation method..."<<std::endl;
-    exit(0);
+        std::cout<<"ERROR: must specifiy one common mode calculation method..."<<std::endl;
+        exit(0);
 #endif
 
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
-    {
-        // common mode correction
-        for(uint32_t i = 0; i < size; ++i)
+        // Step C: subtract common mode; for negative polarity this also
+        // flips the pulse to point upward
+        if(signal_polarity)
         {
-            buf[i] -= average;
+            for(uint32_t i = 0; i < size; ++i)
+                buf[i] = average - buf[i];
+        }
+        else
+        {
+            for(uint32_t i = 0; i < size; ++i)
+                buf[i] -= average;
         }
 
         // save offline common mode
         offline_common_mode.push_back(average);
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// do common mode correction (bring the signal average to 0): SRS version
-//#include <TFile.h>
-void GEMAPV::CommonModeCorrection_SRS(float *buf, const uint32_t &size, [[maybe_unused]]const uint32_t &ts)
-{
-    //int count = 0;
-    float average = 0;
-
-    // debug
-    //auto debug_plot_h = [](float *buf, size_t size, const char* key) -> TH1F*
-    //{
-    //    TH1F *h = new TH1F(key, key, 150, 0, 150);
-    //    for(size_t i=0; i<size; i++)
-    //        h -> SetBinContent(i+1, buf[i]);
-    //    return h;
-    //};
-
-    //TH1F *debug_original_h = debug_plot_h(buf, size, "h_original");
-
-    // SRS method
-    for(uint32_t i = 0; i < size; ++i)
+    else if(signal_polarity)
     {
-        //buf[i] = pedestal[i].offset - buf[i]; // for SRS, SRS is using negative ADC value
-        buf[i] = buf[i] - pedestal[i].offset;
-        // this is more reasonable than Kondo's initial version
-        //if(buf[i] < pedestal[i].noise * common_thres) {
-        //    average += buf[i];
-        //    count++;
-        //}
-    }
-
-    //TH1F* debug_offset_sub_h = debug_plot_h(buf, size, "h_offset_sub");
-
-#ifdef SORTING_ALGORITHM
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
-    {
-        average = dynamic_ts_common_mode_sorting(buf, size);
-    }
-    else {
-        std::cout<<"!online_zero_suppression || TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled)"
-            <<std::endl;
-    }
-#elif defined(DANNING_ALGORITHM)
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
-    {
-        average = dynamic_ts_common_mode_danning(buf, size);
-    }
-#else
-    std::cout<<"ERROR: must specifiy one common mode calculation method..."<<std::endl;
-    exit(0);
-#endif
-
-    if(!online_zero_suppression || !TEST_BIT(raw_data_flags.data_flag, OnlineCommonModeSubtractionEnabled))
-    {
-        // common mode correction
+        // FPGA already removed offset + common mode in NATIVE (negative)
+        // polarity; only the upward orientation flip remains to be done
         for(uint32_t i = 0; i < size; ++i)
-        {
-#ifdef USE_SRS
-            buf[i] = average - buf[i];
-#else
-            buf[i] -= average;
-#endif
-        }
-
-        // save offline common mode
-        offline_common_mode.push_back(average);
+            buf[i] = -buf[i];
     }
-
-    //TH1F *debug_cm_sub_h = debug_plot_h(buf, size, "h_cm_sub");
-    //TFile *f = new TFile("debug.root", "recreate");
-    //debug_original_h -> Write();
-    //debug_offset_sub_h -> Write();
-    //debug_cm_sub_h -> Write();
-    //f -> Close();
-    //getchar();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1114,16 +1033,13 @@ float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, const uint32_t &_size)
     float average = 0.;
     int count = 0;
 
-    // top/bottom-N tracker on the stack -- no per-call heap allocation
-#ifdef USE_SRS
-    // remove the lowest 20 strips for common mode calculation
+    // top/bottom-N tracker on the stack -- no per-call heap allocation.
+    // Signal strips must not bias the common mode:
+    //   positive polarity -> pulse sticks UP   -> remove the highest N strips
+    //   negative polarity -> pulse sticks DOWN -> remove the lowest  N strips
     float high_adc[NUM_HIGH_STRIPS];
-    for(int k = 0; k < NUM_HIGH_STRIPS; ++k) high_adc[k] = 9999.;
-#else
-    // remove the highest 20 strips for common mode calculation
-    float high_adc[NUM_HIGH_STRIPS];
-    for(int k = 0; k < NUM_HIGH_STRIPS; ++k) high_adc[k] = -9999.;
-#endif
+    for(int k = 0; k < NUM_HIGH_STRIPS; ++k)
+        high_adc[k] = signal_polarity ? 9999. : -9999.;
 
     // iterate the caller's buffer in place, skipping unused channels
     // (preserves the exact filtering done for experiments that have them)
@@ -1134,13 +1050,13 @@ float GEMAPV::dynamic_ts_common_mode_sorting(float *_buf, const uint32_t &_size)
         const float v = _buf[i];
         average += v;
         count++;
-#ifdef USE_SRS
-        if(v <= high_adc[0])
-            binary_insert_find_low(high_adc, v, 0, NUM_HIGH_STRIPS);
-#else
-        if(v > high_adc[0])
-            binary_insert_find_high(high_adc, v, 0, NUM_HIGH_STRIPS);
-#endif
+        if(signal_polarity) {
+            if(v <= high_adc[0])
+                binary_insert_find_low(high_adc, v, 0, NUM_HIGH_STRIPS);
+        } else {
+            if(v > high_adc[0])
+                binary_insert_find_high(high_adc, v, 0, NUM_HIGH_STRIPS);
+        }
     }
 
     //std::cout<<"debug: average: "<<average/(float)count<<std::endl;

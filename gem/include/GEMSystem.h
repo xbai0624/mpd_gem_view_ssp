@@ -55,6 +55,9 @@ public:
         int adc_ch, i2c_ch, apv_pos, invert;
         std::string discriptor;
         int backplane_id, gem_pos;
+        // signal polarity: 0 = positive (MPD-like), 1 = negative (SRS-like);
+        // -1 = column absent in mapping (default resolved in buildAPV)
+        int signal_polarity;
 
         // helper variables
         // name of the detector this apv belongs to
@@ -83,6 +86,13 @@ public:
             entry >> crate_id >> layer_id >> mpd_id >> detector_id
                 >> dimension >> adc_ch >> i2c_ch >> apv_pos >> invert
                 >> discriptor >> backplane_id >> gem_pos;
+
+            // optional trailing "signal_polarity" column; keep -1 when the
+            // mapping file doesn't have it (the >> operator on an empty
+            // list would silently yield 0, which is NOT what we want here)
+            signal_polarity = -1;
+            if(!entry.empty())
+                entry >> signal_polarity;
 
             // default values, these values will be updated by GEMDetectorLayer info
             detector_name = "GEM" + std::to_string(detector_id);

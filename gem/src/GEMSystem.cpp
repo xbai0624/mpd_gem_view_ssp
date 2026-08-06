@@ -24,6 +24,7 @@
 #include "GEMMPD.h"
 #include "GEMDetectorLayer.h"
 #include "GEMException.h"
+#include "hardcode.h"   // USE_SRS -- legacy default for signal_polarity
 
 //============================================================================//
 // constructor, assigment operator, destructor                                //
@@ -284,9 +285,10 @@ void GEMSystem::ReadMapFile(const std::string &path)
 
     // we accept 5 types of elements
     // layer, detector, plane, mpd, apv
+    // APV optional args: invert, discriptor, backplane, gem_pos, signal_polarity
     std::vector<std::string> types = {"Layer", "DET", "PLN", "MPD", "APV"};
     std::vector<int> expect_args = {12, 3, 6, 2, 8};
-    std::vector<int> option_args = {0, 0, 0, 0, 4};
+    std::vector<int> option_args = {0, 0, 0, 0, 5};
     // this std::vector is to store all the following arguments
     std::vector<std::vector<std::list<ConfigValue>>> args(types.size());
 
@@ -1285,8 +1287,21 @@ void GEMSystem::buildAPV(std::list<ConfigValue> &apv_args)
     // if enabled, offset will be subtracted online, otherwise not
     bool pedestal_run = (Value<std::string>("VTP Pedestal Subtraction") == "yes" );
 
+    // signal polarity from the mapping (0 positive/MPD-like, 1 negative/
+    // SRS-like); -1 means the column is absent -> default to the legacy
+    // compile-time behavior so old mapping files are unaffected
+    int signal_polarity = apv_entry.signal_polarity;
+    if(signal_polarity < 0) {
+#ifdef USE_SRS
+        signal_polarity = 1;
+#else
+        signal_polarity = 0;
+#endif
+    }
+
     // trying to connect to MPD
-    GEMAPV *new_apv = new GEMAPV(orient, det_pos, status, ts, cth, zth, ctth, pedestal_run);
+    GEMAPV *new_apv = new GEMAPV(orient, det_pos, status, ts, cth, zth, ctth, pedestal_run,
+            signal_polarity);
     if(!mpd->AddAPV(new_apv, adc_ch)) { // failed to add APV to MPD
         delete new_apv;
         return;
