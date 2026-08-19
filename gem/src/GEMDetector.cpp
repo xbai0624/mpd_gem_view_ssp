@@ -297,6 +297,33 @@ void GEMDetector::Reconstruct(GEMCluster *gem_recon)
                                     gem_hits,
                                     det_id,
                                     res);
+
+    // convert UV to XY
+    Transform2DHits();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// transform UV coordinates to XY coordinates
+
+void GEMDetector::Transform2DHits()
+{
+    if(type == "MOLLERGEM") {
+        auto moller_uv_to_xy = [&](float &x, float &y) {
+            const double angle = 26.5 * 3.1415926 / 180.;
+            double u = x, v = y;
+            x =  0.5 * (u+v)/std::cos(angle/2.);
+            y = -0.5 * (u-v)/std::sin(angle/2.);
+        };
+
+        for(auto &h: gem_hits)
+            moller_uv_to_xy(h.x, h.y);
+    }
+    else if(type == "UVAUVGEM") {
+        // TO-DO
+    }
+    else
+        return;
 }
 
 

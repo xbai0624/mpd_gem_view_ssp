@@ -620,10 +620,15 @@ namespace quality_check_histos
         double angle = 26.5 * 3.1415926 / 180.;
         double u = _u, v = _v;
 
-        //u += 20;
-        v -= 406 * TMath::Sin(angle / 2.);
-        double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
-        double x = 0.5 * ( u + v);
+        // this is for the first 2 prototype chambers, not for MOLLER production chambers
+        ////u += 20;
+        //v -= 406 * TMath::Sin(angle / 2.);
+        //double y = -0.5 * ( (u-v) / TMath::Tan(angle/2.) - 406);
+        //double x = 0.5 * ( u + v);
+
+        // this is for Moller production chambers
+        double y = -0.5 * (u-v)/TMath::Sin(angle/2.);
+        double x =  0.5 * (u+v)/TMath::Cos(angle/2.);
 
         return std::make_pair(x, y);
     }

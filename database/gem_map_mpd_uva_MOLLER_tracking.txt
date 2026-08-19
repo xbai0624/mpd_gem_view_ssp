@@ -1,0 +1,93 @@
+# ##############################################################
+# apv configurations
+# Items    : the current configuration (APV)
+# CrateID  : the Unique ID for the VME Crate
+# MPDID    : MPD address in VME Crate
+# GEMID    : detector ID
+# dimension: x/y 0/1
+# ADCId    : the ADCId address of APV
+# I2C      : the I2C address of APV
+# Pos      : Position
+# Invert   : how the detector is positioned in the layer First two are normal (1) last two are inverted (0)
+# other    : backup param used for large scare spectrometer
+
+# notes    : MPD CrateID and MPDID  uniquely define the MPD address
+#            APV crateID, MPDID ADCId uniquely define the APV address
+
+# ##############################################################
+# layer configurations
+# Items             : Layer
+# LayerID           : layer id
+# ChambPerLayer     : how many chambers on this layer
+# readout           : readout type (Cartesian/UV)
+# XOffset           : x offset
+# YOffset           : y offset
+# GEMType           : gem chamber type (UVAGEM/INFNGEM/UVGEM)
+# no_apv_x	    : how many APVs on gem chamber x plane
+# no_apv_y	    : how many APVs on gem chamber y plane
+# x_pitch           : distance between readout strips on chamber x plane (0.4 mm)
+# y_pitch           : distance between readout strips on chamber y plane (0.4 mm)
+# x_rot		    : specifies if the layer is rotated in x. Not-rotated: 1, Rotated: -1
+# y_rot             : specifies if the layer is rotated in y. Not-rotated: 1, Rotated: -1
+
+# *******Layer configurations*******
+# Items, LayerID, ChambPerLayer, readout,  XOffset, YOffset, GEMType, no_apv_x,  no_apv_y, x_pitch, y_pitch  x_rot  y_rot
+
+Layer,	   0,		1,	UV,    0,	0,    MOLLERGEM,	 5, 	 5, 	 0.82,	  0.82,     1, 	   1
+Layer,	   1,		1,	UV,    0,	0,    MOLLERGEM,	 5, 	 5, 	 0.82,	  0.82,     1, 	   1
+Layer,	   2,		1,	UV,    0,	0,    MOLLERGEM,	 5, 	 5, 	 0.82,	  0.82,     1, 	   1
+Layer,	   3,		1,	UV,    0,	0,    MOLLERGEM,	 5, 	 5, 	 0.82,	  0.82,     1, 	   1
+# ============================= Crate_0 INLINE Layer_2 - UVA XY GEM_0 ===================================
+
+# *******   Layer 1 (Top) - Fiber 0 ********
+# Item, vtp_id, Layer, fiber_id, GEMID, DIM,  ADCId,    I2C,    Pos,    Invert, other, backplane, GEMPOS
+APV,    7,      0,      0,     	0,     1,      0,      15,     0,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     0,      1,      14,     0,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     1,      2,      13,     1,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     0,      3,      12,     1,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     1,      4,      11,     2,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     0,      5,      10,     2,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     1,      6,      9,      3,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     0,      7,      8,      3,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     1,      8,      7,      4,       0,      normal, 0,      0,
+APV,    7,      0,      0,     	0,     0,      9,      6,      4,       0,      normal, 0,      0,
+
+
+# *******   Layer 2 - Fiber 1 ********
+# Item, vtp_id, Layer, fiber_id, GEMID, DIM,  ADCId,    I2C,    Pos,    Invert, other, backplane, GEMPOS
+APV,    7,      1,      1,     	1,     1,      0,      15,     0,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     0,      1,      14,     0,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     1,      2,      13,     1,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     0,      3,      12,     1,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     1,      4,      11,     2,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     0,      5,      10,     2,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     1,      6,      9,      3,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     0,      7,      8,      3,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     1,      8,      7,      4,       0,      normal, 0,      0,
+APV,    7,      1,      1,     	1,     0,      9,      6,      4,       0,      normal, 0,      0,
+
+# *******   Layer 3 - Fiber 2 ********
+# Item, vtp_id, Layer, fiber_id, GEMID, DIM,  ADCId,    I2C,    Pos,    Invert, other, backplane, GEMPOS
+APV,    7,      2,      2,     	2,     1,      0,      15,     0,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     0,      1,      14,     0,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     1,      2,      13,     1,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     0,      3,      12,     1,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     1,      4,      11,     2,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     0,      5,      10,     2,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     1,      6,      9,      3,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     0,      7,      8,      3,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     1,      8,      7,      4,       0,      normal, 0,      0,
+APV,    7,      2,      2,     	2,     0,      9,      6,      4,       0,      normal, 0,      0,
+
+# *******   Layer 4 - Fiber 0 ********
+# Item, vtp_id, Layer, fiber_id, GEMID, DIM,  ADCId,    I2C,    Pos,    Invert, other, backplane, GEMPOS
+APV,    7,      3,      3,     	3,     1,      0,      15,     0,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     0,      1,      14,     0,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     1,      2,      13,     1,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     0,      3,      12,     1,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     1,      4,      11,     2,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     0,      5,      10,     2,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     1,      6,      9,      3,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     0,      7,      8,      3,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     1,      8,      7,      4,       0,      normal, 0,      0,
+APV,    7,      3,      3,     	3,     0,      9,      6,      4,       0,      normal, 0,      0,

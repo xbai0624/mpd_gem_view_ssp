@@ -57,6 +57,7 @@ public:
     void Reconstruct(GEMCluster *c);
     void CollectHits();
     void ClearHits();
+    void Transform2DHits();
     void Reset();
 
     // get parameters
