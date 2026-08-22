@@ -7,7 +7,7 @@ RUN=$1
 echo "analyzing run" $RUN
 
 # replay run
-./bin/replay.app/Contents/MacOS/replay -c 0 -t 0 -z 1 -n -1 --tracking off --pedestal database/gem_ped_839.dat --common_mode database/CommonModeRange_839.txt /Users/xinzhan/test/evio_data/MOLLER_UVA/vtp_trigger_test_$RUN.evio.0
+./bin/replay.app/Contents/MacOS/replay -c 0 -t 0 -z 1 -n -1 --tracking on --pedestal database/gem_ped_839.dat --common_mode database/CommonModeRange_839.txt /Users/xinzhan/test/evio_data/MOLLER_UVA/vtp_trigger_test_$RUN.evio.0
 
 # plot run
 #ROOT_FILE='scripts/plot_quality_results.cpp("Rootfiles/cluster_0_fermilab_beamtest_'${RUN}'.root_data_quality_check.root")'

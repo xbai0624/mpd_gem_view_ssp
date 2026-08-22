@@ -46,6 +46,7 @@ namespace quality_check_histos
     float get_strip_mean_time(const StripHit &h);
     float get_seed_strip_mean_time(const StripCluster &c);
     std::pair<double, double> convert_uv_to_xy_moller(const double &u, const double &v);
+    std::pair<double, double> convert_xy_to_uv_moller(const double &x, const double &y);
     std::pair<double, double> convert_xw_to_xy_sbs(const double &x, const double &w);
     std::pair<double, double> convert_uv_to_xy_fit_cylindrical(const double &x, const double &w);
 };
@@ -475,14 +476,25 @@ namespace quality_check_histos
                 }
 
                 int _module_id = det.second -> GetDetModuleID();
+                GEMDetector *_gem_det = gem_sys -> GetDetector(_module_id);
 
                 // 1d should hit -tracker based histograms
                 double z_gem = det.second -> GetOrigin().z;
                 tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, z_gem);
-                histM.histo_1d<float>(Form("h_xshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.x);
-                histM.histo_1d<float>(Form("h_yshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.y);
 
-                // 2d should hit - tracker based histograms
+                double should_hit_x = p.x, should_hit_y = p.y;
+
+                // 1d should hit is for 1D efficiency study, the XY coord should be converted back to UV plane for all UV chambers
+                if(_gem_det && (_gem_det -> GetType() == "MOLLERGEM") )
+                {
+                    std::pair<double, double> uv = convert_xy_to_uv_moller(p.x, p.y);
+                    should_hit_x = uv.first, should_hit_y = uv.second;
+                }
+                // this is for 1D efficiency study, XY should be converted to UV
+                histM.histo_1d<float>(Form("h_xshould_hit_tracker_based_gem%d", _module_id)) -> Fill(should_hit_x);
+                histM.histo_1d<float>(Form("h_yshould_hit_tracker_based_gem%d", _module_id)) -> Fill(should_hit_y);
+
+                // 2d should hit - tracker based histograms, (for 2D, it should still use XY)
                 histM.histo_2d<float>(Form("h_xyshould_hit_tracker_based_gem%d", _module_id)) -> Fill(p.x, p.y);
 
                 // fill residue plots -- these should be from using 2D matched hits
@@ -495,6 +507,9 @@ namespace quality_check_histos
                     histM.histo_2d<float>(Form("h_xresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, xresidue);
                     histM.histo_2d<float>(Form("h_yresidue_x_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(x_did_hit, yresidue);
                     histM.histo_2d<float>(Form("h_yresidue_y_did_hit_gem%d_tracker_exclusive", _module_id)) -> Fill(y_did_hit, yresidue);
+
+                    // 2D did hit
+                    histM.histo_2d<float>(Form("h_xydid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit, y_did_hit);
                 }
 
                 // fill 1d did hits -- for 1D efficiency study, these should be from plane clusters, not from 2D matched hits
@@ -506,9 +521,17 @@ namespace quality_check_histos
 
                     for(const auto &i: plane_hits) {
                         tracking_dev::point_t p = tracking->GetTrackingUtility() -> projected_point(pt, dir, i.z);
-                        tracking_dev::point_t p_diff = i - p;
 
-                        double diff = use_x? std::abs(p_diff.x) : std::abs(p_diff.y);
+                        double projected_coord;
+                        if( _gem_det && (_gem_det -> GetType() == "MOLLERGEM") ) {
+                            // moller case
+                            std::pair<double, double> uv = convert_xy_to_uv_moller(p.x, p.y);
+                            projected_coord = use_x? uv.first : uv.second;
+                        } else {
+                            projected_coord = use_x? p.x : p.y;
+                        }
+
+                        double diff = use_x? std::abs(i.x - projected_coord) : std::abs(i.y - projected_coord);
 
                         // only search within the search_radius
                         if(diff > search_radius)
@@ -531,10 +554,6 @@ namespace quality_check_histos
                     histM.histo_1d<float>(Form("h_xdid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit_1d);
                 if(y_did_hit_1d != 99999999)
                     histM.histo_1d<float>(Form("h_ydid_hit_tracker_based_gem%d", _module_id)) -> Fill(y_did_hit_1d);
-
-                if(x_did_hit_1d != 99999999 && y_did_hit_1d != 99999999)
-                // 2d should hit - tracker based histograms
-                    histM.histo_2d<float>(Form("h_xydid_hit_tracker_based_gem%d", _module_id)) -> Fill(x_did_hit_1d, y_did_hit_1d);
             }
         }
     }
@@ -631,6 +650,19 @@ namespace quality_check_histos
         double x =  0.5 * (u+v)/TMath::Cos(angle/2.);
 
         return std::make_pair(x, y);
+    }
+
+    std::pair<double, double> convert_xy_to_uv_moller(const double &_x, const double &_y)
+    {
+        // convert xy to UV coords, this is only for 1D plane efficiency study, as you
+        // can't convert a single U or V coordinate to X or Y coordinate
+        double angle = 26.5 * 3.1415926 / 180.;
+        double x = _x, y = _y;
+
+        double u = x * TMath::Cos(angle/2.) - y * TMath::Sin(angle/2.);
+        double v = x * TMath::Cos(angle/2.) + y * TMath::Sin(angle/2.);
+
+        return std::make_pair(u, v);
     }
 
     std::pair<double, double> convert_xw_to_xy_sbs(const double &_x, const double &_w)
